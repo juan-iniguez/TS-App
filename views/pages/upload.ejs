@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>
+    <link rel="stylesheet" href="/css/upload.css">
+    <title>APL-DEW | Upload</title>
+</head>
+<body class="body-container">
+    <div class="container">
+        <!-- HEADER --> 
+         <header>
+             <%- include('../partials/header'); %>
+         </header>
+        
+        <!-- MAIN -->
+        <main style="min-height: 700px;max-width: 1120px;" class="main-container" id="upload-main">
+            <h1 style="margin-top: 30px;">Upload</h1>
+            <p>Select and upload the invoice and matching waybill for the shipment</p>
+            <div class="upload-container" style="margin-top: 2em;margin-bottom: 2em;">
+                <div class="upload-square">
+                    <label for="apl-invoice" class="form-label">APL Invoice</label>
+                    <input class="form-control" type="file" id="apl-invoice">
+                </div>
+                <div class="upload-square">
+                    <label for="apl-waybill" class="form-label">APL Waybill</label>
+                    <input class="form-control" type="file" id="apl-waybill">
+                </div>
+            </div>
+            <div id="error-msg" class="error-msg" hidden>
+                <p id="error-banner"></p>
+            </div>
+            <a class="upload-btn" onclick=submit()>Upload</a>
+        </main>
+        <div style="min-height: 700px;max-width: 1120px;margin-top: 25px;" id="invoice-main-container" hidden>
+            <div class="form-header">
+                <ul style="width: 100%;" class="nav nav-tabs">
+                    <li class="nav-item">
+                      <a class="details-tab nav-link active" aria-current="page" id="invoice-details" onclick=toggleInvoice() >Invoice Details</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="details-tab nav-link" id="waybill-details" onclick=toggleWaybill()>Waybill Details</a>
+                    </li>
+                </ul>
+                <a onclick="submit_db()" class="done-btn active">Confirm Details</a>
+            </div>
+            <div style="min-height: 700px;max-width: 1120px;" class="invoice-layout container" id="invoice-main" hidden>
+                <h1>Confirm Invoice Details</h1>
+                <div class="invoice-layout info" id="invoice-info-i">
+                    <h2>Invoice Details</h2>
+                    <div class="row">
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="BOL-I">Bill of Landing</label>
+                                <input type="text" class="form-control" id="BOL-I">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="INVOICE_NUM-I">Invoice #</label>
+                                <input type="text" class="form-control" id="INVOICE_NUM-I">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CUSTOMER_NUM-I">Customer</label>
+                                <input type="text" class="form-control" id="CUSTOMER_NUM-I">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="INVOICE_DATE-I">Invoice Date</label>
+                                <input type="text" class="form-control" id="INVOICE_DATE-I">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="invoice-layout info" id="vessel-info-i">
+                    <h2>Vessel Information</h2>
+                    <div class="row">
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="VOYAGE-I">Voyage</label>
+                                <input type="text" class="form-control" id="VOYAGE-I">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="RECEIPT_PLACE-I">Receipt Place</label>
+                                <input type="text" class="form-control" id="RECEIPT_PLACE-I">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="DELIVERY_PLACE-I">Delivery Place</label>
+                                <input type="text" class="form-control" id="DELIVERY_PLACE-I">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="VESSEL-I">Vessel</label>
+                                <input type="text" class="form-control" id="VESSEL-I">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="DISCHARGE_PORT-I">Discharge Port</label>
+                                <input type="text" class="form-control" id="DISCHARGE_PORT-I">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="LOAD_PORT-I">Load Port</label>
+                                <input type="text" class="form-control" id="LOAD_PORT-I">
+                            </div>
+    
+                        </div>
+                    </div>
+                </div>
+                <div class="invoice-layout info" id="container-info-i">
+                    <h2>Container</h2>
+                    <div class="row">
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CONT_SIZE-I">Container Size</label>
+                                <input type="text" class="form-control" id="CONT_SIZE-I">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CONT_NUM-I">Container #</label>
+                                <input type="text" class="form-control" id="CONT_NUM-I">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="invoice-layout info" id="charges-info-i">
+                    <h2>Charges</h2>
+                    <table id="charges-table" rules="all">
+                        <tr>
+                            <th>Size</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Based On (UNI)</th>
+                            <th>Rate Currency</th>
+                            <th>Amount</th>
+                            <th>Amount in USD</th>
+                        </tr>
+                        <!-- INCLUDE CHARGES -->
+                    </table>
+                    <div style="margin-top: 10px;" class="total-class">
+                        <div class="input-group total-container">
+                            <label style="width: 160px;" class="input-group-text" for="TOTAL-I">Total</label>
+                            <input style="text-align: right;" id="TOTAL-I" class="form-control" type="text">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="min-height: 700px;max-width: 1120px;" class="invoice-layout container" id="waybill-main" hidden>
+                <h1>Confirm Waybill Details</h1>
+                <div class="invoice-layout info" id="waybill-info-w">
+                    <h2>Waybill Information</h2>
+                    <div class="row">
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="BOL-W">Bill of Landing</label>
+                                <input type="text" class="form-control" id="BOL-W">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CONT_NUM-W">Container #</label>
+                                <input type="text" class="form-control" id="CONT_NUM-W">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="VESSEL-W">Vessel</label>
+                                <input type="text" class="form-control" id="VESSEL-W">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CONT_SIZE-W">Container Size</label>
+                                <input type="text" class="form-control" id="CONT_SIZE-W">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="invoice-layout info" id="container-info-w">
+                    <h2>Container Information</h2>
+                    <div class="row">
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CODE-W">Code</label>
+                                <input type="text" class="form-control" id="CODE-W">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="WEIGHT_LBS-W">Weight (LBS)</label>
+                                <input type="text" class="form-control" id="WEIGHT_LBS-W">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="ETD-W">ETD</label>
+                                <input type="text" class="form-control" id="ETD-W">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="SERIAL_NUM-W">Serial #</label>
+                                <input type="text" class="form-control" id="SERIAL_NUM-W">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="CUBIC_FEET-W">Cubic Feet</label>
+                                <input type="text" class="form-control" id="CUBIC_FEET-W">
+                            </div>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="ETA-W">ETA</label>
+                                <input type="text" class="form-control" id="ETA-W">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="invoice-layout info" id="charges-info-i">
+                    <h2>Shipments</h2>
+                    <table id="shipments-table" rules="all">
+                        <tr>
+                            <th>Pieces</th>
+                            <th>Member Name</th>
+                            <th>SCAC</th>
+                            <th>GBL</th>
+                            <th>Weight (LBS)</th>
+                            <th>TTL_CF</th>
+                            <th>RDD</th>
+                            <th>NET</th>
+                        </tr>
+                        <!-- INCLUDE CHARGES -->
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- FOOTER -->
+        <br>
+        <footer>
+            <%- include('../partials/footer'); %>
+        </footer>
+    </div>
+</body>
+
+<script src="/js/upload.js"></script>
+
+</html>

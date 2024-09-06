@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>
+    <link rel="stylesheet" href="/css/search.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <%- include('../partials/header'); %>
+        </header>
+
+        <div style="max-width: 1200px;min-height: 700px;margin-top: 30px;">
+            <div class="tab-search-container">
+                <ul style="width: 100%;" class="nav nav-tabs">
+                    <li class="nav-item">
+                      <a class="details-tab nav-link active" id="shipments-tab" >Shipments</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="details-tab nav-link" id="invoices-tab" >Invoices</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="details-tab nav-link" id="tsp-tab" >TSP's</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="details-tab nav-link" id="rates-tab" >Rates</a>
+                    </li>
+                </ul>
+                <div class="input-group mb-3">
+                    <!-- <label for="search-arg">Search</label> -->
+                    <select class="search-arg" id="search-arg", name="search-arg">
+                        <option value="BOL" >BOL</option>
+                        <option value="MEMBER_NAME">Member Name</option>
+                        <option value="DATE_CREATED">Date Created</option>
+                        <option value="SCAC">SCAC</option>
+                        <option value="GBL">GBL</option>
+                        <option value="TTL_CF">TTL_CF</option>
+                    </select>
+                    <input type="text" class="form-control" id="search-bar">
+                </div>
+            </div>
+            <table style="width:100%" id="table-main">
+                <!-- INCLUDE RESULTS -->
+            </table>
+        </div>
+
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+    </div>
+</body>
+<script src="/js/search.js"></script>
+</html>

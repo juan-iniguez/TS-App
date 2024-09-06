@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>  
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <%- include('../partials/header'); %>
+        </header>
+
+        <div style="min-width: 1200px;min-height: 700px;">
+            <h1 style="margin-top: 20px;">TSA Upload</h1>
+            <form action="/api/db-tsp" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".xlsx">
+                <button type="submit">Upload</button>
+            </form>
+
+            <h1 style="margin-top: 20px;">Rates Upload</h1>
+            <form action="/api/db-rates" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" accept=".xlsx">
+                <button type="submit">Upload</button>
+            </form>
+
+        </div>
+
+        <footer>
+          <%- include('../partials/footer'); %>
+        </footer>
+    </div>
+</body>
+</html>
