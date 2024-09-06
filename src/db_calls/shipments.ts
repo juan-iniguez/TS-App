@@ -1,4 +1,11 @@
 
+export let aplDB = {
+  createShipment,
+  checkShipmentInvoice,
+  getInvoiceCount,
+  insertDeWittInvoice,
+}
+
 /** Create shipment IF invoice is not yet created. 
  * 
  * This calls all the database queries to create a DeWitt Invoice
@@ -13,12 +20,11 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
 
     return new Promise((resolve,reject)=>{
         db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE  FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME", MEMBER_NAME, (err:any,rows:any)=>{
-            if(err){
-              console.log(err)
-            }else{
-              // console.log(rows);
-              data_payload = rows[0];
-              db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=?", data_payload.SCAC,(err:any,rows1:any)=>{
+          if(err){
+            console.log(err)
+          }else{
+            data_payload = rows[0];
+            db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=?", data_payload.SCAC,(err:any,rows1:any)=>{
                 if(err){
                   console.log(err)
                 }else{
@@ -38,9 +44,6 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
                   data_payload.BOL = BOL;
         
                   let rate_query:any = {}
-                  // $ORIGIN: String,
-                  // $DESTINATION: String,
-                  // $CONT_SIZE: String,
                   
                   rate_query["$CONT_SIZE"] = parseInt(data_payload.CONT_SIZE);
         
@@ -82,7 +85,6 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
                         break;
                     }
                   }  
-                  // console.log("### Delivery Place: " + data_payload.DELIVERY_PLACE);
                   if(data_payload.DELIVERY_PLACE != "-"){
                     switch (data_payload.DELIVERY_PLACE) {
                       case "BALTIMORE, MD" :
@@ -121,9 +123,7 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
                         break;
                     }
                   }
-        
-                  // console.log(rate_query);
-        
+                
                   // Get the BASED_ON rate
                   data_payload.BASED_ON = parseFloat((data_payload.TTL_CF / data_payload.CUBIC_FEET).toFixed(5));
         
@@ -142,14 +142,14 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
                       data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
                       data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
                     }
-                    // console.log(data_payload);
                     resolve(data_payload);
                   })
                 }
-              })
-            }
-          })
-          // console.log(data_payload)        
+              }
+            )
+          }
+        }
+      )
     })
 }
 
@@ -168,19 +168,29 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
  * @param MEMBER_NAME - Name of the customer/member of the shipment
  * @returns Resolved Promise
 */
-export function checkShipment(db:any, MEMBER_NAME:any){
+export function checkShipmentInvoice(db:any, MEMBER_NAME:any){
     const response:Promise<Object> = new Promise((resolve,reject)=>{
+        console.log(MEMBER_NAME)
         db.all('SELECT * FROM DEWITT_INVOICES WHERE MEMBER_NAME=?', MEMBER_NAME, (err:any,rows:any)=>{
-            if(rows[0] == undefined || rows == undefined ){
-                resolve({exists: false, data: rows})
-            }else{
-                resolve({exists: true, data: rows})
-            }
+          console.log(rows[0] == undefined)
+          if(rows[0] == undefined){
+            console.log("No It Doesnt exist")
+            resolve({exists: false, data: rows})
+          }else{
+            console.log("Yes it exists")
+            resolve({exists: true, data: rows})
+          }
         })
     }) 
     return Promise.resolve(response);
 }
 
+/**
+ * Get the total count of inv as an `int` this is to get the INV-##### number
+ * 
+ * @param db 
+ * @returns `int` with number with total invoices in the DEWITT_INVOICES table 
+ */
 export function getInvoiceCount(db:any){
     return new Promise((resolve,reject)=>{
         db.all("SELECT INVOICE_NUM FROM DEWITT_INVOICES ORDER BY INVOICE_NUM DESC LIMIT 1", (err:any, rows:any)=>{

@@ -12,7 +12,8 @@ import multer from 'multer';
 import xlsx from 'xlsx';
 import { PDFDocument } from 'pdf-lib'
 
-import {createShipment, checkShipment, getInvoiceCount, insertDeWittInvoice} from './db_calls/shipments';
+import { aplDB } from './db_calls/shipments';
+import { writePDF } from "./pdf_calls/pdf";
 // import { JSONParser } from "formidable/parsers";
 
 const spawn = require("child_process").spawn;
@@ -71,7 +72,7 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
   let data_payload:any = {}
   let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
 
-  checkShipment(db,req.params.member_name).then((data:any)=>{
+  aplDB.checkShipmentInvoice(db,req.params.member_name).then((data:any)=>{
     if(data.exists){
       let data_payload = data.data[0];
       data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
@@ -83,7 +84,7 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
       res.render("pages/shipment", {data:data_payload});
 
     }else{
-      createShipment(db,data_payload,req.params.member_name, req.params.bol,res).then(data=>{
+      aplDB.createShipment(db,data_payload,req.params.member_name, req.params.bol,res).then(data=>{
         data_payload = data;
         data_payload.INVOICE_DATE = "N/A";
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
@@ -441,21 +442,12 @@ app.post('/api/db-rates', upload.single('file'),(req,res)=>{
 })
 
 // Create DeWitt Ocean Invoice #####################################
-app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
-  
-  checkShipment(db, req.body.member_name).then((data:any)=>{
-    if(data.exists){
-
-    }else{
-
-    }
-  })
-
+app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response)=>{
+  console.log(req.params.BOL);
   // PDF Modification
   const pdfDoc = await PDFDocument.load(fs.readFileSync('resources/TSP Invoice.pdf'));
   const form = pdfDoc.getForm()
-  const fields = form.getFields() 
-
+  
   // 1-17 Fields ORDER MATTERS
   let fields_names = [
     "TSP_NAME",
@@ -499,136 +491,29 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
   let data_payload:any
   let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
   let db_payload:any;
-
-  // Create Entry DB for DEWITT_INVOICES
-  createShipment(db,data_payload,req.body.MEMBER_NAME, req.body.BOL ,res).then(async (data)=>{
-    getInvoiceCount(db).then(async (val:any )=>{
-      data_payload = data;
-      data_payload.INVOICE_DATE = new Date();
-      data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
-      data_payload.TSA_NUM = settings.TSA_NUM;
-      data_payload.TARIFF = settings.TARIFF;
-      data_payload.INVOICE_NUM = val;
-      data_payload.VOID = null;
   
-      db_payload = {...data_payload};
-      delete db_payload["DELIVERY_PLACE"];
-      delete db_payload["CUBIC_FEET"];
-      delete db_payload["RATES"]
-      delete db_payload["NET_RATES"]
-      db_payload.CHARGES = {RATES: data_payload.RATES,NET_RATES: data_payload.NET_RATES}
-      db_payload.TOTAL = data_payload.NET_RATES.TOTAL;
-      // console.log("DATA")
-      // console.log(data_payload);
-      // console.log("DB")
-      // console.log(db_payload);
-  
-  
-      // let example = {
-      //   BOL: 'USG0260825',
-      //   VESSEL: 'PRESIDENT KENNEDY',
-      //   VOYAGE: '0DBHOW1PL',
-      //   DISCHARGE_PORT: 'PITI, GUAM',
-      //   LOAD_PORT: 'LOS ANGELES, CA',
-      //   RECEIPT_PLACE: 'BALTIMORE, MD',
-      //   CONT_SIZE: '40HC',
-      //   CONT_NUM: 'CMAU7055123',
-      //   SCAC: 'SSAV',
-      //   MEMBER_NAME: 'PARKER, CRSYTAL',
-      //   GBL: 'HHE677321',
-      //   TTL_CF: 671,
-      //   PIECES: '4/4',
-      //   TOTAL:
-      //   CHARGES:
-      //   TSP_NAME: 'N/A', 
-      //   ADDRESS_1: 'N/A', 
-      //   ADDRESS_2: 'N/A', 
-      //   BASED_ON: 0.35, 
-      //   DELIVERY_PLACE: '-', ********************************
-      //   CUBIC_FEET: 1926, ********************************
-      //   RATES: {
-      //     TOTAL: 9772,
-      //     OCF: 3768,
-      //     'THC USA': 755,
-      //     AMS: 0,
-      //     'Inland (Rail)': 3020,
-      //     'Invasive Species Inspection Fee': 52,
-      //     'Guam THC': 915,
-      //     FAF: 1262
-      //   },
-      //   NET_RATES: {
-      //     TOTAL: 3420.2,
-      //     OCF: 1318.8,
-      //     'THC USA': 264.25,
-      //     AMS: 0,
-      //     'Inland (Rail)': 1057,
-      //     'Invasive Species Inspection Fee': 18.2,
-      //     'Guam THC': 320.25,
-      //     FAF: 441.7
-      //   }
-      // }
-  
-      let dewInv_db_ready:any = {}
-  
-      for(let x in db_payload){
-        if("CHARGES" == x){
-          dewInv_db_ready["$" + x] = JSON.stringify(db_payload[x])
-        }else{
-          dewInv_db_ready["$" + x] = db_payload[x];
-        }
-      }
-  
-      insertDeWittInvoice(db,dewInv_db_ready).then((res)=>{
-        console.log(res);
-      }).catch((reason)=>{
-        // r
+  // Check if Invoice already exists
+  aplDB.checkShipmentInvoice(db, req.params.MEMBER_NAME).then((response:any)=>{
+    if(response.exists){
+      console.log(response.data[0])
+      writePDF.writeOceanInv(db,response.data[0],response.data[0].INVOICE_NUM,false).then((pdfUint8)=>{
+        // DOES NOT WORK DONT KNOW WHY
+        res.status(200);
+        res.type('pdf');
+        let pdfbuffer = Buffer.from(pdfUint8.buffer);
+        res.send(pdfbuffer)
+  })
+    }else{
+      // Create Entry DB for DEWITT_INVOICES
+      aplDB.createShipment(db,data_payload,req.params.MEMBER_NAME, req.params.BOL ,res).then(async (data)=>{
+        aplDB.getInvoiceCount(db).then(async (val:any )=>{
+          writePDF.writeOceanInv(db, data,val,true).then((pdfUint8)=>{
+            res.contentType("application/pdf");
+            res.send(pdfUint8)
+          })
+        })
       })
-  
-      function addLeadingZeros(amount:any){
-        let x = "";
-        for(let i=0;i<6-amount;i++){
-          x += "0";
-        }
-        return x;
-      }
-
-      for(let i in fields_names){
-        // Set the text value
-        let textField = form.getTextField(fields_names[i]);
-        if(typeof(data_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM"){
-          textField.setText(data_payload[fields_names[i]].toString());
-        }else if(fields_names[i] == "INVOICE_NUM"){
-          textField.setText("NVC-" + addLeadingZeros(data_payload[fields_names[i]].toString().split('').length) + data_payload[fields_names[i]] );
-        }else if(fields_names[i] == "INVOICE_DATE"){
-          textField.setText(new Date(data_payload[fields_names[i]]).toJSON().slice(0, 10));
-        }else{
-          textField.setText(data_payload[fields_names[i]]);
-        }
-      }
-      
-      // CHARGES
-      // Charges BASED ON
-      form.getTextField("BASED_ON").setText(data_payload.BASED_ON.toString());
-  
-      // RATE
-      for(let i in data_payload.RATES){
-        if(i == "TOTAL"){continue}
-        // console.log("RATES-" + i)
-        form.getTextField("RATES-" + i).setText(data_payload.RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      }
-      
-      // NET_RATES
-      for(let i in data_payload.NET_RATES){
-        if(i == "TOTAL"){continue}
-        form.getTextField("NET_RATES-" + i).setText(data_payload.NET_RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      }
-      
-      form.getTextField("TOTAL").setText(data_payload.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));  
-  
-      const pdfBytes = await pdfDoc.save();
-      fs.writeFileSync('resources/TSP Invoice.pdf',pdfBytes);
-      res.sendStatus(200);
-    })
+    }
   })
 })
 

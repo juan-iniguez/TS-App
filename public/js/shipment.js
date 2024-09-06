@@ -1,8 +1,13 @@
+let data_send = {
+    BOL: document.getElementById("BOL").value,
+    MEMBER_NAME: document.getElementById("MEMBER_NAME").value,
+}
+
 function createDInvoice(){
     // Get Everything
     // Get Charges
 
-    axios.post("/api/create-dew-inv", data_send).then(res=>{
+    axios.get(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}`).then(res=>{
         if(res.status == 200 ){
             window.open("/api/get-dew-inv-pdf", '_blank').focus();
             location.reload();
@@ -10,11 +15,6 @@ function createDInvoice(){
     }).catch(err=>{
         console.log(err);
     })
-}
-
-let data_send = {
-    BOL: document.getElementById("BOL").value,
-    MEMBER_NAME: document.getElementById("MEMBER_NAME").value,
 }
 
 let editMenu = document.getElementById("edit-menu");
@@ -41,34 +41,6 @@ function addLeadingZeros(amount){
 invoiceNum.innerText = "NVC-" + addLeadingZeros(parseInt(invoiceNum.ariaCurrent));
 
 let getPDF = () =>{
-    
+    axios.get(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}`)
 }
 
-
-// MEMBER_NAME, *
-// TARIFF, *
-// PAYMENT_TERMS, *
-// TSA_NUM, *
-// CHARGES, *
-// TOTAL, *
-// INVOICE_DATE, *
-// BOL, *
-// VESSEL, *
-// VOYAGE, *
-// DISCHARGE_PORT, *
-// LOAD_PORT, *
-// CONT_SIZE, *
-// CONT_NUM, *
-// RECEIPT_PLACE,*
-// SCAC, *
-// GBL, *
-// TTL_CF, *
-// PIECES, *
-// TSP_NAME, *
-// ADDRESS_1, *
-// ADDRESS_2, *
-// VOID, *
-// BASED_ON, *
-// INVOICE_NUM *
-
-// BOL | TARIFF | PAYMENT_TERMS | TSA_NUM | CHARGES | VOID | TOTAL | INVOICE_DATE | MEMBER_NAME | VESSEL | VOYAGE | DISCHARGE_PORT | LOAD_PORT | CONT_SIZE | CONT_NUM | SCAC | GBL | TTL_CF | PIECES | TSP_NAME | ADDRESS_1 | ADDRESS_2 | RECEIPT_PLACE | INVOICE_NUM | BASED_ON
