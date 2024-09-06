@@ -12,7 +12,7 @@ import multer from 'multer';
 import xlsx from 'xlsx';
 import { PDFDocument } from 'pdf-lib'
 
-import {createShipment, checkShipment, getInvoiceCount} from './db_calls/shipments';
+import {createShipment, checkShipment, getInvoiceCount, insertDeWittInvoice} from './db_calls/shipments';
 // import { JSONParser } from "formidable/parsers";
 
 const spawn = require("child_process").spawn;
@@ -443,28 +443,18 @@ app.post('/api/db-rates', upload.single('file'),(req,res)=>{
 // Create DeWitt Ocean Invoice #####################################
 app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
   
-  // TODO! CHECK THE INVOICE IS NOT ALREADY MADE!!!!!! CROSS SITE ATTACK
+  checkShipment(db, req.body.member_name).then((data:any)=>{
+    if(data.exists){
+
+    }else{
+
+    }
+  })
 
   // PDF Modification
-  const pdfDoc = await PDFDocument.load(fs.readFileSync('pdf/TSP Invoice.pdf'));
+  const pdfDoc = await PDFDocument.load(fs.readFileSync('resources/TSP Invoice.pdf'));
   const form = pdfDoc.getForm()
   const fields = form.getFields() 
-
-  // fields.forEach(field => {
-  //   const type = field.constructor.name
-  //   const name = field.getName()
-  //   console.log(`${type}: ${name}`)
-  // })
-
-  // form.getTextField("BASED_ON").setText("TEST@")
-
-  // console.log("#### WHAT FIELDS:")
-  // console.log(form.getField("BASED_ON"));
-
-  // const pdfBytes = await pdfDoc.save();
-  // fs.writeFileSync('pdf/TSP Invoice.pdf',pdfBytes);
-  // res.sendStatus(200);
-  // return;
 
   // 1-17 Fields ORDER MATTERS
   let fields_names = [
@@ -514,8 +504,6 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
   createShipment(db,data_payload,req.body.MEMBER_NAME, req.body.BOL ,res).then(async (data)=>{
     getInvoiceCount(db).then(async (val:any )=>{
       data_payload = data;
-      // WHY 
-      // data_payload.INVOICE_DATE = new Date().toJSON().slice(0, 10);
       data_payload.INVOICE_DATE = new Date();
       data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
       data_payload.TSA_NUM = settings.TSA_NUM;
@@ -558,7 +546,6 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
       //   BASED_ON: 0.35, 
       //   DELIVERY_PLACE: '-', ********************************
       //   CUBIC_FEET: 1926, ********************************
-  
       //   RATES: {
       //     TOTAL: 9772,
       //     OCF: 3768,
@@ -591,12 +578,10 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
         }
       }
   
-      // INSERT QUERY TO DB ADD THIS TO DB
-      db.all("INSERT INTO DEWITT_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM)", dewInv_db_ready,(x:any, err:any)=>{
-        if(err){
-          console.log(err)
-        }
-        // console.log(x, err);
+      insertDeWittInvoice(db,dewInv_db_ready).then((res)=>{
+        console.log(res);
+      }).catch((reason)=>{
+        // r
       })
   
       function addLeadingZeros(amount:any){
@@ -610,11 +595,9 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
       for(let i in fields_names){
         // Set the text value
         let textField = form.getTextField(fields_names[i]);
-        // console.log(fields_names[i]);
         if(typeof(data_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM"){
           textField.setText(data_payload[fields_names[i]].toString());
         }else if(fields_names[i] == "INVOICE_NUM"){
-          // console.log("NVC-" + addLeadingZeros(data_payload[fields_names[i]].toString().split('').length) + data_payload[fields_names[i]] )
           textField.setText("NVC-" + addLeadingZeros(data_payload[fields_names[i]].toString().split('').length) + data_payload[fields_names[i]] );
         }else if(fields_names[i] == "INVOICE_DATE"){
           textField.setText(new Date(data_payload[fields_names[i]]).toJSON().slice(0, 10));
@@ -637,34 +620,13 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
       // NET_RATES
       for(let i in data_payload.NET_RATES){
         if(i == "TOTAL"){continue}
-        // console.log("NET_RATES-" + i)
         form.getTextField("NET_RATES-" + i).setText(data_payload.NET_RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
       }
       
-      form.getTextField("TOTAL").setText(data_payload.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-
-      // RATE
-      // form.getTextField("Text19").setText(data_payload.RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text22").setText(data_payload.RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text25").setText(data_payload.RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text28").setText(data_payload.RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text31").setText(data_payload.RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text34").setText(data_payload.RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text37").setText(data_payload.RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-  
-      // NET_RATES
-      // form.getTextField("Text20").setText(data_payload.NET_RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text23").setText(data_payload.NET_RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text26").setText(data_payload.NET_RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text29").setText(data_payload.NET_RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text32").setText(data_payload.NET_RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text35").setText(data_payload.NET_RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text38").setText(data_payload.NET_RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-      // form.getTextField("Text39").setText(data_payload.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-  
+      form.getTextField("TOTAL").setText(data_payload.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));  
   
       const pdfBytes = await pdfDoc.save();
-      fs.writeFileSync('pdf/TSP Invoice.pdf',pdfBytes);
+      fs.writeFileSync('resources/TSP Invoice.pdf',pdfBytes);
       res.sendStatus(200);
     })
   })
@@ -673,7 +635,7 @@ app.post('/api/create-dew-inv', async (req:Request,res:Response)=>{
 // Download pdf
 app.get("/api/get-dew-inv-pdf", (req,res)=>{
   // console.log("SENT!")
-  res.sendFile(__dirname.split("/src")[0] + '/pdf/TSP Invoice.pdf');
+  res.sendFile(__dirname.split("/src")[0] + '/resources/TSP Invoice.pdf');
 })
 
 // Request Shipments

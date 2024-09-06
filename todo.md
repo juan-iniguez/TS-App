@@ -6,7 +6,7 @@
 - https://www.apl.com/products-services/ecommerce/edi-api-channels
 
 ## Guam Outbound INV
-- Credit?
+- Credit? NO NEED
 - Charge Export Declaration Surcharge = AMS (Make it work for the program)
 
 

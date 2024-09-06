@@ -33,13 +33,16 @@ let invoiceNum = document.getElementById("INVOICE_NUM");
 function addLeadingZeros(amount){
     let x = "";
     for(let i=0;i<6-amount.toString().length;i++){
-      x += "0";
+        x += "0";
     }
     return x+amount;
 };
 
 invoiceNum.innerText = "NVC-" + addLeadingZeros(parseInt(invoiceNum.ariaCurrent));
 
+let getPDF = () =>{
+    
+}
 
 
 // MEMBER_NAME, *

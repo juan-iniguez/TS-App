@@ -156,12 +156,21 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
 /**Check if the shipment has a valid 'DEWITT_INVOICES' entry 
  * 
  * Returns `exists` and `data` properties
+ * 
+ * Example:
+ * ```js
+ * checkShipment(db,MEMBER_NAME)
+ * .then((res)=>{
+ *    if(res.exists){... return res.data}
+ * })
+ * ```
+ * @param db - SQLITE Database
+ * @param MEMBER_NAME - Name of the customer/member of the shipment
+ * @returns Resolved Promise
 */
 export function checkShipment(db:any, MEMBER_NAME:any){
-    
-    const response = new Promise((resolve,reject)=>{
+    const response:Promise<Object> = new Promise((resolve,reject)=>{
         db.all('SELECT * FROM DEWITT_INVOICES WHERE MEMBER_NAME=?', MEMBER_NAME, (err:any,rows:any)=>{
-            // console.log("#### ERROR: " + err);
             if(rows[0] == undefined || rows == undefined ){
                 resolve({exists: false, data: rows})
             }else{
@@ -169,7 +178,6 @@ export function checkShipment(db:any, MEMBER_NAME:any){
             }
         })
     }) 
-
     return Promise.resolve(response);
 }
 
@@ -183,4 +191,71 @@ export function getInvoiceCount(db:any){
             }
         })
     }) 
+}
+
+/**
+ * Insert an entry in `DEWITT_INVOICES` table. 
+ * This will register an invoice when created.
+ * 
+ * DATA MUST HAVE THE FOLLOWING:
+ * 
+ * ```js
+ *  let example = {
+ *   BOL: 'USG0260825',
+ *   VESSEL: 'PRESIDENT KENNEDY',
+ *   VOYAGE: '0DBHOW1PL',
+ *   DISCHARGE_PORT: 'PITI, GUAM',
+ *   LOAD_PORT: 'LOS ANGELES, CA',
+ *   RECEIPT_PLACE: 'BALTIMORE, MD',
+ *   CONT_SIZE: '40HC',
+ *   CONT_NUM: 'CMAU7055123',
+ *   SCAC: 'SSAV',
+ *   MEMBER_NAME: 'PARKER, CRSYTAL',
+ *   GBL: 'HHE677321',
+ *   TTL_CF: 671,
+ *   PIECES: '4/4',
+ *   TOTAL: ,
+ *   CHARGES: ,
+ *   TSP_NAME: 'N/A', 
+ *   ADDRESS_1: 'N/A', 
+ *   ADDRESS_2: 'N/A', 
+ *   BASED_ON: 0.35, 
+ *   VOID:,
+ *   RATES: {
+ *     TOTAL: 9772,
+ *     OCF: 3768,
+ *     'THC USA': 755,
+ *     AMS: 0,
+ *     'Inland (Rail)': 3020,
+ *     'Invasive Species Inspection Fee': 52,
+ *     'Guam THC': 915,
+ *     FAF: 1262
+ *   },
+ *   NET_RATES: {
+ *     TOTAL: 3420.2,
+ *     OCF: 1318.8,
+ *     'THC USA': 264.25,
+ *     AMS: 0,
+ *     'Inland (Rail)': 1057,
+ *     'Invasive Species Inspection Fee': 18.2,
+ *     'Guam THC': 320.25,
+ *     FAF: 441.7
+ *   }
+ * }
+ * 
+ * ```
+ * 
+ * @param db - SQLITE DATABASE
+ * @param data - Data to add to the entry
+ * @returns error or nothing when successful
+ */
+export function insertDeWittInvoice(db:any,data:any){
+  return new Promise((resolve,reject)=>{
+    db.all("INSERT INTO DEWITT_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM)", data,(x:any, err:any)=>{
+      if(err){
+        console.log(err)
+        reject(err)
+      }
+    })
+  })
 }
