@@ -21,7 +21,7 @@
                 <div class="title-shipment" id="title-shipment">
                     <h1 style="margin-top: 5px;"><%= data.MEMBER_NAME %> - <%= data.BOL %></h1>
                     <% if(!data.INVOICE_NUM){ %>
-                        <a onclick=createDInvoice() class="create-invoice">CREATE INVOICE</a>
+                        <a onclick=createInvoice() class="create-invoice">CREATE INVOICE</a>
                     <% } else{ %>
                         <div style="display: flex;flex-direction: row;">
                             <h2 style="align-self: flex-end;margin-right: 1em;" id="INVOICE_NUM" aria-current="<%= data.INVOICE_NUM %>"> NVC - 0<%= data.INVOICE_NUM %> </h2>
@@ -29,15 +29,25 @@
                                 <p style="font-size: 25px;color:inherit">...</p>
                                 <div id="edit-dd" class="edit-dd">
                                     <a onclick="getPDF()" class="edit-item">PDF Download</a>
-                                    <a class="edit-item">Edit</a>
-                                    <a class="edit-item void">Void</a>
+                                    <% if (!data.VOID) { %>
+                                        <a onclick="editInvoice()" class="edit-item">Edit</a>
+                                        <a onclick="voidConfirmation()" class="edit-item void" >Void</a>
+                                    <% }else{ %>
+                                        <a onclick="newInvoice()" class="edit-item">New Invoice</a>                                        
+                                    <% } %>
                                 </div>
                             </div>
                         </div>
                     <% } %>
                 </div>
-                <div id="tsp-details" style="margin-top: 2em;">
-                    <h2>TSP Details</h2>
+                <div id="tsp-details" style="margin-top: 1em;">
+                    <div style="display: flex;justify-content: space-between;">
+                        <h2>TSP Details</h2>
+                        <% if(data.VOID){ %>
+                            <p class="void-label">VOID</p>
+                        <% } else { %>
+                        <% } %>
+                    </div>
                     <div class="input-group">
                         <label class="input-group-text" for="TSP_NAME">TSP Name</label>
                         <input value="<%= data.TSP_NAME %>" type="text" class="form-control" id="TSP_NAME" disabled>
@@ -75,7 +85,7 @@
                             <input value="<%= data.PAYMENT_TERMS %>" type="text" class="form-control" id="PAYMENT_TERM" disabled>
                         </div>
                         <div class="input-group">
-                            <label class="input-group-text" for="BOL">Bill of Landing:</label>
+                            <label class="input-group-text" for="BOL">Bill of Lading:</label>
                             <input value="<%= data.BOL %>" type="text" class="form-control" id="BOL" disabled>
                         </div>
                         <div class="input-group">
@@ -200,7 +210,16 @@
             </footer>
         </div>
     </div>
-
+    <div id="error-container" class="error-container" hidden>
+        <div class="error-window">
+            <h1 id="error-title">Error Message</h1>
+            <p id="error-description">Error Description</p>
+            <div class="answer-box">
+                <a onclick="voidInvoice()" class="btn btn-danger">VOID</a>
+                <a onclick="cancelVoid()" class="btn btn-secondary">CANCEL</a>
+            </div>
+        </div>
+    </div>
 </body>
 <script src="/js/shipment.js"></script>
 </html>

@@ -1,13 +1,15 @@
 import fs from 'fs'
 import { PDFDocument } from 'pdf-lib'
 import { aplDB } from '../db_calls/shipments';
+import { db } from '../db_init/db_init'
 
 export let writePDF = {
     writeOceanInv
 }
 
-async function writeOceanInv(db:any, data:any, val:any, initInv:boolean){
-    const pdfDoc = await PDFDocument.load(fs.readFileSync('resources/TSP Invoice.pdf'));
+async function writeOceanInv(data:any, val:any, initInv:boolean){
+
+    const pdfDoc = !data.VOID?await PDFDocument.load(fs.readFileSync('resources/TSPInvoice.pdf')):await PDFDocument.load(fs.readFileSync('resources/TSPInvoiceVoid.pdf'));
     const form = pdfDoc.getForm()
     let data_payload = data;
     let db_payload;
@@ -56,11 +58,10 @@ async function writeOceanInv(db:any, data:any, val:any, initInv:boolean){
         console.log(db_payload);
     }
 
+    let dewInv_db_ready:any = {}
     
     // If its the first time then do this
     if(initInv){
-        let dewInv_db_ready:any = {}
-    
         for(let x in db_payload){
             if("CHARGES" == x){
                 dewInv_db_ready["$" + x] = JSON.stringify(db_payload[x])
@@ -68,11 +69,13 @@ async function writeOceanInv(db:any, data:any, val:any, initInv:boolean){
             dewInv_db_ready["$" + x] = db_payload[x];
             }
         }
-        aplDB.insertDeWittInvoice(db,dewInv_db_ready).then((res)=>{
+        aplDB.insertLocalInvoice(dewInv_db_ready).then((res)=>{
             console.log(res);
         }).catch((reason)=>{
             // r
         })
+    }else{
+        db_payload.CHARGES = JSON.parse(db_payload.CHARGES);
     }
 
 
@@ -83,8 +86,6 @@ async function writeOceanInv(db:any, data:any, val:any, initInv:boolean){
         }
         return x;
     }
-
-    db_payload.CHARGES = JSON.parse(db_payload.CHARGES);
 
     for(let i in fields_names){
         // Set the text value

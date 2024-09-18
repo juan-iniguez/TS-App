@@ -66,7 +66,7 @@ function populateTable(data){
                 case "VOID":
                     td.innerHTML = "";
                     td.style = "text-align:center";
-                    td.innerHTML = data[i][j] == true? `<input style='margin:auto;' type='checkbox' value=true disabled>`:`<input style='margin:auto;' type='checkbox' value=false disabled>`;
+                    td.innerHTML = data[i][j] == true? `<input style='margin:auto;' type='checkbox' checked=true disabled>`:`<input style='margin:auto;' type='checkbox' checked=false disabled>`;
                     el.insertAdjacentElement("beforeend", td);
                     break;
                 case "INVOICE_NUM":

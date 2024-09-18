@@ -1,22 +1,25 @@
+import { db } from '../db_init/db_init'
 
 export let aplDB = {
-  createShipment,
-  checkShipmentInvoice,
+  getShipment,
+  getShipmentInvoice,
   getInvoiceCount,
-  insertDeWittInvoice,
+  insertLocalInvoice,
+  voidLocalInvoice,
+
 }
 
-/** Create shipment IF invoice is not yet created. 
+/** Get information for shipment IF invoice is not yet created. 
  * 
- * This calls all the database queries to create a DeWitt Invoice
+ * This calls all the database queries to get the data for a Local Invoice
  * 
- * It does NOT create a DB entry for `DEWITT_INVOICES`
+ * It does NOT create a DB entry for `LOCAL_INVOICES`
  * 
- * This stages the first step on creating `DEWITT_INVOICES` entry.   
+ * This stages the first step on creating `LOCAL_INVOICES` entry.   
  * 
  * Returns data_payload with all properties
  * */
-export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:any ,res:any){
+export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any){
 
     return new Promise((resolve,reject)=>{
         db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE  FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME", MEMBER_NAME, (err:any,rows:any)=>{
@@ -153,7 +156,7 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
     })
 }
 
-/**Check if the shipment has a valid 'DEWITT_INVOICES' entry 
+/**Check if the shipment has a valid 'LOCAL_INVOICES' entry 
  * 
  * Returns `exists` and `data` properties
  * 
@@ -168,19 +171,32 @@ export function createShipment(db:any, data_payload:any, MEMBER_NAME:any, BOL:an
  * @param MEMBER_NAME - Name of the customer/member of the shipment
  * @returns Resolved Promise
 */
-export function checkShipmentInvoice(db:any, MEMBER_NAME:any){
+export function getShipmentInvoice(MEMBER_NAME?:any, INVOICE_NUM?:any){
     const response:Promise<Object> = new Promise((resolve,reject)=>{
         console.log(MEMBER_NAME)
-        db.all('SELECT * FROM DEWITT_INVOICES WHERE MEMBER_NAME=?', MEMBER_NAME, (err:any,rows:any)=>{
-          console.log(rows[0] == undefined)
-          if(rows[0] == undefined){
-            console.log("No It Doesnt exist")
-            resolve({exists: false, data: rows})
-          }else{
-            console.log("Yes it exists")
-            resolve({exists: true, data: rows})
-          }
-        })
+        if(INVOICE_NUM == undefined){
+          db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=?', MEMBER_NAME, (err:any,rows:any)=>{
+            console.log(rows[0] == undefined)
+            if(rows[0] == undefined){
+              console.log("No It Doesnt exist")
+              resolve({exists: false, data: rows})
+            }else{
+              console.log("Yes it exists")
+              resolve({exists: true, data: rows})
+            }
+          })
+        }else{
+          db.all('SELECT * FROM LOCAL_INVOICES WHERE INVOICE_NUM=?', INVOICE_NUM, (err:any,rows:any)=>{
+            console.log(rows[0] == undefined)
+            if(rows[0] == undefined){
+              console.log("No It Doesnt exist")
+              resolve({exists: false, data: rows})
+            }else{
+              console.log("Yes it exists")
+              resolve({exists: true, data: rows})
+            }
+          })
+        }
     }) 
     return Promise.resolve(response);
 }
@@ -189,11 +205,11 @@ export function checkShipmentInvoice(db:any, MEMBER_NAME:any){
  * Get the total count of inv as an `int` this is to get the INV-##### number
  * 
  * @param db 
- * @returns `int` with number with total invoices in the DEWITT_INVOICES table 
+ * @returns `int` with number with total invoices in the LOCAL_INVOICES table 
  */
-export function getInvoiceCount(db:any){
+export function getInvoiceCount(){
     return new Promise((resolve,reject)=>{
-        db.all("SELECT INVOICE_NUM FROM DEWITT_INVOICES ORDER BY INVOICE_NUM DESC LIMIT 1", (err:any, rows:any)=>{
+        db.all("SELECT INVOICE_NUM FROM LOCAL_INVOICES ORDER BY INVOICE_NUM DESC LIMIT 1", (err:any, rows:any)=>{
             if(err){
                 resolve(err);
             }else{
@@ -204,7 +220,7 @@ export function getInvoiceCount(db:any){
 }
 
 /**
- * Insert an entry in `DEWITT_INVOICES` table. 
+ * Insert an entry in `LOCAL_INVOICES` table. 
  * This will register an invoice when created.
  * 
  * DATA MUST HAVE THE FOLLOWING:
@@ -259,13 +275,19 @@ export function getInvoiceCount(db:any){
  * @param data - Data to add to the entry
  * @returns error or nothing when successful
  */
-export function insertDeWittInvoice(db:any,data:any){
+export function insertLocalInvoice(data:any){
   return new Promise((resolve,reject)=>{
-    db.all("INSERT INTO DEWITT_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM)", data,(x:any, err:any)=>{
+    db.all("INSERT INTO LOCAL_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM)", data,(x:any, err:any)=>{
       if(err){
         console.log(err)
         reject(err)
       }
     })
+  })
+}
+
+function voidLocalInvoice(data:any){
+  db.run(`UPDATE LOCAL_INVOICES SET VOID=1 WHERE INVOICE_NUM=?`,data,(err:any,rows:any)=>{
+    err?console.log(err):console.log(rows);
   })
 }

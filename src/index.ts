@@ -2,29 +2,28 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import path from "path";
-import bodyParser, { json } from 'body-parser';
+import bodyParser from 'body-parser';
 import fs from "fs";
 import formidable from 'formidable';
-import sqlite3 from 'sqlite3';
+// import sqlite3 from 'sqlite3';
 // import { parse } from "csv-parse";
 import multer from 'multer';
 // !XLSX IS VULNERABLE!
 import xlsx from 'xlsx';
-import { PDFDocument } from 'pdf-lib'
+// import { PDFDocument } from 'pdf-lib'
 
+// Local calls for tasks
 import { aplDB } from './db_calls/shipments';
 import { writePDF } from "./pdf_calls/pdf";
 // import { JSONParser } from "formidable/parsers";
 
 const spawn = require("child_process").spawn;
 
-// Open DB Connection
-let db = new sqlite3.Database('db/apl.db', (err) => {
-  if (err) {
-    return console.error(err.message);
-  }
-  console.log('Connected to APL SQlite database.');
-});
+import { apl } from './db_calls/apl';
+import { db } from './db_init/db_init';
+import { localSettings } from './db_calls/settings';
+import { searchDB } from './db_calls/search'
+import { appUtils } from "./utils";
 
 // DotENV setup for environment variables
 dotenv.config();
@@ -43,8 +42,7 @@ app.use(express.static('public'))
 app.set('view engine', 'ejs');
 app.use(bodyParser.json()) // Parses json, multi-part (file), url-encoded
 
-// START API FOR APL INVOICE INTAKE
-
+// START API
 // Home page
 app.get("/", (req: Request, res: Response) => {
     res.render('pages/index');
@@ -72,27 +70,44 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
   let data_payload:any = {}
   let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
 
-  aplDB.checkShipmentInvoice(db,req.params.member_name).then((data:any)=>{
+  aplDB.getShipmentInvoice(req.params.member_name).then((data:any)=>{
     if(data.exists){
       let data_payload = data.data[0];
-      data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
-      data_payload.RATES = data_payload.CHARGES.RATES;
-      data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
-      delete data_payload.CHARGES;      
-
       // SHOW INVOICE THAT IS ALREADY PRESENT
-      res.render("pages/shipment", {data:data_payload});
+      res.redirect(`/api/shipments/${data_payload.INVOICE_NUM}`)
+      // data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
+      // data_payload.RATES = data_payload.CHARGES.RATES;
+      // data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
+      // delete data_payload.CHARGES;      
+
+      // console.log(data_payload)
+      // res.render("pages/shipment", {data:data_payload});
 
     }else{
-      aplDB.createShipment(db,data_payload,req.params.member_name, req.params.bol,res).then(data=>{
+      console.log("Why doesn't it exist?")
+      aplDB.getShipment(data_payload,req.params.member_name, req.params.bol,res).then(data=>{
         data_payload = data;
         data_payload.INVOICE_DATE = "N/A";
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
         data_payload.TSA_NUM = settings.TSA_NUM;
         data_payload.TARIFF = settings.TARIFF;
+        console.log(data_payload);
         res.render("pages/shipment", {data:data_payload});
       })
     }
+  })
+})
+
+// Shipment information for already created invoices
+app.get("/api/shipments/:invoice_num",(req,res)=>{
+  aplDB.getShipmentInvoice(undefined, req.params.invoice_num)
+  .then((data:any)=>{
+    let data_payload = data.data[0];
+    data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
+    data_payload.RATES = data_payload.CHARGES.RATES;
+    data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
+    delete data_payload.CHARGES;
+    res.render("pages/shipment", {data:data_payload});
   })
 })
 
@@ -133,13 +148,13 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
       // console.log(data.toString());
     });
     pythonProcess.stderr.on('data', (err:any)=>{
+      // console.log("ERROR:")
       // console.log(err.toString());
       if(err){pythonERROR.status = true; pythonERROR.msg = err.toString()};
     })
     pythonProcess.stdout.on('end', (end:any)=>{
-
       let result = JSON.parse(fs.readFileSync("public/files/data.json", 'utf8'));
-
+      console.log(result)
       if(!result.invoice || !result.waybill){
         res.send({
           reason: "One of your files could not be processed!",
@@ -147,35 +162,31 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
         });
         return;
       }
-
+      // console.log("PYTHON ERROR:" + pythonERROR.status);
       // CHECK IF ENTRY IS ALREADY UPLOADED
-
       if(pythonERROR.status){
         res.send({
           reason: pythonERROR.msg,
           status: 500,
         });
       }else{
-        // console.log(result)
-        db.all("SELECT APL_INVOICES.BOL FROM APL_INVOICES INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL = APL_WAYBILLS.BOL WHERE APL_INVOICES.BOL=?", result.invoice.BOL,(err,rows)=>{
-          if(err){
-            console.log(err);
+        console.log(result.invoice.BOL)
+        apl.checkInv(result.invoice.BOL)
+        .then((resolve)=>{
+          if(resolve[0] == undefined){
+            res.send({status: "OK",all: result})  
+          }else{
             res.send({
-              reason: err.toString(),
+              reason: "Shipment Invoice or Waybill already exists.",
+              status: 200,
+            });
+          }
+        }).catch((reason)=>{
+            res.send({
+              reason: reason.toString(),
               status: 500,
             });
-          }else{
-            if(rows[0]){
-              res.send({
-                reason: "Shipment Invoice or Waybill already exists.",
-                status: 200,
-              });
-            }else{
-              // console.log(rows);
-              res.send({status: "OK",all: JSON.parse(fs.readFileSync("public/files/data.json", 'utf8'))})  
-            }
-          }
-        });
+        })
       }
 
     })
@@ -185,34 +196,16 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
 
 /***** START A CRUD IMPLEMENTATION AND CONNECT TO DB *****/
 
-// Upload Invoice and Waybill
+// Upload Invoice and Waybill to DB
 app.post('/api/db-invoice-waybill', (req,res)=>{
 
-  let data = req.body;
   let invoice = req.body.invoice;
-  let waybill = req.body.waybill;
-
-  /**
-   * DB IMPLEMENTATION EXAMPLE
-   */
-
-  // db.serialize(() => {
-  //   db.each(`SELECT PlaylistId as id,
-  //                   Name as name
-  //            FROM playlists`, (err:any, row:any) => {
-  //     if (err) {
-  //       console.error(err.message);
-  //     }
-  //     console.log(row.id + "\t" + row.name);
-  //   });
-  // });
-  
+  let waybill = req.body.waybill;  
   let invoice_db_ready:any = {}
   let waybill_db_ready:any = {}
   let date_now = Date.now();
 
   // Create an Entry for APL_INVOICE
-
   for(let x in invoice){
     if("CHARGES" == x){
       invoice_db_ready["$" + x] = JSON.stringify(invoice[x])
@@ -223,7 +216,6 @@ app.post('/api/db-invoice-waybill', (req,res)=>{
   invoice_db_ready["$DATE_CREATED"] = date_now;
   
   // Create an Entry for the Waybill
-
   for(let x in waybill){
     if("SHIPMENTS" == x){
       waybill_db_ready["$" + x] = JSON.stringify(waybill[x])
@@ -237,30 +229,14 @@ app.post('/api/db-invoice-waybill', (req,res)=>{
   }
   waybill_db_ready["$DATE_CREATED"] = date_now;
 
-
-  db.run("INSERT INTO APL_INVOICES (BOL, INVOICE_NUM, CUSTOMER_NUM, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, RECEIPT_PLACE, DELIVERY_PLACE, CONT_SIZE, CONT_NUM, INVOICE_DATE, DATE_CREATED,TOTAL, CHARGES) VALUES ($BOL, $INVOICE_NUM, $CUSTOMER_NUM, $VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $RECEIPT_PLACE, $DELIVERY_PLACE, $CONT_SIZE, $CONT_NUM, $INVOICE_DATE, $DATE_CREATED,$TOTAL, $CHARGES)", invoice_db_ready,(response:any, err:any)=>{
-    if(err){
-      console.log(`APL_INVOICE: ${err}`)
-    }else{
-      // console.log(`${Date.now()} -- APL_INVOICE Entry Created! -- BOL: ${invoice.BOL} `);
-    }
-  });
-
-  db.run("INSERT INTO APL_WAYBILLS (BOL,CODE,SERIAL_NUM,WEIGHT_LBS,CUBIC_FEET,ETD,ETA,SHIPMENTS,DATE_CREATED) VALUES ($BOL, $CODE, $SERIAL_NUM,$WEIGHT_LBS, $CUBIC_FEET, $ETD, $ETA, $SHIPMENTS, $DATE_CREATED)", waybill_db_ready,(response_:any, err_:any)=>{
-    if(err_){
-      console.log("APL WAYBILL ERROR: " + err_);
-    }else{
-      // console.log(`${Date.now()} -- APL_WAYBILLS Entry Created! -- BOL: ${waybill.BOL} `);
-    }
-  });
+  apl.entryInv(invoice_db_ready);
+  apl.entryWay(waybill_db_ready);
 
   // Get SHIPMENTS INTO THE DB
-
   let shipments = waybill.SHIPMENTS;
 
-  for(let i in shipments){
-    // console.log(i);
-    
+  for(let i in shipments){ 
+
     let shipment_payload = {
       $BOL: invoice.BOL,
       $RDD: shipments[i].RDD,
@@ -274,32 +250,13 @@ app.post('/api/db-invoice-waybill', (req,res)=>{
       $DATE_CREATED: date_now,
     }
 
-    db.run("INSERT INTO SHIPMENTS (BOL, RDD, NET, WEIGHT_LBS, SCAC, MEMBER_NAME, GBL, TTL_CF, PIECES, DATE_CREATED) VALUES ($BOL, $RDD, $NET, $WEIGHT_LBS, $SCAC, $MEMBER_NAME, $GBL, $TTL_CF, $PIECES, $DATE_CREATED)", shipment_payload, (res:any,err:any)=>{
-      if(err){
-        console.log(err);
-      }else{
-        // console.log(`${Date.now()} -- SHIPMENTS Entry Created! -- MEMBER_NAME:${shipments[i].SM}`);
-      }
-    })
+    apl.entryShipment(shipment_payload);
   }
-
-  // console.log(shipments);
-
-
-
-  // db.close((err) => {
-  //   if (err) {
-  //     console.error(err.message);
-  //   }
-  //   console.log('Close the database connection.');
-  // });
-
-
   res.send("OK");
 
 })
 
-// Upload TSP Information
+// Upload TSP Information to DB
 app.post('/api/db-tsp', upload.single('file'),(req,res)=>{
 
   try {
@@ -318,14 +275,7 @@ app.post('/api/db-tsp', upload.single('file'),(req,res)=>{
         db_payload[`$${j}`] = value[j];
       }
       db_payload["$DATE_CREATED"] = Date.now();
-      // console.log(db_payload);
-      db.run("INSERT INTO TSP (SCAC, TSP_NAME, DISC_FROM_GUA, DISC_TO_GUA, ADDRESS_1, ADDRESS_2, DATE_CREATED, BILLING_EMAIL) VALUES ($SCAC, $TSP_NAME, $DISC_FROM_GUA, $DISC_TO_GUA, $ADDRESS_1, $ADDRESS_2, $DATE_CREATED, $BILLING_EMAIL)", db_payload,(result:any, err:any)=>{
-        if(err){
-          console.error(err);
-        }else{
-          // console.log(result);
-        }
-      });
+      localSettings.insertTSP(db_payload);
     }
 
     res.json(jsonData);
@@ -338,7 +288,7 @@ app.post('/api/db-tsp', upload.single('file'),(req,res)=>{
 
 })
 
-// Upload APL Rates
+// Upload APL Rates to DB
 app.post('/api/db-rates', upload.single('file'),(req,res)=>{
   let date_now = Date.now();
   try {
@@ -424,13 +374,7 @@ app.post('/api/db-rates', upload.single('file'),(req,res)=>{
       })
 
       for(let j in db_payload){
-        db.run("INSERT INTO RATES (RATE, ORIGIN, DESTINATION, CONT_SIZE, AMOUNT, DATE_CREATED) VALUES ($RATE, $ORIGIN, $DESTINATION, $CONT_SIZE, $AMOUNT, $DATE_CREATED)",db_payload[j],(response:any, err:any)=>{
-          if(err){
-            console.log(err)
-          }else{
-            // console.log(response)
-          };
-        })
+        localSettings.insertRATES(db_payload[j]);
       }
     }
 
@@ -441,37 +385,33 @@ app.post('/api/db-rates', upload.single('file'),(req,res)=>{
   }
 })
 
-// Create DeWitt Ocean Invoice #####################################
+// Create Local Ocean Invoice #####################################
 app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response)=>{
-  console.log(req.params.BOL);
-  // PDF Modification
-  const pdfDoc = await PDFDocument.load(fs.readFileSync('resources/TSP Invoice.pdf'));
-  const form = pdfDoc.getForm()
   
   // 1-17 Fields ORDER MATTERS
-  let fields_names = [
-    "TSP_NAME",
-    "SCAC",
-    "ADDRESS_1",
-    "ADDRESS_2",
-    "VESSEL",
-    "VOYAGE",
-    "BOL",
-    "CONT_NUM",
-    "INVOICE_DATE",
-    "CONT_SIZE",
-    "RECEIPT_PLACE",
-    "LOAD_PORT",
-    "DISCHARGE_PORT",
-    "MEMBER_NAME",
-    "GBL",
-    "PIECES",
-    "TTL_CF",
-    "INVOICE_NUM",
-    "TSA_NUM",
-    "PAYMENT_TERMS",
-    "TARIFF",
-  ]
+  // let fields_names = [
+  //   "TSP_NAME",
+  //   "SCAC",
+  //   "ADDRESS_1",
+  //   "ADDRESS_2",
+  //   "VESSEL",
+  //   "VOYAGE",
+  //   "BOL",
+  //   "CONT_NUM",
+  //   "INVOICE_DATE",
+  //   "CONT_SIZE",
+  //   "RECEIPT_PLACE",
+  //   "LOAD_PORT",
+  //   "DISCHARGE_PORT",
+  //   "MEMBER_NAME",
+  //   "GBL",
+  //   "PIECES",
+  //   "TTL_CF",
+  //   "INVOICE_NUM",
+  //   "TSA_NUM",
+  //   "PAYMENT_TERMS",
+  //   "TARIFF",
+  // ]
 
   // 18-38 Charges ORDER MATTERS
   // BASED_ON_UNIT | RATE | LINE TOTAL
@@ -489,27 +429,22 @@ app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response
   // GET ALL INFORMATION FOR SHIPMENT:
 
   let data_payload:any
-  let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
-  let db_payload:any;
-  
   // Check if Invoice already exists
-  aplDB.checkShipmentInvoice(db, req.params.MEMBER_NAME).then((response:any)=>{
-    if(response.exists){
-      console.log(response.data[0])
-      writePDF.writeOceanInv(db,response.data[0],response.data[0].INVOICE_NUM,false).then((pdfUint8)=>{
-        // DOES NOT WORK DONT KNOW WHY
-        res.status(200);
-        res.type('pdf');
-        let pdfbuffer = Buffer.from(pdfUint8.buffer);
-        res.send(pdfbuffer)
-  })
+  aplDB.getShipmentInvoice(req.params.MEMBER_NAME).then((response:any)=>{
+    if(response.exists == true){
+      res.redirect('/api/get-inv/' + response.data[0].INVOICE_NUM);
     }else{
-      // Create Entry DB for DEWITT_INVOICES
-      aplDB.createShipment(db,data_payload,req.params.MEMBER_NAME, req.params.BOL ,res).then(async (data)=>{
-        aplDB.getInvoiceCount(db).then(async (val:any )=>{
-          writePDF.writeOceanInv(db, data,val,true).then((pdfUint8)=>{
-            res.contentType("application/pdf");
-            res.send(pdfUint8)
+      // Create Entry DB for LOCAL_INVOICES
+      aplDB.getShipment(data_payload,req.params.MEMBER_NAME, req.params.BOL ,res).then(async (data)=>{
+        aplDB.getInvoiceCount().then(async (val:any )=>{
+          writePDF.writeOceanInv(data,val,true).then((pdfUint8)=>{
+            let pdfbuffer = Buffer.from(pdfUint8.buffer);
+            res.writeHead(200, {
+              'Content-Type': 'application/pdf',
+              'Content-Disposition': `attachment; filename=NVC-${appUtils.addLeadingZeros(val)}.pdf`,
+              'Content-Length': pdfbuffer.length
+            });
+            res.end(pdfbuffer);
           })
         })
       })
@@ -517,10 +452,22 @@ app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response
   })
 })
 
-// Download pdf
-app.get("/api/get-dew-inv-pdf", (req,res)=>{
-  // console.log("SENT!")
-  res.sendFile(__dirname.split("/src")[0] + '/resources/TSP Invoice.pdf');
+// Get Local Ocean Invoice #######################################
+app.get('/api/get-inv/:invoice_num',(req,res)=>{
+  aplDB.getShipmentInvoice(undefined, req.params.invoice_num)
+  .then((response:any)=>{
+    writePDF.writeOceanInv(response.data[0],response.data[0].INVOICE_NUM,false).then((pdfUint8)=>{
+      let pdfbuffer = Buffer.from(pdfUint8.buffer);
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename=NVC-${appUtils.addLeadingZeros(response.data[0].INVOICE_NUM)}.pdf`,
+        'Content-Length': pdfbuffer.length
+      });
+      res.end(pdfbuffer);
+    })
+  })
+
+
 })
 
 // Request Shipments
@@ -533,64 +480,81 @@ app.post('/api/search', async (req,res,next)=>{
   
   switch (data) {
     case "shipments":
-      if(search == "" && arg == ""){
-        db.all("Select BOL, MEMBER_NAME,SCAC,GBL,TTL_CF,PIECES, DATE_CREATED from SHIPMENTS ORDER BY DATE_CREATED DESC LIMIT 50",(err, rows)=>{
-          res.send(rows);
-        });
-      }else{
-        search = '%'+search+'%';
-        db.all(`Select BOL, MEMBER_NAME,SCAC,GBL,TTL_CF,PIECES, DATE_CREATED from SHIPMENTS WHERE ${arg} LIKE ? ORDER BY DATE_CREATED DESC LIMIT 50`,[search],(err, rows)=>{
-          res.send(rows);
-        });        
-      }
+      searchDB.getShipments(arg, search)
+      .then((resolved)=>{
+        console.log(resolved)
+        res.send(resolved);
+      })
+      .catch((reject)=>{
+        console.log(reject)
+      })
       break;
     case "invoices":
-      if(search == "" && arg == ""){
-        db.all("Select INVOICE_NUM, MEMBER_NAME, BOL, INVOICE_DATE, TOTAL, VOID  from DEWITT_INVOICES ORDER BY INVOICE_DATE DESC LIMIT 50",(err, rows)=>{
-          // console.log(rows);
-          res.send(rows);
-        });
-      }else{
-        search = '%'+search+'%';
-        db.all(`Select INVOICE_NUM, MEMBER_NAME, BOL, INVOICE_DATE, TOTAL, VOID  from DEWITT_INVOICES WHERE ${arg} LIKE ? ORDER BY INVOICE_DATE DESC LIMIT 50`,[search],(err, rows)=>{
-          // console.log(rows);
-          res.send(rows);
-        });
-      }
+      searchDB.getLocalInvoices(arg,search)
+      .then(resolved=>{
+        res.send(resolved);
+      })
+      .catch(reject=>{
+        console.log(reject)
+      })
       break
     case "tsp":
-      if(search == "" && arg == ""){
-        db.all("Select SCAC,TSP_NAME,DISC_FROM_GUA, DISC_TO_GUA  from TSP ORDER BY DATE_CREATED DESC LIMIT 50",(err, rows)=>{
-          // console.log(rows);
-          res.send(rows);
-        });
-      }else{
-        search = '%'+search+'%';
-        db.all(`Select SCAC,TSP_NAME,DISC_FROM_GUA, DISC_TO_GUA  from TSP WHERE ${arg} LIKE ? ORDER BY DATE_CREATED DESC LIMIT 50`,[search],(err, rows)=>{
-          // console.log(rows);
-          res.send(rows);
-        });
-      }
+      searchDB.getTSP(arg,search)
+      .then(resolved=>{
+        res.send(resolved);
+      })
+      .catch(reject=>{
+        console.log(reject)
+      })
       break
     case "rates":
-      if(search == "" && arg == ""){
-        db.all("Select RATE,ORIGIN,DESTINATION,CONT_SIZE,AMOUNT,DATE_CREATED  from RATES ORDER BY DATE_CREATED DESC LIMIT 50",(err, rows)=>{
-          // console.log(rows);
-          res.send(rows);
-        });
-      }else{
-        search = '%'+search+'%';
-        db.all(`Select RATE,ORIGIN,DESTINATION,CONT_SIZE,AMOUNT,DATE_CREATED  from RATES WHERE ${arg} LIKE ? ORDER BY DATE_CREATED DESC LIMIT 50`,[search],(err, rows)=>{
-          // console.log(rows);
-          res.send(rows);
-        });
-      }
+      searchDB.getRATES(arg,search)
+      .then(resolved=>{
+        res.send(resolved);
+      })
+      .catch(reject=>{
+        console.log(reject)
+      })
       break
     default:
       res.sendStatus(500);
       break;
   }
 })
+
+// VOID a Local Invoice
+app.post("/api/inv/void",(req,res)=>{
+  aplDB.voidLocalInvoice(parseInt(req.body.INVOICE_NUM))
+  res.send(200);
+})
+
+// TODO: MAKE VOID CALLS TO VOID INVOICES.
+// ! WORKING ON THIS !
+/**
+ * What happens AFTER it gets voided?
+ * Can we create new invoices?
+ * If so, how can we edit the details of the invoice?
+ * 
+ * VOID Data structure
+ */
+// TODO: EDIT MODE FOR INVOICES.
+/**
+ * After APL Waybill and APL Invoice are uploaded, you should be able to edit the details of the shipment
+ * After Invoice is VOIDED we should be able to edit the details and create a new invoice if necessary.
+ */
+// TODO: When pulling bunker, use invoice bunker as default. However, show note if Invoice Bunker does not match Bunker RATE
+/**
+ * Additionally, Instead of making changes or taking the bunker charge face value, 
+ * we need to state from WHICH rate the bunker charge was pulled. 
+ * So we prompt the user to double check if the bunker charge is the right rate.
+ * 
+ * To tell from which Bunker RATE it is pulling, we use the ingate date and compare.
+ * 
+ */
+
+// TODO: Supplemental Invoices
+
+// TODO: Login feature
 
 var reload = require("reload")
 
