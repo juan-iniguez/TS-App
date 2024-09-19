@@ -142,7 +142,7 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
       status: false,
       msg: String,
     };    
-    let pythonProcess = spawn('python3.12',["scripts/readPDF.py", file_addr[0], file_addr[1]]);
+    let pythonProcess = spawn('python3.11',["scripts/readPDF.py", file_addr[0], file_addr[1]]);
     let json_data
     pythonProcess.stdout.on('data', function(data:Buffer) {
       // console.log(data.toString());
