@@ -8,7 +8,6 @@ export let writePDF = {
 }
 
 async function writeOceanInv(data:any, val:any, initInv:boolean){
-
     const pdfDoc = !data.VOID?await PDFDocument.load(fs.readFileSync('resources/TSPInvoice.pdf')):await PDFDocument.load(fs.readFileSync('resources/TSPInvoiceVoid.pdf'));
     const form = pdfDoc.getForm()
     let data_payload = data;
@@ -118,6 +117,12 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
     }
     
     form.getTextField("TOTAL").setText(db_payload.CHARGES.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));  
+
+    if(db_payload.VOID > 0){
+        db_payload.VOID_INFO = JSON.parse(db_payload.VOID_INFO);
+        form.getTextField("VOID_REASON").setText(db_payload.VOID_INFO.reason);
+        form.getTextField("VOID_DATE").setText(new Date(db_payload.VOID_INFO.date).toLocaleDateString("en-US"));
+    }
 
     const pdfBytes = await pdfDoc.save();
     return pdfBytes

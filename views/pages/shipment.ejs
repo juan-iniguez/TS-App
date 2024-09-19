@@ -14,194 +14,388 @@
             <header>
                 <%- include('../partials/header'); %>
             </header>
+
             <main>
                 <div style="margin-top: 20px;">
                     <a onclick=history.back() style="cursor: pointer;text-decoration: underline;"> ← Back to Shipments...</a>
                 </div>
-                <div class="title-shipment" id="title-shipment">
-                    <h1 style="margin-top: 5px;"><%= data.MEMBER_NAME %> - <%= data.BOL %></h1>
-                    <% if(!data.INVOICE_NUM){ %>
-                        <a onclick=createInvoice() class="create-invoice">CREATE INVOICE</a>
-                    <% } else{ %>
-                        <div style="display: flex;flex-direction: row;">
-                            <h2 style="align-self: flex-end;margin-right: 1em;" id="INVOICE_NUM" aria-current="<%= data.INVOICE_NUM %>"> NVC - 0<%= data.INVOICE_NUM %> </h2>
-                            <div class="edit-menu" id="edit-menu">
-                                <p style="font-size: 25px;color:inherit">...</p>
-                                <div id="edit-dd" class="edit-dd">
-                                    <a onclick="getPDF()" class="edit-item">PDF Download</a>
-                                    <% if (!data.VOID) { %>
-                                        <a onclick="editInvoice()" class="edit-item">Edit</a>
-                                        <a onclick="voidConfirmation()" class="edit-item void" >Void</a>
-                                    <% }else{ %>
-                                        <a onclick="newInvoice()" class="edit-item">New Invoice</a>                                        
-                                    <% } %>
+                <ul style="margin-top: 1em;" class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Shipment</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">Supplemental</a>
+                        <ul class="dropdown-menu">
+                            <!-- <li><a class="dropdown-item" href="#">List All</a></li>
+                            <li><hr class="dropdown-divider"></li> -->
+                            <li><a class="dropdown-item" href="#">NVC-000001A - 01/01/2024</a></li>
+                        </ul>
+                    </li>                
+                </ul>
+                <div id="shipment" class="shipment-container">
+                    <div class="title-shipment" id="title-shipment">
+                        <h1 style="margin-top: 5px;"><%= data.MEMBER_NAME %> - <%= data.BOL %></h1>
+                        <% if(!data.INVOICE_NUM){ %>
+                            <a onclick=createInvoice() class="create-invoice">CREATE INVOICE</a>
+                        <% } else{ %>
+                            <div style="display: flex;flex-direction: row;">
+                                <h2 style="align-self: flex-end;margin-right: 1em;" id="INVOICE_NUM" aria-current="<%= data.INVOICE_NUM %>"> NVC - 0<%= data.INVOICE_NUM %> </h2>
+                                <div class="edit-menu" id="edit-menu">
+                                    <p style="font-size: 25px;color:inherit">...</p>
+                                    <div id="edit-dd" class="edit-dd">
+                                        <a onclick="getPDF()" class="edit-item">PDF Download</a>
+                                        <% if (!data.VOID) { %>
+                                            <a onclick="editInvoice()" class="edit-item">Edit</a>
+                                            <a onclick="voidConfirmation()" class="edit-item void" >Void</a>
+                                        <% }else{ %>
+                                            <a onclick="newInvoice()" class="edit-item">New Invoice</a>                                        
+                                        <% } %>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <% } %>
-                </div>
-                <div id="tsp-details" style="margin-top: 1em;">
-                    <div style="display: flex;justify-content: space-between;">
-                        <h2>TSP Details</h2>
-                        <% if(data.VOID){ %>
-                            <p class="void-label">VOID</p>
-                        <% } else { %>
                         <% } %>
                     </div>
-                    <div class="input-group">
-                        <label class="input-group-text" for="TSP_NAME">TSP Name</label>
-                        <input value="<%= data.TSP_NAME %>" type="text" class="form-control" id="TSP_NAME" disabled>
+                    <div id="tsp-details" style="margin-top: 1em;">
+                        <div style="display: flex;justify-content: space-between;">
+                            <h2>TSP Details</h2>
+                            <% if(data.VOID){ %>
+                                <p class="void-label">VOID - <%= new Date(data.VOID_INFO.date).toLocaleDateString("en-US") %> </p>
+                            <% } else { %>
+                            <% } %>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-group-text" for="TSP_NAME">TSP Name</label>
+                            <input value="<%= data.TSP_NAME %>" type="text" class="form-control" id="TSP_NAME" disabled>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-group-text" for="SCAC">SCAC</label>
+                            <input value="<%= data.SCAC %>" type="text" class="form-control" id="SCAC" disabled>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-group-text" for="ADDRESS_1">Address:</label>
+                            <input value="<%= data.ADDRESS_1 %>" type="text" class="form-control" id="ADDRESS_1" disabled>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-group-text" for="ADDRESS_2">Address:</label>
+                            <input value="<%= data.ADDRESS_2 %>" type="text" class="form-control" id="ADDRESS_2" disabled>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label class="input-group-text" for="SCAC">SCAC</label>
-                        <input value="<%= data.SCAC %>" type="text" class="form-control" id="SCAC" disabled>
+                    <div id="vessel-info" style="margin-top: 2em;">
+                        <h2>Vessel</h2>
+                        <div class="info-2C">
+                            <div class="input-group">
+                                <label class="input-group-text" for="VESSEL">Vessel:</label>
+                                <input value="<%= data.VESSEL %>" type="text" class="form-control" id="VESSEL" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="DATE_CREATED">Date of Invoice:</label>
+                                <input value="<%= data.INVOICE_DATE %>" type="text" class="form-control" id="DATE_CREATED" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="VOYAGE">Voyage:</label>
+                                <input value="<%= data.VOYAGE %>" type="text" class="form-control" id="VOYAGE" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="PAYMENT_TERM">Payment Term:</label>
+                                <input value="<%= data.PAYMENT_TERMS %>" type="text" class="form-control" id="PAYMENT_TERM" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="BOL">Bill of Lading:</label>
+                                <input value="<%= data.BOL %>" type="text" class="form-control" id="BOL" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="TSA_NUM">DeWitt TSA No.:</label>
+                                <input value="<%= data.TSA_NUM %>" type="text" class="form-control" id="TSA_NUM" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="CONT_NUM">Container No.:</label>
+                                <input value="<%= data.CONT_NUM %>" type="text" class="form-control" id="CONT_NUM" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="TARIFF">APL's D&D Tariff</label>
+                                <input value="<%= data.TARIFF %>" type="text" class="form-control" id="TARIFF" disabled>
+                            </div>
+    
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label class="input-group-text" for="ADDRESS_1">Address:</label>
-                        <input value="<%= data.ADDRESS_1 %>" type="text" class="form-control" id="ADDRESS_1" disabled>
+                    <div id="container-info" style="margin-top: 2em;">
+                        <h2>Container</h2>
+                        <div class="info-2C">
+                            <div class="input-group">
+                                <label class="input-group-text" for="CONT_SIZE">Container Size:</label>
+                                <input value="<%= data.CONT_SIZE %>" type="text" class="form-control" id="CONT_SIZE" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="LOAD_PORT">Load Port:</label>
+                                <input value="<%= data.LOAD_PORT %>" type="text" class="form-control" id="LOAD_PORT" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="RECEIPT_PLACE">Place of Receipt:</label>
+                                <input value="<%= data.RECEIPT_PLACE %>" type="text" class="form-control" id="RECEIPT_PLACE" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="DISCHARGE_PORT">Discharge Port:</label>
+                                <input value="<%= data.DISCHARGE_PORT %>" type="text" class="form-control" id="DISCHARGE_PORT" disabled>
+                            </div>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label class="input-group-text" for="ADDRESS_2">Address:</label>
-                        <input value="<%= data.ADDRESS_2 %>" type="text" class="form-control" id="ADDRESS_2" disabled>
+                    <div id="shipment-details" style="margin-top: 2em;">
+                        <h2>Shipment Details</h2>
+                        <div class="info-2C">
+                            <div class="input-group">
+                                <label class="input-group-text" for="MEMBER_NAME">Member Name:</label>
+                                <input value="<%= data.MEMBER_NAME %>" type="text" class="form-control" id="MEMBER_NAME" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="PIECES">Pieces:</label>
+                                <input value="<%= data.PIECES %>" type="text" class="form-control" id="PIECES" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="GBL">GBL:</label>
+                                <input value="<%= data.GBL %>" type="text" class="form-control" id="GBL" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="TTL_CF">TTL CF:</label>
+                                <input value="<%= data.TTL_CF %>" type="text" class="form-control" id="TTL_CF" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="charges-table" style="margin-top: 2em;">
+                        <table style="width: 100%;">
+                            <tr>
+                                <th>Based on Unit</th>
+                                <th>Description</th>
+                                <th>Rate</th>
+                                <th>Line Total</th>
+                            </tr>
+                            <tr>
+                                <td id="BASED_ON"><%= data.BASED_ON %></td>
+                                <td>Basic Ocean Freight Charge</td>
+                                <td><%= data.RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Bunker Surcharge NOS</td>
+                                <td><%= data.RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Origin Terminal Handling Charge</td>
+                                <td><%= data.RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Destination Terminal Handing Charge</td>
+                                <td><%= data.RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Advance Manifest Compliance Charge (AMS)</td>
+                                <td><%= data.RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Inland (Rail) Charge</td>
+                                <td><%= data.RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Container Inspection Fee & Survey Fee</td>
+                                <td><%= data.RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>TOTAL</td>
+                                <td><%= data.RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
-                <div id="vessel-info" style="margin-top: 2em;">
-                    <h2>Vessel</h2>
-                    <div class="info-2C">
-                        <div class="input-group">
-                            <label class="input-group-text" for="VESSEL">Vessel:</label>
-                            <input value="<%= data.VESSEL %>" type="text" class="form-control" id="VESSEL" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="DATE_CREATED">Date of Invoice:</label>
-                            <input value="<%= data.INVOICE_DATE %>" type="text" class="form-control" id="DATE_CREATED" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="VOYAGE">Voyage:</label>
-                            <input value="<%= data.VOYAGE %>" type="text" class="form-control" id="VOYAGE" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="PAYMENT_TERM">Payment Term:</label>
-                            <input value="<%= data.PAYMENT_TERMS %>" type="text" class="form-control" id="PAYMENT_TERM" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="BOL">Bill of Lading:</label>
-                            <input value="<%= data.BOL %>" type="text" class="form-control" id="BOL" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="TSA_NUM">DeWitt TSA No.:</label>
-                            <input value="<%= data.TSA_NUM %>" type="text" class="form-control" id="TSA_NUM" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="CONT_NUM">Container No.:</label>
-                            <input value="<%= data.CONT_NUM %>" type="text" class="form-control" id="CONT_NUM" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="TARIFF">APL's D&D Tariff</label>
-                            <input value="<%= data.TARIFF %>" type="text" class="form-control" id="TARIFF" disabled>
-                        </div>
-
-                    </div>
+                <div id="supplemental" class="supplemental-container">
                 </div>
-                <div id="container-info" style="margin-top: 2em;">
-                    <h2>Container</h2>
-                    <div class="info-2C">
-                        <div class="input-group">
-                            <label class="input-group-text" for="CONT_SIZE">Container Size:</label>
-                            <input value="<%= data.CONT_SIZE %>" type="text" class="form-control" id="CONT_SIZE" disabled>
+                <div id="edit-stage" class="edit-stage-container hidden">
+                    <div id="tsp-details" style="margin-top: 1em;">
+                        <div style="display: flex;justify-content: space-between;">
+                            <h2>TSP Details</h2>
                         </div>
                         <div class="input-group">
-                            <label class="input-group-text" for="LOAD_PORT">Load Port:</label>
-                            <input value="<%= data.LOAD_PORT %>" type="text" class="form-control" id="LOAD_PORT" disabled>
+                            <label class="input-group-text" for="TSP_NAME">TSP Name</label>
+                            <input value="<%= data.TSP_NAME %>" type="text" class="form-control" id="TSP_NAME">
                         </div>
                         <div class="input-group">
-                            <label class="input-group-text" for="RECEIPT_PLACE">Place of Receipt:</label>
-                            <input value="<%= data.RECEIPT_PLACE %>" type="text" class="form-control" id="RECEIPT_PLACE" disabled>
+                            <label class="input-group-text" for="SCAC">SCAC</label>
+                            <input value="<%= data.SCAC %>" type="text" class="form-control" id="SCAC" >
                         </div>
                         <div class="input-group">
-                            <label class="input-group-text" for="DISCHARGE_PORT">Discharge Port:</label>
-                            <input value="<%= data.DISCHARGE_PORT %>" type="text" class="form-control" id="DISCHARGE_PORT" disabled>
+                            <label class="input-group-text" for="ADDRESS_1">Address:</label>
+                            <input value="<%= data.ADDRESS_1 %>" type="text" class="form-control" id="ADDRESS_1" >
+                        </div>
+                        <div class="input-group">
+                            <label class="input-group-text" for="ADDRESS_2">Address:</label>
+                            <input value="<%= data.ADDRESS_2 %>" type="text" class="form-control" id="ADDRESS_2" >
                         </div>
                     </div>
-                </div>
-                <div id="shipment-details" style="margin-top: 2em;">
-                    <h2>Shipment Details</h2>
-                    <div class="info-2C">
-                        <div class="input-group">
-                            <label class="input-group-text" for="MEMBER_NAME">Member Name:</label>
-                            <input value="<%= data.MEMBER_NAME %>" type="text" class="form-control" id="MEMBER_NAME" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="PIECES">Pieces:</label>
-                            <input value="<%= data.PIECES %>" type="text" class="form-control" id="PIECES" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="GBL">GBL:</label>
-                            <input value="<%= data.GBL %>" type="text" class="form-control" id="GBL" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-group-text" for="TTL_CF">TTL CF:</label>
-                            <input value="<%= data.TTL_CF %>" type="text" class="form-control" id="TTL_CF" disabled>
+                    <div id="vessel-info" style="margin-top: 2em;">
+                        <h2>Vessel</h2>
+                        <div class="info-2C">
+                            <div class="input-group">
+                                <label class="input-group-text" for="VESSEL">Vessel:</label>
+                                <input value="<%= data.VESSEL %>" type="text" class="form-control" id="VESSEL" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="DATE_CREATED">Date of Invoice:</label>
+                                <input value="<%= data.INVOICE_DATE %>" type="text" class="form-control" id="DATE_CREATED" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="VOYAGE">Voyage:</label>
+                                <input value="<%= data.VOYAGE %>" type="text" class="form-control" id="VOYAGE" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="PAYMENT_TERM">Payment Term:</label>
+                                <input value="<%= data.PAYMENT_TERMS %>" type="text" class="form-control" id="PAYMENT_TERM" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="BOL">Bill of Lading:</label>
+                                <input value="<%= data.BOL %>" type="text" class="form-control" id="BOL" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="TSA_NUM">DeWitt TSA No.:</label>
+                                <input value="<%= data.TSA_NUM %>" type="text" class="form-control" id="TSA_NUM" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="CONT_NUM">Container No.:</label>
+                                <input value="<%= data.CONT_NUM %>" type="text" class="form-control" id="CONT_NUM" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="TARIFF">APL's D&D Tariff</label>
+                                <input value="<%= data.TARIFF %>" type="text" class="form-control" id="TARIFF" >
+                            </div>
+    
                         </div>
                     </div>
-                </div>
-                <div id="charges-table" style="margin-top: 2em;">
-                    <table style="width: 100%;">
-                        <tr>
-                            <th>Based on Unit</th>
-                            <th>Description</th>
-                            <th>Rate</th>
-                            <th>Line Total</th>
-                        </tr>
-                        <tr>
-                            <td id="BASED_ON"><%= data.BASED_ON %></td>
-                            <td>Basic Ocean Freight Charge</td>
-                            <td><%= data.RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td><%= data.BASED_ON %></td>
-                            <td>Bunker Surcharge NOS</td>
-                            <td><%= data.RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td><%= data.BASED_ON %></td>
-                            <td>Origin Terminal Handling Charge</td>
-                            <td><%= data.RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td><%= data.BASED_ON %></td>
-                            <td>Destination Terminal Handing Charge</td>
-                            <td><%= data.RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td><%= data.BASED_ON %></td>
-                            <td>Advance Manifest Compliance Charge (AMS)</td>
-                            <td><%= data.RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td><%= data.BASED_ON %></td>
-                            <td>Inland (Rail) Charge</td>
-                            <td><%= data.RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td><%= data.BASED_ON %></td>
-                            <td>Container Inspection Fee & Survey Fee</td>
-                            <td><%= data.RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td>TOTAL</td>
-                            <td><%= data.RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                            <td><%= data.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                        </tr>
-                    </table>
+                    <div id="container-info" style="margin-top: 2em;">
+                        <h2>Container</h2>
+                        <div class="info-2C">
+                            <div class="input-group">
+                                <label class="input-group-text" for="CONT_SIZE">Container Size:</label>
+                                <input value="<%= data.CONT_SIZE %>" type="text" class="form-control" id="CONT_SIZE" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="LOAD_PORT">Load Port:</label>
+                                <input value="<%= data.LOAD_PORT %>" type="text" class="form-control" id="LOAD_PORT" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="RECEIPT_PLACE">Place of Receipt:</label>
+                                <input value="<%= data.RECEIPT_PLACE %>" type="text" class="form-control" id="RECEIPT_PLACE" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="DISCHARGE_PORT">Discharge Port:</label>
+                                <input value="<%= data.DISCHARGE_PORT %>" type="text" class="form-control" id="DISCHARGE_PORT" >
+                            </div>
+                        </div>
+                    </div>
+                    <div id="shipment-details" style="margin-top: 2em;">
+                        <h2>Shipment Details</h2>
+                        <div class="info-2C">
+                            <div class="input-group">
+                                <label class="input-group-text" for="MEMBER_NAME">Member Name:</label>
+                                <input value="<%= data.MEMBER_NAME %>" type="text" class="form-control" id="MEMBER_NAME" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="PIECES">Pieces:</label>
+                                <input value="<%= data.PIECES %>" type="text" class="form-control" id="PIECES" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="GBL">GBL:</label>
+                                <input value="<%= data.GBL %>" type="text" class="form-control" id="GBL" >
+                            </div>
+                            <div class="input-group">
+                                <label class="input-group-text" for="TTL_CF">TTL CF:</label>
+                                <input value="<%= data.TTL_CF %>" type="text" class="form-control" id="TTL_CF" >
+                            </div>
+                        </div>
+                    </div>
+                    <div id="charges-table" style="margin-top: 2em;">
+                        <table style="width: 100%;">
+                            <!-- TODO MAKE FIELDS FOR THESE VALUES -->
+                            <tr>
+                                <th>Based on Unit</th>
+                                <th>Description</th>
+                                <th>Rate</th>
+                                <th>Line Total</th>
+                            </tr>
+                            <tr>
+                                <td id="BASED_ON"><%= data.BASED_ON %></td>
+                                <!-- <td>Basic Ocean Freight Charge</td> -->
+                                <td>
+                                    <select style="width:100%;height: 100%;">
+                                        <option>Basic Ocean Freight Charge</option>
+                                        <option>Bunker Surcharge NOS</option>
+                                        <option>Origin Terminal Handling Charge</option>
+                                        <option>Destination Terminal Handing Charge</option>
+                                        <option>Advance Manifest Compliance Charge (AMS)</option>
+                                        <option>Inland (Rail) Charge</option>
+                                        <option>Container Inspection Fee & Survey Fee</option>
+                                    </select>
+                                </td>
+                                <!-- <td><%= data.RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td> -->
+                                <td>
+                                    <input type="number" placeholder="<%= data.RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %>">
+                                </td>
+                                <td><%= data.NET_RATES.OCF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Bunker Surcharge NOS</td>
+                                <td><%= data.RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.FAF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Origin Terminal Handling Charge</td>
+                                <td><%= data.RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["THC USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Destination Terminal Handing Charge</td>
+                                <td><%= data.RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["Guam THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Advance Manifest Compliance Charge (AMS)</td>
+                                <td><%= data.RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.AMS.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Inland (Rail) Charge</td>
+                                <td><%= data.RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["Inland (Rail)"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td><%= data.BASED_ON %></td>
+                                <td>Container Inspection Fee & Survey Fee</td>
+                                <td><%= data.RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES["Invasive Species Inspection Fee"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td>TOTAL</td>
+                                <td><%= data.RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= data.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </main>
 
@@ -214,6 +408,8 @@
         <div class="error-window">
             <h1 id="error-title">Error Message</h1>
             <p id="error-description">Error Description</p>
+            <textarea style="resize: none;border-radius: 10px;border: solid black 1px;height: 5em;margin-top: 1em;" id="void-reason" placeholder="Reason for voiding invoice..."></textarea>
+            <p style="color: red;height: 1em;" id="error-warning"></p>
             <div class="answer-box">
                 <a onclick="voidInvoice()" class="btn btn-danger">VOID</a>
                 <a onclick="cancelVoid()" class="btn btn-secondary">CANCEL</a>

@@ -50,9 +50,9 @@ function voidConfirmation(){
     let errContainer = document.getElementById("error-container");
     let errTitle = document.getElementById("error-title");
     let errDescription = document.getElementById("error-description");
-    errContainer.hidden = false
+    errContainer.hidden = false;
     errTitle.innerText = `VOIDING NVC-${addLeadingZeros(parseInt(data.INVOICE_NUM))}`
-    errDescription.innerText = `Are you sure you want to void this invoice?`
+    errDescription.innerText = `Are you sure you want to void this invoice?`;
 }
 
 function cancelVoid(){
@@ -61,10 +61,21 @@ function cancelVoid(){
 }
 
 function voidInvoice(){
+    let voidReason = document.getElementById("void-reason");
+    let errorWarning = document.getElementById("error-warning")
+    // Check if there is a reason for voiding
+    if(voidReason.value.length < 1){
+        console.log(voidReason.value.length)
+        voidReason.classList.toggle("highlight-error");
+        errorWarning.innerText = "Please provide a reason"
+        return
+    }
+
     axios.post('/api/inv/void',{
         INVOICE_NUM: invoiceNum.ariaCurrent,
         BOL: data_send.BOL,
         MEMBER_NAME: data_send.MEMBER_NAME,
+        REASON: voidReason.value,
     }).then(res=>{
         if(res.status == 200){
             location.reload();
@@ -86,4 +97,11 @@ function newInvoice(){
     }).catch(err=>{
         console.log(err);
     })
+}
+
+function editInvoice(){
+    let editStage = document.getElementById("edit-stage");
+    let shipmentContainer = document.getElementById("shipment");
+    shipmentContainer.classList.toggle("hidden");
+    editStage.classList.toggle("hidden")
 }

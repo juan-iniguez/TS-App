@@ -286,8 +286,13 @@ export function insertLocalInvoice(data:any){
   })
 }
 
-function voidLocalInvoice(data:any){
-  db.run(`UPDATE LOCAL_INVOICES SET VOID=1 WHERE INVOICE_NUM=?`,data,(err:any,rows:any)=>{
+function voidLocalInvoice(reason:any,invoice_num:any){
+  let info = JSON.stringify({
+    reason: reason,
+    date: Date.now(),
+  })
+  db.run(`UPDATE LOCAL_INVOICES SET VOID=1,VOID_INFO=? WHERE INVOICE_NUM=?`,[info,invoice_num],(err:any,rows:any)=>{
     err?console.log(err):console.log(rows);
   })
+
 }

@@ -84,7 +84,6 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
       // res.render("pages/shipment", {data:data_payload});
 
     }else{
-      console.log("Why doesn't it exist?")
       aplDB.getShipment(data_payload,req.params.member_name, req.params.bol,res).then(data=>{
         data_payload = data;
         data_payload.INVOICE_DATE = "N/A";
@@ -106,6 +105,7 @@ app.get("/api/shipments/:invoice_num",(req,res)=>{
     data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
     data_payload.RATES = data_payload.CHARGES.RATES;
     data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
+    data_payload.VOID_INFO = JSON.parse(data_payload.VOID_INFO)
     delete data_payload.CHARGES;
     res.render("pages/shipment", {data:data_payload});
   })
@@ -524,7 +524,8 @@ app.post('/api/search', async (req,res,next)=>{
 
 // VOID a Local Invoice
 app.post("/api/inv/void",(req,res)=>{
-  aplDB.voidLocalInvoice(parseInt(req.body.INVOICE_NUM))
+  console.log(req.body)
+  aplDB.voidLocalInvoice(req.body.REASON,parseInt(req.body.INVOICE_NUM))
   res.send(200);
 })
 
