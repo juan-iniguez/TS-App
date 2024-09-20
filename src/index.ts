@@ -534,6 +534,7 @@ app.post("/api/inv/void",(req,res)=>{
  * 
  */
 
+// TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
 // TODO: Login feature
 
 var reload = require("reload")

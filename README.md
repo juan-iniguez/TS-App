@@ -3,3 +3,9 @@
 
 Please refer to the documentation /documentation
 
+Requirements: 
+- Python3.11
+- PyPDF
+- NodeJS
+- Express
+- SQLite
