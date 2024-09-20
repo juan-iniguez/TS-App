@@ -16,16 +16,18 @@ function createInvoice(){
     })
 }
 
-let editMenu = document.getElementById("edit-menu");
-let editDD = document.getElementById("edit-dd");
-editMenu.addEventListener("mouseover",toggleMenu);
-editMenu.addEventListener("mouseout",toggleMenu);
+let editMenu = document.getElementById("edit-menu") || null;
+let editDD = document.getElementById("edit-dd") || null;
+let invoiceNum = document.getElementById("INVOICE_NUM") || null;
+invoiceNum?invoiceNum.innerText = "NVC-" + addLeadingZeros(parseInt(invoiceNum.ariaCurrent)):null;
+if(editMenu){
+    editMenu.addEventListener("mouseover",toggleMenu);
+    editMenu.addEventListener("mouseout",toggleMenu);
+}
 
 function toggleMenu(){
     editDD.classList.toggle("show");
 }
-
-let invoiceNum = document.getElementById("INVOICE_NUM");
 
 function addLeadingZeros(amount){
     let x = "";
@@ -33,9 +35,7 @@ function addLeadingZeros(amount){
         x += "0";
     }
     return x+amount;
-};
-
-invoiceNum.innerText = "NVC-" + addLeadingZeros(parseInt(invoiceNum.ariaCurrent));
+}
 
 let getPDF = () =>{
     window.open(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}`);

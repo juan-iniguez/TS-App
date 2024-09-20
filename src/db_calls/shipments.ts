@@ -20,12 +20,12 @@ export let aplDB = {
  * Returns data_payload with all properties
  * */
 export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any){
-
     return new Promise((resolve,reject)=>{
-        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE  FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME", MEMBER_NAME, (err:any,rows:any)=>{
+        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL", [MEMBER_NAME, BOL], (err:any,rows:any)=>{
           if(err){
             console.log(err)
           }else{
+            console.log(rows);
             data_payload = rows[0];
             db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=?", data_payload.SCAC,(err:any,rows1:any)=>{
                 if(err){
@@ -130,20 +130,36 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any)
                   // Get the BASED_ON rate
                   data_payload.BASED_ON = parseFloat((data_payload.TTL_CF / data_payload.CUBIC_FEET).toFixed(5));
         
+                  // THIS IS THE CODE THAT PULLS THE RATES AND COMPARES IT TO THE RATES ON THE INVOICE
+                  // TODO: FOR BUNKER, PULL THE RATES TO COMPARE WITH INVOICE, NOT TO REPLACE THE INVOICE BUNKER
                   db.all("SELECT RATE,AMOUNT FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE", rate_query,(err:any,rows2:any)=>{
-                    // console.log(rows2);
+                    
+                    // INITIALIZE `RATES`
                     data_payload.RATES = {};
                     data_payload.RATES.TOTAL = 0;
-        
                     data_payload.NET_RATES = {};
                     data_payload.NET_RATES.TOTAL = 0;
-        
+
                     for(let j in rows2){
-                      data_payload.RATES[rows2[j].RATE] = rows2[j].AMOUNT;
-                      data_payload.RATES.TOTAL += rows2[j].AMOUNT;
-        
-                      data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
-                      data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
+                      // IF bunker rate? then don't pull that into rates
+                      if(rows2[j].RATE == 'FAF'){
+                        let invoiceBunker = JSON.parse(rows[0].CHARGES);
+                        invoiceBunker.map((e:any)=>{
+                          if(e.DESC.includes('Bunker')){
+                            let amount = parseInt(e.AMOUNT)
+                            data_payload.RATES[rows2[j].RATE] = amount;
+                            data_payload.RATES.TOTAL += amount;
+                            data_payload.NET_RATES[rows2[j].RATE] = amount * data_payload.BASED_ON;
+                            data_payload.NET_RATES.TOTAL += amount * data_payload.BASED_ON;
+                          }
+                        })
+                      }else{
+                        data_payload.RATES[rows2[j].RATE] = rows2[j].AMOUNT;
+                        data_payload.RATES.TOTAL += rows2[j].AMOUNT;
+          
+                        data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
+                        data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
+                      }
                     }
                     resolve(data_payload);
                   })
@@ -171,28 +187,28 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any)
  * @param MEMBER_NAME - Name of the customer/member of the shipment
  * @returns Resolved Promise
 */
-export function getShipmentInvoice(MEMBER_NAME?:any, INVOICE_NUM?:any){
+export function getShipmentInvoice(MEMBER_NAME?:any,BOL?:any,INVOICE_NUM?:any){
     const response:Promise<Object> = new Promise((resolve,reject)=>{
-        console.log(MEMBER_NAME)
+        // console.log(MEMBER_NAME)
         if(INVOICE_NUM == undefined){
-          db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=?', MEMBER_NAME, (err:any,rows:any)=>{
-            console.log(rows[0] == undefined)
+          db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=? AND BOL=?', [MEMBER_NAME, BOL], (err:any,rows:any)=>{
+            // console.log(rows[0] == undefined)
             if(rows[0] == undefined){
-              console.log("No It Doesnt exist")
+              // console.log("No It Doesnt exist")
               resolve({exists: false, data: rows})
             }else{
-              console.log("Yes it exists")
+              // console.log("Yes it exists")
               resolve({exists: true, data: rows})
             }
           })
         }else{
           db.all('SELECT * FROM LOCAL_INVOICES WHERE INVOICE_NUM=?', INVOICE_NUM, (err:any,rows:any)=>{
-            console.log(rows[0] == undefined)
+            // console.log(rows[0] == undefined)
             if(rows[0] == undefined){
-              console.log("No It Doesnt exist")
+              // console.log("No It Doesnt exist")
               resolve({exists: false, data: rows})
             }else{
-              console.log("Yes it exists")
+              // console.log("Yes it exists")
               resolve({exists: true, data: rows})
             }
           })

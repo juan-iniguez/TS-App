@@ -1,0 +1,11 @@
+.nav-link{
+    display: flex;
+    color:black;
+    opacity: 70%;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-link:hover{
+    opacity: 100%;
+}

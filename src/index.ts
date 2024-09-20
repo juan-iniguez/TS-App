@@ -70,19 +70,12 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
   let data_payload:any = {}
   let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
 
-  aplDB.getShipmentInvoice(req.params.member_name).then((data:any)=>{
+  aplDB.getShipmentInvoice(req.params.member_name, req.params.bol)
+  .then((data:any)=>{
     if(data.exists){
       let data_payload = data.data[0];
       // SHOW INVOICE THAT IS ALREADY PRESENT
       res.redirect(`/api/shipments/${data_payload.INVOICE_NUM}`)
-      // data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
-      // data_payload.RATES = data_payload.CHARGES.RATES;
-      // data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
-      // delete data_payload.CHARGES;      
-
-      // console.log(data_payload)
-      // res.render("pages/shipment", {data:data_payload});
-
     }else{
       aplDB.getShipment(data_payload,req.params.member_name, req.params.bol,res).then(data=>{
         data_payload = data;
@@ -90,7 +83,7 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
         data_payload.TSA_NUM = settings.TSA_NUM;
         data_payload.TARIFF = settings.TARIFF;
-        console.log(data_payload);
+        // console.log(data_payload);
         res.render("pages/shipment", {data:data_payload});
       })
     }
@@ -99,7 +92,7 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
 
 // Shipment information for already created invoices
 app.get("/api/shipments/:invoice_num",(req,res)=>{
-  aplDB.getShipmentInvoice(undefined, req.params.invoice_num)
+  aplDB.getShipmentInvoice(undefined, undefined, req.params.invoice_num)
   .then((data:any)=>{
     let data_payload = data.data[0];
     data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
@@ -154,7 +147,7 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
     })
     pythonProcess.stdout.on('end', (end:any)=>{
       let result = JSON.parse(fs.readFileSync("public/files/data.json", 'utf8'));
-      console.log(result)
+      // console.log(result)
       if(!result.invoice || !result.waybill){
         res.send({
           reason: "One of your files could not be processed!",
@@ -170,7 +163,7 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
           status: 500,
         });
       }else{
-        console.log(result.invoice.BOL)
+        // console.log(result.invoice.BOL)
         apl.checkInv(result.invoice.BOL)
         .then((resolve)=>{
           if(resolve[0] == undefined){
@@ -430,7 +423,8 @@ app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response
 
   let data_payload:any
   // Check if Invoice already exists
-  aplDB.getShipmentInvoice(req.params.MEMBER_NAME).then((response:any)=>{
+  aplDB.getShipmentInvoice(req.params.MEMBER_NAME, req.params.BOL)
+  .then((response:any)=>{
     if(response.exists == true){
       res.redirect('/api/get-inv/' + response.data[0].INVOICE_NUM);
     }else{
@@ -454,7 +448,7 @@ app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response
 
 // Get Local Ocean Invoice #######################################
 app.get('/api/get-inv/:invoice_num',(req,res)=>{
-  aplDB.getShipmentInvoice(undefined, req.params.invoice_num)
+  aplDB.getShipmentInvoice(undefined, undefined, req.params.invoice_num)
   .then((response:any)=>{
     writePDF.writeOceanInv(response.data[0],response.data[0].INVOICE_NUM,false).then((pdfUint8)=>{
       let pdfbuffer = Buffer.from(pdfUint8.buffer);
@@ -482,7 +476,7 @@ app.post('/api/search', async (req,res,next)=>{
     case "shipments":
       searchDB.getShipments(arg, search)
       .then((resolved)=>{
-        console.log(resolved)
+        // console.log(resolved)
         res.send(resolved);
       })
       .catch((reject)=>{
@@ -524,25 +518,12 @@ app.post('/api/search', async (req,res,next)=>{
 
 // VOID a Local Invoice
 app.post("/api/inv/void",(req,res)=>{
-  console.log(req.body)
+  // console.log(req.body)
   aplDB.voidLocalInvoice(req.body.REASON,parseInt(req.body.INVOICE_NUM))
   res.send(200);
 })
 
-// TODO: MAKE VOID CALLS TO VOID INVOICES.
-// ! WORKING ON THIS !
-/**
- * What happens AFTER it gets voided?
- * Can we create new invoices?
- * If so, how can we edit the details of the invoice?
- * 
- * VOID Data structure
- */
-// TODO: EDIT MODE FOR INVOICES.
-/**
- * After APL Waybill and APL Invoice are uploaded, you should be able to edit the details of the shipment
- * After Invoice is VOIDED we should be able to edit the details and create a new invoice if necessary.
- */
+
 // TODO: When pulling bunker, use invoice bunker as default. However, show note if Invoice Bunker does not match Bunker RATE
 /**
  * Additionally, Instead of making changes or taking the bunker charge face value, 
@@ -552,8 +533,6 @@ app.post("/api/inv/void",(req,res)=>{
  * To tell from which Bunker RATE it is pulling, we use the ingate date and compare.
  * 
  */
-
-// TODO: Supplemental Invoices
 
 // TODO: Login feature
 

@@ -2,6 +2,7 @@ import fs from 'fs'
 import { PDFDocument } from 'pdf-lib'
 import { aplDB } from '../db_calls/shipments';
 import { db } from '../db_init/db_init'
+import { appUtils } from '../utils';
 
 export let writePDF = {
     writeOceanInv
@@ -123,10 +124,8 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         form.getTextField("VOID_REASON").setText(db_payload.VOID_INFO.reason);
         form.getTextField("VOID_DATE").setText(new Date(db_payload.VOID_INFO.date).toLocaleDateString("en-US"));
     }
-
+    pdfDoc.setTitle("NVC-"+appUtils.addLeadingZeros(db_payload.INVOICE_NUM))
     const pdfBytes = await pdfDoc.save();
     return pdfBytes
-    // fs.writeFileSync('resources/TSP Invoice.pdf',pdfBytes);
-    // res.sendStatus(200);
 
 }
