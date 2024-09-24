@@ -49,7 +49,7 @@ build/Release
 db/*
 docs
 pdf/*
-.public/files/data.json
+public/files/data.json
 
 # Dependency directories
 node_modules/
