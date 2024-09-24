@@ -29,6 +29,9 @@ tr:hover{
     cursor: pointer;
 }
 
+.green{
+    background-color: rgb(210, 249, 210);
+}
 
 .tab-search-container{
     display: flex;

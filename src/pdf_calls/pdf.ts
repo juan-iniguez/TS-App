@@ -69,10 +69,12 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
             dewInv_db_ready["$" + x] = db_payload[x];
             }
         }
+        console.log(dewInv_db_ready);
         aplDB.insertLocalInvoice(dewInv_db_ready).then((res)=>{
             console.log(res);
         }).catch((reason)=>{
             // r
+            console.log(reason);
         })
     }else{
         db_payload.CHARGES = JSON.parse(db_payload.CHARGES);

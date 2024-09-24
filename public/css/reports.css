@@ -1,0 +1,4 @@
+.reports-card{
+    display: flex;
+    flex-direction: column;
+}

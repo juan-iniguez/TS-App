@@ -1,7 +1,8 @@
-let currentTab = "shipments";
-let tabs = ["shipments", "invoices", "tsp", "rates" ]
+let currentTab = "pendingshipments";
+let tabs = ["pendingshipments","allshipments", "invoices", "tsp", "rates" ]
 let searchBar = document.getElementById("search-bar");
 let searchArg = document.getElementById("search-arg");
+
 
 searchBar.addEventListener("keyup", search);
 
@@ -11,13 +12,18 @@ for(let i in tabs){
 
 // Get first 10 search results from Shipments
 async function main(){
+    if(document.URL.split('#')[1]){
+        currentTab = document.URL.split('#')[1]
+        console.log(currentTab);
+    }
+    document.getElementById(currentTab+"-tab").classList.toggle("active");
     try {
         const getShipments = await axios.post("/api/search", {
-            data: "shipments",
+            data: currentTab,
             search: "",
             arg: "",
         });
-        populateTable(getShipments.data);
+        populateTable(getShipments.data, currentTab);
     } catch (error) {
         console.log(error)
     }
@@ -26,27 +32,42 @@ async function main(){
 function addLeadingZeros(amount){
     let x = "";
     for(let i=0;i<6-amount.toString().length;i++){
-      x += "0";
+        x += "0";
     }
     return x+amount;
 }
 
-function populateTable(data){
+function populateTable(data, key){
     let tableMain = document.getElementById("table-main")
-    console.log(data);
+    console.log("Populating Data:")
+    console.log(data, key);
 
     // Create Headers
     let headrow = document.createElement("tr");
 
     for(let i in data){
+        // ROW ELEMENT
         let el = document.createElement("tr");
-        el.addEventListener("click",goTo);
+        switch (key) {
+            case "allshipments":
+                el.addEventListener("click",goTo);                
+                break;
+            case "pendingshipments":
+                el.addEventListener("click",goTo);                
+                break;
+            case "invoices":
+                el.addEventListener("click",goToInvoice);                
+                break;
+            default:
+                el.addEventListener("click",goTo);
+                break;
+        }
         for(let j in data[i]){
             // Create Headers
             if(i == 0){
                 let theader = document.createElement("th");
                 theader.innerText = j;
-                headrow.insertAdjacentElement("beforeend", theader);
+                j == 'rowid'?console.log("rowid"):headrow.insertAdjacentElement("beforeend", theader);
             }
             // SET CONDITIONS FOR EACH TD FORMATTING
             let td = createTD(data[i][j])
@@ -70,8 +91,14 @@ function populateTable(data){
                     el.insertAdjacentElement("beforeend", td);
                     break;
                 case "INVOICE_NUM":
-                        td.innerText = "NVC-" + addLeadingZeros(data[i][j]);
-                        el.insertAdjacentElement("beforeend", td);
+                    console.log(data[i][j]);
+                        if(!data[i][j]){
+                            td.innerText = "N/A";
+                            el.insertAdjacentElement("beforeend", td);
+                        }else{
+                            td.innerText = "NVC-" + addLeadingZeros(data[i][j]);
+                            el.insertAdjacentElement("beforeend", td);
+                        }
                     break;
                 case "DISC_FROM_GUA":
                 case "DISC_TO_GUA":
@@ -79,14 +106,17 @@ function populateTable(data){
                     td.innerText = data[i][j].toLocaleString('en-US', {style: 'percent'});
                     el.insertAdjacentElement("beforeend", td);
                     break;
-                // case "DATE_CREATED":
-                    
-                //     break;
-            
+                case "rowid":
+                    break;
                 default:
                     el.insertAdjacentElement("beforeend", td);
                     break;
             }
+        }
+        trID = data[i].rowid || data[i].INVOICE_NUM
+        el.id = 'shipment-'+trID;
+        if(data[i].INVOICE_NUM && key == "allshipments"){
+            el.classList.toggle("green")
         }
         tableMain.insertAdjacentElement("afterbegin",headrow);
         tableMain.insertAdjacentElement("beforeend", el);
@@ -114,19 +144,40 @@ function goTo(e){
     }
     let bol = e.target.parentElement.children[options.indexOf("BOL")].innerText;
     let member_name = e.target.parentElement.children[options.indexOf("MEMBER_NAME")].innerText;
+    let rowid = parseInt(e.target.parentElement.id.split('-')[1]);
+    console.log(rowid)
 
-    window.location.href = `/api/shipments/${bol}/${member_name}`
+    window.location.href = `/api/shipments/${bol}/${member_name}/${rowid}`
 
+}
+
+function goToInvoice(e){
+
+    let headers = document.getElementsByTagName("th");
+    let options = [];
+    for(let i in headers){
+        options.push(headers[i].innerText);
+    }
+    let bol = e.target.parentElement.children[options.indexOf("BOL")].innerText;
+    let member_name = e.target.parentElement.children[options.indexOf("MEMBER_NAME")].innerText;
+    let rowid = parseInt(e.target.parentElement.id.split('-')[1]);
+    console.log(rowid)
+
+    window.location.href = `/api/shipments/${rowid}`
 }
 
 function openTab(e){
     let key = e.target.id.split("-")[0]
     console.log(e.target.id.split("-")[0]);
+    window.history.pushState('', '', '#'+key);
 
     let action = (el)=>{
         if(!e.target.classList.contains("active")){
             document.getElementById(currentTab+"-tab").classList.toggle("active")
             e.target.classList.toggle("active");
+            if(el == "allshipments" || el == "pendingshipments"){
+                document.getElementById("shipments-selected").innerText = el=="allshipments"?"All Shipments":"Pending Shipments";
+            }
         }
         currentTab = el;
         axios.post("/api/search", {
@@ -134,9 +185,10 @@ function openTab(e){
             search: "",
             arg: "",
         }).then(data=>{
+            console.log("## DATA ##")
             console.log(data);
             dropdownSet(data.data[0])
-            populateTable(data.data);
+            populateTable(data.data, key);
         })        
     }
 
@@ -153,7 +205,10 @@ function openTab(e){
 
     clearTable();
     switch (key) {
-        case "shipments":
+        case "allshipments":
+            action(key);
+            break;
+        case "pendingshipments":
             action(key);
             break;
         case "invoices":

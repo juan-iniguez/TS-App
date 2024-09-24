@@ -19,9 +19,9 @@ export let aplDB = {
  * 
  * Returns data_payload with all properties
  * */
-export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any){
+export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
     return new Promise((resolve,reject)=>{
-        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL", [MEMBER_NAME, BOL], (err:any,rows:any)=>{
+        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL AND SHIPMENTS.rowid=$id", [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
           if(err){
             console.log(err)
           }else{
@@ -140,6 +140,8 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any)
                     data_payload.NET_RATES = {};
                     data_payload.NET_RATES.TOTAL = 0;
 
+                    data_payload.id = parseInt(id);
+
                     for(let j in rows2){
                       // IF bunker rate? then don't pull that into rates
                       if(rows2[j].RATE == 'FAF'){
@@ -178,7 +180,7 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any)
  * 
  * Example:
  * ```js
- * checkShipment(db,MEMBER_NAME)
+ * getShipmentInvoice(MEMBER_NAME, BOL, id, INVOICE_NUM)
  * .then((res)=>{
  *    if(res.exists){... return res.data}
  * })
@@ -187,11 +189,11 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any ,res:any)
  * @param MEMBER_NAME - Name of the customer/member of the shipment
  * @returns Resolved Promise
 */
-export function getShipmentInvoice(MEMBER_NAME?:any,BOL?:any,INVOICE_NUM?:any){
+export function getShipmentInvoice(MEMBER_NAME?:any,BOL?:any,id?:any,INVOICE_NUM?:any){
     const response:Promise<Object> = new Promise((resolve,reject)=>{
         // console.log(MEMBER_NAME)
         if(INVOICE_NUM == undefined){
-          db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=? AND BOL=?', [MEMBER_NAME, BOL], (err:any,rows:any)=>{
+          db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=? AND BOL=? AND SHIPMENT_ID=?', [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
             // console.log(rows[0] == undefined)
             if(rows[0] == undefined){
               // console.log("No It Doesnt exist")
@@ -293,10 +295,19 @@ export function getInvoiceCount(){
  */
 export function insertLocalInvoice(data:any){
   return new Promise((resolve,reject)=>{
-    db.all("INSERT INTO LOCAL_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM)", data,(x:any, err:any)=>{
-      if(err){
-        console.log(err)
+    console.log("WHAT IS THE PAYLOAD:")
+    console.log(data);
+    db.all("INSERT INTO LOCAL_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM, SHIPMENT_ID) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM, $id)", data,(x:any, err:any)=>{
+      if(err.length > 0){
         reject(err)
+      }else{
+        let shipment_payload = {
+          "$INVOICE_NUM":data["$INVOICE_NUM"],
+          "$rowid": data["$id"],
+        }
+        db.all("UPDATE SHIPMENTS SET INVOICE_NUM=$INVOICE_NUM WHERE rowid=$rowid",shipment_payload,(y:any,err:any)=>{
+          err>0?reject(err):resolve("ok");          
+        })
       }
     })
   })

@@ -63,27 +63,31 @@ app.get("/search", (req:Request,res:Response)=>{
   res.render("pages/search");
 })
 
+// Page for getting Reports
+app.get("/reports",(req,res)=>{
+  res.render("pages/reports");
+})
+
 // SHIPMENTS
 // Main page for showing the shipment information
-app.get("/api/shipments/:bol/:member_name",(req,res)=>{
+app.get("/api/shipments/:bol/:member_name/:rowid",(req,res)=>{
   
   let data_payload:any = {}
   let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
 
-  aplDB.getShipmentInvoice(req.params.member_name, req.params.bol)
+  aplDB.getShipmentInvoice(req.params.member_name, req.params.bol,req.params.rowid)
   .then((data:any)=>{
     if(data.exists){
       let data_payload = data.data[0];
       // SHOW INVOICE THAT IS ALREADY PRESENT
       res.redirect(`/api/shipments/${data_payload.INVOICE_NUM}`)
     }else{
-      aplDB.getShipment(data_payload,req.params.member_name, req.params.bol,res).then(data=>{
+      aplDB.getShipment(data_payload,req.params.member_name, req.params.bol,req.params.rowid).then((data:any)=>{
         data_payload = data;
         data_payload.INVOICE_DATE = "N/A";
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
         data_payload.TSA_NUM = settings.TSA_NUM;
         data_payload.TARIFF = settings.TARIFF;
-        // console.log(data_payload);
         res.render("pages/shipment", {data:data_payload});
       })
     }
@@ -92,7 +96,7 @@ app.get("/api/shipments/:bol/:member_name",(req,res)=>{
 
 // Shipment information for already created invoices
 app.get("/api/shipments/:invoice_num",(req,res)=>{
-  aplDB.getShipmentInvoice(undefined, undefined, req.params.invoice_num)
+  aplDB.getShipmentInvoice(undefined, undefined,undefined, req.params.invoice_num)
   .then((data:any)=>{
     let data_payload = data.data[0];
     data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
@@ -379,7 +383,7 @@ app.post('/api/db-rates', upload.single('file'),(req,res)=>{
 })
 
 // Create Local Ocean Invoice #####################################
-app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response)=>{
+app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME/:rowid', async (req:Request,res:Response)=>{
   
   // 1-17 Fields ORDER MATTERS
   // let fields_names = [
@@ -423,13 +427,13 @@ app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response
 
   let data_payload:any
   // Check if Invoice already exists
-  aplDB.getShipmentInvoice(req.params.MEMBER_NAME, req.params.BOL)
+  aplDB.getShipmentInvoice(req.params.MEMBER_NAME, req.params.BOL,req.params.rowid)
   .then((response:any)=>{
     if(response.exists == true){
       res.redirect('/api/get-inv/' + response.data[0].INVOICE_NUM);
     }else{
       // Create Entry DB for LOCAL_INVOICES
-      aplDB.getShipment(data_payload,req.params.MEMBER_NAME, req.params.BOL ,res).then(async (data)=>{
+      aplDB.getShipment(data_payload,req.params.MEMBER_NAME, req.params.BOL, req.params.rowid).then(async (data)=>{
         aplDB.getInvoiceCount().then(async (val:any )=>{
           writePDF.writeOceanInv(data,val,true).then((pdfUint8)=>{
             let pdfbuffer = Buffer.from(pdfUint8.buffer);
@@ -448,7 +452,7 @@ app.get('/api/create-dew-inv/:BOL/:MEMBER_NAME', async (req:Request,res:Response
 
 // Get Local Ocean Invoice #######################################
 app.get('/api/get-inv/:invoice_num',(req,res)=>{
-  aplDB.getShipmentInvoice(undefined, undefined, req.params.invoice_num)
+  aplDB.getShipmentInvoice(undefined, undefined,undefined, req.params.invoice_num)
   .then((response:any)=>{
     writePDF.writeOceanInv(response.data[0],response.data[0].INVOICE_NUM,false).then((pdfUint8)=>{
       let pdfbuffer = Buffer.from(pdfUint8.buffer);
@@ -471,10 +475,21 @@ app.post('/api/search', async (req,res,next)=>{
   let search = req.body.search;
   let arg = req.body.arg;
 
+  console.log(data,search,arg);
   
   switch (data) {
-    case "shipments":
-      searchDB.getShipments(arg, search)
+    case "pendingshipments":
+      searchDB.getShipments(arg, search, data)
+      .then((resolved)=>{
+        console.log(resolved)
+        res.send(resolved);
+      })
+      .catch((reject)=>{
+        console.log(reject)
+      })
+      break;
+    case "allshipments":
+      searchDB.getShipments(arg, search, data)
       .then((resolved)=>{
         // console.log(resolved)
         res.send(resolved);

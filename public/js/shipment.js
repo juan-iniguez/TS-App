@@ -1,14 +1,15 @@
 let data_send = {
     BOL: document.getElementById("BOL").value,
     MEMBER_NAME: document.getElementById("MEMBER_NAME").value,
+    id: document.URL.split('/'),
 }
 
 function createInvoice(){
     // Get Everything
     // Get Charges
-    axios.get(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}`).then(res=>{
+    axios.get(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}/${data_send.id[data_send.id.length - 1]}`).then(res=>{
         if(res.status == 200 ){
-            window.open(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}`, '_blank').focus();
+            window.open(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}/${data_send.id[data_send.id.length - 1]}`, '_blank').focus();
             location.reload();
         }
     }).catch(err=>{
@@ -38,7 +39,9 @@ function addLeadingZeros(amount){
 }
 
 let getPDF = () =>{
-    window.open(`/api/create-dew-inv/${data_send.BOL}/${data_send.MEMBER_NAME}`);
+    console.time("Get Invoice")
+    window.open(`/api/get-inv/${data_send.id[data_send.id.length -1]}`);
+    console.timeEnd("Get Invoice")
 }
 
 function voidConfirmation(){

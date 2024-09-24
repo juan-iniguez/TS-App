@@ -16,9 +16,16 @@
         <div style="max-width: 1200px;min-height: 700px;margin-top: 30px;">
             <div class="tab-search-container">
                 <ul style="width: 100%;" class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="details-tab nav-link active" id="shipments-tab" >Shipments</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" id="shipments-selected" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Pending Shipments</a>
+                        <ul class="dropdown-menu">
+                            <li><a id="allshipments-tab" class="dropdown-item">All Shipments</a></li>
+                            <li><a id="pendingshipments-tab" class="dropdown-item">Pending Shipments</a></li>
+                        </ul>
                     </li>
+                    <!-- <li class="nav-item">
+                        <a class="details-tab nav-link" id="shipments-tab" >Shipments</a>
+                    </li> -->
                     <li class="nav-item">
                         <a class="details-tab nav-link" id="invoices-tab" >Invoices</a>
                     </li>
