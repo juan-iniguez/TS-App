@@ -9,3 +9,18 @@
 .nav-link:hover{
     opacity: 100%;
 }
+
+.container{
+    min-height: 90vh;
+}
+
+footer{
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    padding: 2em;
+    bottom:0px;
+    left: 0px;
+    position: relative;
+    width: 100%;
+}
