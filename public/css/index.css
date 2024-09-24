@@ -9,7 +9,7 @@ a{
 
 .start-button-img{
     height: auto;
-    max-height: 200px;
+    max-height: 150px;
 }
 
 .start-button{
@@ -35,7 +35,7 @@ a{
 .index-container{
     margin: auto;
     gap: 20px;
-    width: 800px;
+    width: 700px;
     display: grid;
     grid-template-rows: 1fr;
     grid-template-columns: 1fr 1fr;
