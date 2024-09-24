@@ -1,8 +1,7 @@
 {
     "watch": [
         "src/",
-        "views/",
-        "public/"
+        "views/"
     ],
     "ext": "ts,js,ejs,css"
 }
