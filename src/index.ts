@@ -99,6 +99,7 @@ app.get("/api/shipments/:invoice_num",(req,res)=>{
   aplDB.getShipmentInvoice(undefined, undefined,undefined, req.params.invoice_num)
   .then((data:any)=>{
     let data_payload = data.data[0];
+    data_payload.INVOICE_DATE = new Date(data_payload.INVOICE_DATE).toLocaleDateString("en-US");
     data_payload.CHARGES = JSON.parse(data_payload.CHARGES);
     data_payload.RATES = data_payload.CHARGES.RATES;
     data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;

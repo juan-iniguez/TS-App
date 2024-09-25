@@ -14,7 +14,7 @@ for(let i in tabs){
 async function main(){
     if(document.URL.split('#')[1]){
         currentTab = document.URL.split('#')[1]
-        console.log(currentTab);
+        // console.log(currentTab);
     }
     document.getElementById(currentTab+"-tab").classList.toggle("active");
     try {
@@ -39,8 +39,8 @@ function addLeadingZeros(amount){
 
 function populateTable(data, key){
     let tableMain = document.getElementById("table-main")
-    console.log("Populating Data:")
-    console.log(data, key);
+    // console.log("Populating Data:")
+    // console.log(data, key);
 
     // Create Headers
     let headrow = document.createElement("tr");
@@ -67,7 +67,7 @@ function populateTable(data, key){
             if(i == 0){
                 let theader = document.createElement("th");
                 theader.innerText = j;
-                j == 'rowid'?console.log("rowid"):headrow.insertAdjacentElement("beforeend", theader);
+                j == 'rowid'?{}:headrow.insertAdjacentElement("beforeend", theader);
             }
             // SET CONDITIONS FOR EACH TD FORMATTING
             let td = createTD(data[i][j])
@@ -91,7 +91,7 @@ function populateTable(data, key){
                     el.insertAdjacentElement("beforeend", td);
                     break;
                 case "INVOICE_NUM":
-                    console.log(data[i][j]);
+                    // console.log(data[i][j]);
                         if(!data[i][j]){
                             td.innerText = "N/A";
                             el.insertAdjacentElement("beforeend", td);
@@ -145,7 +145,7 @@ function goTo(e){
     let bol = e.target.parentElement.children[options.indexOf("BOL")].innerText;
     let member_name = e.target.parentElement.children[options.indexOf("MEMBER_NAME")].innerText;
     let rowid = parseInt(e.target.parentElement.id.split('-')[1]);
-    console.log(rowid)
+    // console.log(rowid)
 
     window.location.href = `/api/shipments/${bol}/${member_name}/${rowid}`
 
@@ -161,14 +161,14 @@ function goToInvoice(e){
     let bol = e.target.parentElement.children[options.indexOf("BOL")].innerText;
     let member_name = e.target.parentElement.children[options.indexOf("MEMBER_NAME")].innerText;
     let rowid = parseInt(e.target.parentElement.id.split('-')[1]);
-    console.log(rowid)
+    // console.log(rowid)
 
     window.location.href = `/api/shipments/${rowid}`
 }
 
 function openTab(e){
     let key = e.target.id.split("-")[0]
-    console.log(e.target.id.split("-")[0]);
+    // console.log(e.target.id.split("-")[0]);
     window.history.pushState('', '', '#'+key);
 
     let action = (el)=>{
@@ -185,15 +185,15 @@ function openTab(e){
             search: "",
             arg: "",
         }).then(data=>{
-            console.log("## DATA ##")
-            console.log(data);
+            // console.log("## DATA ##")
+            // console.log(data);
             dropdownSet(data.data[0])
             populateTable(data.data, key);
         })        
     }
 
     let dropdownSet = (row)=>{
-        console.log(row);
+        // console.log(row);
         let argOptions = document.getElementById("search-arg");
         let keys = Object.keys(row);
 
@@ -235,12 +235,11 @@ function search(e){
         search: searchText,
         arg: argVal,
     }).then((response)=>{
-        console.log(response);
+        // console.log(response);
         clearTable();
         populateTable(response.data);
     })
 
 }
-
 
 main();
