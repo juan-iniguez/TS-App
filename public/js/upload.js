@@ -1,5 +1,63 @@
 let apl_invoice = document.getElementById("apl-invoice");
+apl_invoice.addEventListener('change', previewPDF);
 let apl_waybill = document.getElementById("apl-waybill");
+apl_waybill.addEventListener('change', previewPDF);
+let apl_invoicePreview = document.getElementById("apl-invoice-preview");
+let apl_waybillPreview = document.getElementById("apl-waybill-preview");
+let formLabels = document.getElementsByClassName('form-label');
+let tabs = document.getElementsByClassName("nav-link");
+
+apl_invoice.value = '';
+apl_waybill.value = '';
+
+console.log(formLabels)
+for(let el of formLabels){
+    el.addEventListener('dragleave' || 'dragend', (e)=>{
+        e = e || event;
+        e.target.style = '';
+        e.preventDefault();
+    })
+    el.addEventListener('dragover',(e)=>{
+        e = e || event;
+        console.log('Mouse drag:')
+        console.log(e.dataTransfer.items[0])
+        e.target.style = 'background-color:#8080804f';
+        e.target.innerText = ":)"
+        e.preventDefault();
+    },false)
+    el.addEventListener('drop',(e)=>{
+        e = e || event;
+        e.preventDefault();
+        // e.target.hidden=true;
+        // Add Files from Drop to Input
+        e.target.parentElement.control.files = e.dataTransfer.files
+        e.target.parentElement.control.dispatchEvent(new Event("change"))
+    },false)
+}
+
+for(let el of tabs){
+    el.addEventListener("click", (e)=>{
+        let container = document.getElementById('upload-container-'+e.target.id.split('-')[1]);
+        if(container.classList.contains('hidden')){
+            if(el.id == 'apl-invoice-tab'){
+                document.getElementById('apl-waybill-tab').classList.toggle('active')
+                document.getElementById('upload-container-waybill').classList.toggle('hidden')
+                document.getElementById('upload-container-waybill').hidden=true;
+            }else{
+                document.getElementById('apl-invoice-tab').classList.toggle('active')
+                document.getElementById('upload-container-invoice').classList.toggle('hidden')
+                document.getElementById('upload-container-invoice').hidden=true;
+            }
+            container.hidden=false
+            container.classList.toggle('hidden');
+            el.classList.toggle('active');
+        }
+        console.log(document.getElementById(e.target.id.slice(0,e.target.id.length-4)+''))
+        console.log(e.target.id.slice(0,e.target.id.length-4))
+
+    })
+}
+
 let months = ["JAN","FEB","MAR","APR","MAY", "JUN", "JUL","AUG","SEP","OCT","NOV","DEC"];
 let payload_data = {}
 let check_match = {
@@ -10,13 +68,47 @@ let check_match = {
     'CONT_NUM': Boolean,
 };
 
+function previewPDF(e){
+    const preview = document.getElementById(e.target.id + "-preview");
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    const landingPadArray = document.getElementsByClassName('form-label');
+
+    for(let i of landingPadArray){
+        e.target.id == i.htmlFor?i.hidden=true:{};
+    }
+
+    reader.addEventListener("load", ()=>{
+        console.log(reader.result);
+        preview.src = reader.result;
+        preview.title = e.target.files[0].name;
+        preview.height = '500px'
+
+        checkInputFiles(e.target.id);
+
+    }, false);
+
+    if(file) {
+        reader.readAsDataURL(file);
+    }
+
+}
+
+function checkInputFiles(type){
+    let tabsContainers = document.getElementById("tabs-buttons-container");
+    if(tabsContainers.hidden){
+        tabsContainers.hidden=false;
+    }
+    document.getElementById(type+"-tab").innerText = document.getElementById(type).files.length > 0? "Invoice ✅": console.log("Error no files");
+    if(apl_invoice.files.length == 1 && apl_waybill.files.length == 1){
+        console.log("ready")
+        document.getElementById("next-btn").hidden = true;
+        document.getElementById("upload-btn").hidden = false;
+    }
+}
 
 async function submit() {
     let formData = new FormData();
-
-    // console.log("LMAO")
-    // console.log(apl_invoice);
-    // console.log(apl_invoice.files[0]);
 
     apl_invoice.files[0].arrayBuffer
 
@@ -57,10 +149,7 @@ function confirmDetails(data){
 
     for(i in keys_invoice){
         let el = document.getElementById(keys_invoice[i] + '-I');
-
-
         if (keys_invoice[i] == "CHARGES")  break;
-
         if (keys_invoice[i] == "INVOICE_DATE"){
             let date = data.invoice[keys_invoice[i]].split("-");
             let new_date = new Date(parseInt(date[2]), months.indexOf(date[1]), parseInt(date[0]))
@@ -250,4 +339,8 @@ async function submit_db(){
     }).catch(err => {
         console.error(err);
     })
+}
+
+function goTab(e){
+    console.log(e)
 }
