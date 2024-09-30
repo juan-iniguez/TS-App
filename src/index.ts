@@ -1,24 +1,15 @@
-// src/index.js
 import express, { Express, Request, Response } from "express";
-import dotenv from "dotenv";
+const spawn = require("child_process").spawn;
 import path from "path";
 import bodyParser from 'body-parser';
 import fs from "fs";
 import formidable from 'formidable';
-// import sqlite3 from 'sqlite3';
-// import { parse } from "csv-parse";
 import multer from 'multer';
 // !XLSX IS VULNERABLE!
 import xlsx from 'xlsx';
-// import { PDFDocument } from 'pdf-lib'
-
 // Local calls for tasks
 import { aplDB } from './db_calls/shipments';
 import { writePDF } from "./pdf_calls/pdf";
-// import { JSONParser } from "formidable/parsers";
-
-const spawn = require("child_process").spawn;
-
 import { apl } from './db_calls/apl';
 import { db } from './db_init/db_init';
 import { localSettings } from './db_calls/settings';
@@ -26,15 +17,18 @@ import { searchDB } from './db_calls/search'
 import { appUtils } from "./utils";
 
 // DotENV setup for environment variables
-dotenv.config();
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 // Multer configuration - for file upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+console.log(process.env);
+
 // Set Express App
 const app: Express = express();
-const port = process.env.PORT || 3000;
+const port:any = 443;
+// console.log(port);
 
 // app extensions and settings
 app.use(bodyParser.urlencoded({extended: false}));
@@ -557,18 +551,22 @@ app.post("/api/inv/void",(req,res)=>{
 
 var reload = require("reload")
 
-// app.listen(port, () => {
-//   console.log(`[server]: Server is running at http://0.0.0.0:${port}`);
-// });
+
+
+if(process.env.PPORT){
+  app.listen(process.env.PPORT, () => {
+    console.log(`[server]: Server is running at http://0.0.0.0:${process.env.PPORT}`);
+  });
+}else{
+  reload(app).then(function () {
+    // reloadReturned is documented in the returns API in the README
+    // Reload started, start web server
+    app.listen(process.env.DPORT, () => {
+      console.log(`[server]: Server is running at http://0.0.0.0:${process.env.DPORT}`);
+    });
+  }).catch(function (err:any) {
+    console.error('Reload could not start, could not start server/sample app', err)
+  })
+}
 
 // Reload code here
-reload(app).then(function () {
-  // reloadReturned is documented in the returns API in the README
-
-  // Reload started, start web server
-  app.listen(port, () => {
-    console.log(`[server]: Server is running at http://0.0.0.0:${port}`);
-  });
-}).catch(function (err:any) {
-  console.error('Reload could not start, could not start server/sample app', err)
-})
