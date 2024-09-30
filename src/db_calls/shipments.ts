@@ -25,13 +25,15 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
           if(err){
             console.log(err)
           }else{
-            console.log(rows);
+            // console.log(rows);
             data_payload = rows[0];
+            // Get Rates
             db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=?", data_payload.SCAC,(err:any,rows1:any)=>{
                 if(err){
                   console.log(err)
                 }else{
-                  // console.log(rows1)
+                  console.log("RATES ARE PROMPTED HERE:")
+                  console.log(rows1)
                   if(!rows1[0]){
                     // SOMETIMES THERE WON'T BE A TSP BECAUSE THEY ARE OUT OF CONTRACT TSP's
                     // THIS WILL PROMPT THE USER TO FILL OUT THE DETAILS
@@ -52,13 +54,20 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
         
                   if(data_payload.RECEIPT_PLACE != "-"){
                     switch (data_payload.RECEIPT_PLACE) {
+                      case "LOS ANGELES, CA":
+                      case "LONG BEACH, CA":
+                      case "OAKLAND, CA":
+                      case "SEATLE, WA":
+                      case "TACOMA, WA":
+                        rate_query["$ORIGIN"] = "LA/OAK/SEA";
+                        break;  
                       case "BALTIMORE, MD" :
                       case "CHARLESTON, SC":
                       case "JACKSONVILLE, FL":
                       case "NORFOLK, VA":
                       case "SABANNAH, GA":
-                      rate_query["$ORIGIN"] = "USEC (Rail via Los Angeles, CA)";
-                          break;
+                        rate_query["$ORIGIN"] = "USEC (Rail via Los Angeles, CA)";
+                        break;
                       case "KANSAS CITY, KS":
                         rate_query["$ORIGIN"] = "Kansas City, KS (Rail via Los Angeles, CA)";
                         break

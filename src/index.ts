@@ -88,6 +88,8 @@ app.get("/api/shipments/:bol/:member_name/:rowid",(req,res)=>{
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
         data_payload.TSA_NUM = settings.TSA_NUM;
         data_payload.TARIFF = settings.TARIFF;
+        console.log("CHECK THE STATUS OF THIS SHIPMENT:")
+        console.log(data_payload);
         res.render("pages/shipment", {data:data_payload});
       })
     }
