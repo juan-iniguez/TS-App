@@ -23,12 +23,9 @@ require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-console.log(process.env);
-
 // Set Express App
 const app: Express = express();
-const port:any = 443;
-// console.log(port);
+
 
 // app extensions and settings
 app.use(bodyParser.urlencoded({extended: false}));
@@ -549,9 +546,7 @@ app.post("/api/inv/void",(req,res)=>{
 // TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
 // TODO: Login feature
 
-var reload = require("reload")
-
-
+var reload = process.env.DPORT?require("reload"):console.log("PRODUCTION ENVIRONMENT");
 
 if(process.env.PPORT){
   app.listen(process.env.PPORT, () => {
