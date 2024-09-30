@@ -92,7 +92,7 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
     for(let i in fields_names){
         // Set the text value
         let textField = form.getTextField(fields_names[i]);
-        if(typeof(db_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM"){
+        if(typeof(db_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM" && fields_names[i] != "INVOICE_DATE"){
             textField.setText(db_payload[fields_names[i]].toString());
         }else if(fields_names[i] == "INVOICE_NUM"){
             textField.setText("NVC-" + addLeadingZeros(db_payload[fields_names[i]].toString().split('').length) + db_payload[fields_names[i]] );
