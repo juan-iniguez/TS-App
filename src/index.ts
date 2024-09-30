@@ -546,22 +546,8 @@ app.post("/api/inv/void",(req,res)=>{
 // TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
 // TODO: Login feature
 
-var reload = process.env.DPORT?require("reload"):console.log("PRODUCTION ENVIRONMENT");
-
-if(process.env.PPORT){
-  app.listen(process.env.PPORT, () => {
-    console.log(`[server]: Server is running at http://0.0.0.0:${process.env.PPORT}`);
-  });
-}else{
-  reload(app).then(function () {
-    // reloadReturned is documented in the returns API in the README
-    // Reload started, start web server
-    app.listen(process.env.DPORT, () => {
-      console.log(`[server]: Server is running at http://0.0.0.0:${process.env.DPORT}`);
-    });
-  }).catch(function (err:any) {
-    console.error('Reload could not start, could not start server/sample app', err)
-  })
-}
+app.listen(process.env.PPORT || process.env.DPORT, () => {
+  console.log(`[server]: Server is running at http://0.0.0.0:${process.env.PPORT || process.env.DPORT}`);
+});
 
 // Reload code here
