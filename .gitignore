@@ -5,6 +5,7 @@ lib
 include
 pyvenv.cfg
 
+
 # Logs
 logs
 *.log
@@ -49,6 +50,7 @@ build/Release
 db/*
 docs
 pdf/*
+public/pdf/*
 public/files/data.json
 
 # Dependency directories
