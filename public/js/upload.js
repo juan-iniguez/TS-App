@@ -6,6 +6,10 @@ let apl_invoicePreview = document.getElementById("apl-invoice-preview");
 let apl_waybillPreview = document.getElementById("apl-waybill-preview");
 let formLabels = document.getElementsByClassName('form-label');
 let tabs = document.getElementsByClassName("nav-link");
+const clearBtn = document.getElementById('clear-btn')
+const nextBtn = document.getElementById('next-btn')
+const uploadBtn = document.getElementById('upload-btn')
+clearBtn.addEventListener('click', clearUpload)
 
 apl_invoice.value = '';
 apl_waybill.value = '';
@@ -43,10 +47,12 @@ for(let el of tabs){
                 document.getElementById('apl-waybill-tab').classList.toggle('active')
                 document.getElementById('upload-container-waybill').classList.toggle('hidden')
                 document.getElementById('upload-container-waybill').hidden=true;
+                if(apl_invoice.files.length==0){clearBtn.hidden=true;}else{clearBtn.hidden=false}
             }else{
                 document.getElementById('apl-invoice-tab').classList.toggle('active')
                 document.getElementById('upload-container-invoice').classList.toggle('hidden')
                 document.getElementById('upload-container-invoice').hidden=true;
+                if(apl_waybill.files.length==0){clearBtn.hidden=true;}else{clearBtn.hidden=false}
             }
             container.hidden=false
             container.classList.toggle('hidden');
@@ -99,7 +105,8 @@ function checkInputFiles(type){
     if(tabsContainers.hidden){
         tabsContainers.hidden=false;
     }
-    document.getElementById(type+"-tab").innerText = document.getElementById(type).files.length > 0? "Invoice ✅": console.log("Error no files");
+    clearBtn.hidden=false;
+    document.getElementById(type+"-tab").innerText = document.getElementById(type).files.length > 0?(type=='apl-invoice'?"Invoice":"Waybill") + " ✅": console.log("Error no files");
     if(apl_invoice.files.length == 1 && apl_waybill.files.length == 1){
         console.log("ready")
         document.getElementById("next-btn").hidden = true;
@@ -287,6 +294,27 @@ function toggleInvoice(){
         document.getElementById("invoice-details").classList.toggle('active');
         document.getElementById("waybill-details").classList.toggle('active');
     }
+}
+
+function clearUpload(e){
+    let currentTab = document.getElementsByClassName('nav-link active')[0];
+    // Clear the File in input
+    let aplInput = document.getElementById(currentTab.id.split('-tab')[0]);
+    console.log(aplInput)
+    aplInput.value = "";
+    // Clear the preview and hidden
+    let aplPreview = document.getElementById(aplInput.id + '-preview')
+    aplPreview.src = ""
+    aplPreview.height = "0px"
+    // Set up the landing drop in space (Show the label)
+    aplInput.labels[0].hidden = false
+    currentTab.innerText = currentTab.innerText.slice(0,-1);
+    // Hide the Clear Upload button once pressed
+    clearBtn.hidden = true;
+    // If Upload button is on, change it for next
+    uploadBtn.hidden=true;
+    nextBtn.hidden=false
+
 }
 
 async function submit_db(){
