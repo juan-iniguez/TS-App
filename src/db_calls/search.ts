@@ -18,8 +18,6 @@ function getShipments(arg:any,search:any, data:any): Promise<any>{
                 search = '%'+search+'%';
                 db.all(`Select BOL,MEMBER_NAME,SCAC,GBL,TTL_CF,PIECES,DATE_CREATED,INVOICE_NUM,rowid from SHIPMENTS WHERE ${arg} LIKE ? ORDER BY DATE_CREATED DESC LIMIT 50`,[search],(err, rows)=>{
                     err?reject(err):resolve(rows);
-                    console.log("WHAT ARE THE ROWS")
-                    console.log(rows);
                 });
             }
         }else if(data == "pendingshipments"){

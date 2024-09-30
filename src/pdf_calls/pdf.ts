@@ -55,7 +55,7 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         db_payload.TOTAL = data_payload.NET_RATES.TOTAL;  
     }else{
         db_payload = data;
-        console.log(db_payload);
+        // console.log(db_payload);
     }
 
     let dewInv_db_ready:any = {}
@@ -69,9 +69,9 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
             dewInv_db_ready["$" + x] = db_payload[x];
             }
         }
-        console.log(dewInv_db_ready);
+        // console.log(dewInv_db_ready);
         aplDB.insertLocalInvoice(dewInv_db_ready).then((res)=>{
-            console.log(res);
+            // console.log(res);
         }).catch((reason)=>{
             // r
             console.log(reason);

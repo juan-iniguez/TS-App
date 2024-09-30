@@ -79,8 +79,8 @@ app.get("/api/shipments/:bol/:member_name/:rowid",(req,res)=>{
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
         data_payload.TSA_NUM = settings.TSA_NUM;
         data_payload.TARIFF = settings.TARIFF;
-        console.log("CHECK THE STATUS OF THIS SHIPMENT:")
-        console.log(data_payload);
+        // console.log("CHECK THE STATUS OF THIS SHIPMENT:")
+        // console.log(data_payload);
         res.render("pages/shipment", {data:data_payload});
       })
     }
@@ -469,13 +469,13 @@ app.post('/api/search', async (req,res,next)=>{
   let search = req.body.search;
   let arg = req.body.arg;
 
-  console.log(data,search,arg);
+  // console.log(data,search,arg);
   
   switch (data) {
     case "pendingshipments":
       searchDB.getShipments(arg, search, data)
       .then((resolved)=>{
-        console.log(resolved)
+        // console.log(resolved)
         res.send(resolved);
       })
       .catch((reject)=>{

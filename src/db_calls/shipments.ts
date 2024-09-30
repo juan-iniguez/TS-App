@@ -32,8 +32,6 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                 if(err){
                   console.log(err)
                 }else{
-                  console.log("RATES ARE PROMPTED HERE:")
-                  console.log(rows1)
                   if(!rows1[0]){
                     // SOMETIMES THERE WON'T BE A TSP BECAUSE THEY ARE OUT OF CONTRACT TSP's
                     // THIS WILL PROMPT THE USER TO FILL OUT THE DETAILS
@@ -304,8 +302,6 @@ export function getInvoiceCount(){
  */
 export function insertLocalInvoice(data:any){
   return new Promise((resolve,reject)=>{
-    console.log("WHAT IS THE PAYLOAD:")
-    console.log(data);
     db.all("INSERT INTO LOCAL_INVOICES (MEMBER_NAME, TARIFF, PAYMENT_TERMS, TSA_NUM, CHARGES, TOTAL, INVOICE_DATE, BOL, VESSEL, VOYAGE, DISCHARGE_PORT, LOAD_PORT, CONT_SIZE, CONT_NUM, RECEIPT_PLACE,SCAC, GBL, TTL_CF, PIECES, TSP_NAME, ADDRESS_1, ADDRESS_2, VOID, BASED_ON, INVOICE_NUM, SHIPMENT_ID) VALUES ($MEMBER_NAME, $TARIFF, $PAYMENT_TERMS, $TSA_NUM, $CHARGES, $TOTAL, $INVOICE_DATE, $BOL,$VESSEL, $VOYAGE, $DISCHARGE_PORT, $LOAD_PORT, $CONT_SIZE, $CONT_NUM, $RECEIPT_PLACE,$SCAC, $GBL, $TTL_CF, $PIECES, $TSP_NAME, $ADDRESS_1, $ADDRESS_2, $VOID, $BASED_ON, $INVOICE_NUM, $id)", data,(x:any, err:any)=>{
       if(err.length > 0){
         reject(err)
@@ -328,7 +324,7 @@ function voidLocalInvoice(reason:any,invoice_num:any){
     date: Date.now(),
   })
   db.run(`UPDATE LOCAL_INVOICES SET VOID=1,VOID_INFO=? WHERE INVOICE_NUM=?`,[info,invoice_num],(err:any,rows:any)=>{
-    err?console.log(err):console.log(rows);
+    err?console.log(err):{};
   })
 
 }
