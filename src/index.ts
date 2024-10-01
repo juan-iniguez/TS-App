@@ -139,8 +139,8 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
       // console.log(data.toString());
     });
     pythonProcess.stderr.on('data', (err:any)=>{
-      // console.log("ERROR:")
-      // console.log(err.toString());
+      console.error("ERROR: " + err.toString())
+      console.warn("Python had an error, please check the script!!!");
       if(err){pythonERROR.status = true; pythonERROR.msg = err.toString()};
     })
     pythonProcess.stdout.on('end', (end:any)=>{
@@ -151,13 +151,15 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
           reason: "One of your files could not be processed!",
           status: 500,
         });
+        console.error("No Invoice or Waybill found in files!!!");
+        console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
         return;
       }
       // console.log("PYTHON ERROR:" + pythonERROR.status);
       // CHECK IF ENTRY IS ALREADY UPLOADED
       if(pythonERROR.status){
         res.send({
-          reason: pythonERROR.msg,
+          reason: "There was an issue parsing the files, please contact your administrator. (Python Parsing Error)",
           status: 500,
         });
       }else{
@@ -171,12 +173,16 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
               reason: "Shipment Invoice or Waybill already exists.",
               status: 200,
             });
+            console.error("Shipment Invoice or Waybill already exists.")
+            console.warn('User tried uploading: ' + result.invoice.BOL + " --- Already Exists in the Database")
           }
         }).catch((reason)=>{
             res.send({
               reason: reason.toString(),
               status: 500,
             });
+            console.error("Undefined Error: " + reason.toString());
+            console.warn("Revise Python file, this could be a parsing issue")
         })
       }
 

@@ -10,6 +10,7 @@ const clearBtn = document.getElementById('clear-btn')
 const nextBtn = document.getElementById('next-btn')
 const uploadBtn = document.getElementById('upload-btn')
 clearBtn.addEventListener('click', clearUpload)
+nextBtn.addEventListener('click', nextTab);
 
 apl_invoice.value = '';
 apl_waybill.value = '';
@@ -40,28 +41,7 @@ for(let el of formLabels){
 }
 
 for(let el of tabs){
-    el.addEventListener("click", (e)=>{
-        let container = document.getElementById('upload-container-'+e.target.id.split('-')[1]);
-        if(container.classList.contains('hidden')){
-            if(el.id == 'apl-invoice-tab'){
-                document.getElementById('apl-waybill-tab').classList.toggle('active')
-                document.getElementById('upload-container-waybill').classList.toggle('hidden')
-                document.getElementById('upload-container-waybill').hidden=true;
-                if(apl_invoice.files.length==0){clearBtn.hidden=true;}else{clearBtn.hidden=false}
-            }else{
-                document.getElementById('apl-invoice-tab').classList.toggle('active')
-                document.getElementById('upload-container-invoice').classList.toggle('hidden')
-                document.getElementById('upload-container-invoice').hidden=true;
-                if(apl_waybill.files.length==0){clearBtn.hidden=true;}else{clearBtn.hidden=false}
-            }
-            container.hidden=false
-            container.classList.toggle('hidden');
-            el.classList.toggle('active');
-        }
-        console.log(document.getElementById(e.target.id.slice(0,e.target.id.length-4)+''))
-        console.log(e.target.id.slice(0,e.target.id.length-4))
-
-    })
+    el.addEventListener("click", goToTab)
 }
 
 let months = ["JAN","FEB","MAR","APR","MAY", "JUN", "JUL","AUG","SEP","OCT","NOV","DEC"];
@@ -73,6 +53,27 @@ let check_match = {
     'CONT_SIZE': Boolean,
     'CONT_NUM': Boolean,
 };
+
+function goToTab(e, n){
+    const targetElement = e?e.target:n;
+    let container = document.getElementById('upload-container-'+targetElement.id.split('-')[1]);
+    if(container.classList.contains('hidden')){
+        if(targetElement.id == 'apl-invoice-tab'){
+            document.getElementById('apl-waybill-tab').classList.toggle('active')
+            document.getElementById('upload-container-waybill').classList.toggle('hidden')
+            document.getElementById('upload-container-waybill').hidden=true;
+            if(apl_invoice.files.length==0){clearBtn.hidden=true;}else{clearBtn.hidden=false}
+        }else{
+            document.getElementById('apl-invoice-tab').classList.toggle('active')
+            document.getElementById('upload-container-invoice').classList.toggle('hidden')
+            document.getElementById('upload-container-invoice').hidden=true;
+            if(apl_waybill.files.length==0){clearBtn.hidden=true;}else{clearBtn.hidden=false}
+        }
+        container.hidden=false
+        container.classList.toggle('hidden');
+        targetElement.classList.toggle('active');
+    }
+}
 
 function previewPDF(e){
     const preview = document.getElementById(e.target.id + "-preview");
@@ -106,7 +107,7 @@ function checkInputFiles(type){
         tabsContainers.hidden=false;
     }
     clearBtn.hidden=false;
-    document.getElementById(type+"-tab").innerText = document.getElementById(type).files.length > 0?(type=='apl-invoice'?"Invoice":"Waybill") + " ✅": console.log("Error no files");
+    document.getElementById(type+"-tab").innerText = document.getElementById(type).files.length > 0?(type=='apl-invoice'?"Invoice":"Waybill") + " ✅" + " - " + document.getElementById(type).files[0].name : console.log("Error no files");
     if(apl_invoice.files.length == 1 && apl_waybill.files.length == 1){
         console.log("ready")
         document.getElementById("next-btn").hidden = true;
@@ -115,6 +116,7 @@ function checkInputFiles(type){
 }
 
 async function submit() {
+    const errorMsg = document.getElementById('error-msg');
     let formData = new FormData();
 
     apl_invoice.files[0].arrayBuffer
@@ -126,19 +128,22 @@ async function submit() {
         'Content-Type': 'multipart/form-data'
     }).then(res => {
         if(res.data.status == "OK"){
-            // THIS IS TEMPORARY
             payload_data = res.data.all;
-            console.log(res.data);
+            // console.log(res.data);
             confirmDetails(res.data.all)
         }else{
             document.getElementById("error-banner").innerText = `Error Uploading your file:
-            Status:${res.data.status} - ${res.data.reason}`
-            document.getElementById('error-msg').hidden = false;
-            console.info(res.data);
+            Status:${res.data.status} - ${res.data.reason}`;
+            document.getElementById("error-banner").style = `font-size: large;padding-top: 25px;`
+            errorMsg.classList.contains('hidden')?document.getElementById('error-msg').classList.toggle("hidden"):{};
         }
     }).catch(err => {
         console.error(err);
     })
+}
+
+function hideErrorMsg(){
+    document.getElementById('error-msg').classList.toggle("hidden");                
 }
 
 function confirmDetails(data){
@@ -308,13 +313,22 @@ function clearUpload(e){
     aplPreview.height = "0px"
     // Set up the landing drop in space (Show the label)
     aplInput.labels[0].hidden = false
-    currentTab.innerText = currentTab.innerText.slice(0,-1);
+    let labelContainers = document.getElementsByClassName('form-landing')
+
+    
+    currentTab.innerText = currentTab.innerText.split(' ')[0];
+    
+    
+    for(let i of labelContainers){
+        i.style = '';
+        i.innerHTML = currentTab.id == 'apl-invoice-tab'? '<p>Drop APL Invoice</p><p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>':'<p>Drop APL Waybill</p><p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>'; 
+        
+    };
     // Hide the Clear Upload button once pressed
     clearBtn.hidden = true;
     // If Upload button is on, change it for next
     uploadBtn.hidden=true;
     nextBtn.hidden=false
-
 }
 
 async function submit_db(){
@@ -369,6 +383,8 @@ async function submit_db(){
     })
 }
 
-function goTab(e){
-    console.log(e)
+function nextTab(e){
+    let currentTab = document.getElementsByClassName('nav-link active')[0];
+    let nextTab = document.getElementById(currentTab.id == 'apl-invoice-tab'?'apl-waybill-tab':'apl-invoice-tab');
+    goToTab(undefined, nextTab);
 }

@@ -26,7 +26,7 @@
                     <div hidden id="tabs-buttons-container" style="margin-left: auto;">
                         <a id="clear-btn" class="tabs-buttons yellow">Clear Upload 🔄</a>
                         <a id="next-btn" class="tabs-buttons">Next →</a>
-                        <a id="upload-btn" class="upload-btn" onclick=submit() hidden>Upload</a>
+                        <a id="upload-btn" class="tabs-buttons" onclick=submit() hidden>Upload 🤠</a>
                     </div>
                 </ul>
                 <div id="upload-container-invoice" class="upload-container" >
@@ -37,7 +37,7 @@
                                 <p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>
                             </div>
                         </label>
-                        <input class="form-control" type="file" id="apl-invoice" hidden>
+                        <input class="form-control" type="file" id="apl-invoice" accept=".pdf" hidden>
                         <iframe id="apl-invoice-preview"
                             width="100%"
                             loading="lazy"></iframe>
@@ -51,14 +51,16 @@
                                 <p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>
                             </div>
                         </label>
-                        <input class="form-control" type="file" id="apl-waybill" hidden>
+                        <input class="form-control" type="file" id="apl-waybill" accept=".pdf" hidden>
                         <iframe id="apl-waybill-preview"
                             width="100%"
                             loading="lazy"></iframe>
                     </div>
                 </div>
-                <div id="error-msg" class="error-msg" hidden>
-                    <p id="error-banner"></p>
+                <div id="error-msg" class="error-msg hidden">
+                    <p style="font-size: large;padding-top: 35px;" id="error-banner"></p>
+                    <a style="font-weight: bold;background-color: #b51111;display: inline-block;height: 100%;color: white;padding: 5px;cursor: pointer;" onclick="hideErrorMsg()">▲ Hide ▲</a>
+                    <!-- <a style="border: line 1px solid black;font-weight: bold;border-radius: 10px;background-color: aliceblue;" onclick="hideErrorMsg()">▲ Hide ▲</a> -->
                 </div>
             </main>
             <!-- Second Phase Upload Invoice -->
