@@ -1,9 +1,11 @@
+
 let currentTab = "pendingshipments";
 let tabs = ["pendingshipments","allshipments", "invoices", "tsp", "rates" ]
 let searchBar = document.getElementById("search-bar");
 let searchArg = document.getElementById("search-arg");
+let searchDate = document.getElementById('search-date-container');
 
-
+searchArg.addEventListener('change', searchDropdownSetInputType)
 searchBar.addEventListener("keyup", search);
 
 for(let i in tabs){
@@ -168,7 +170,6 @@ function goToInvoice(e){
 
 function openTab(e){
     let key = e.target.id.split("-")[0]
-    // console.log(e.target.id.split("-")[0]);
     window.history.pushState('', '', '#'+key);
 
     let action = (el)=>{
@@ -189,6 +190,7 @@ function openTab(e){
             // console.log(data);
             dropdownSet(data.data[0])
             populateTable(data.data, key);
+            searchDropdownSetInputType(undefined, searchArg)
         })        
     }
 
@@ -240,6 +242,69 @@ function search(e){
         populateTable(response.data);
     })
 
+}
+
+function searchDropdownSetInputType(e, n){
+    let type = undefined;
+    if(e){type = e.target.value}else{type = n.value}
+    
+    switch (type) {
+        case "BOL":
+            searchBar.placeholder = "ex. USG123495"
+            closeDateSearch()
+            break
+        case "MEMBER_NAME":
+            searchBar.placeholder = "ex. John Doe"
+            closeDateSearch()
+            break
+        case "SCAC":
+            searchBar.placeholder = "ex. NAVL"
+            closeDateSearch()
+            break
+        case "GBL":
+            searchBar.placeholder = "ex. HAFC0692665"
+            closeDateSearch()
+            break
+        case "INVOICE_NUM":
+            searchBar.placeholder = "ex. NVC-012325"
+            closeDateSearch()
+            break
+        case "TTL_CF":
+            searchBar.placeholder = "ex. 512"
+            closeDateSearch()
+            break
+        case "TOTAL":
+            searchBar.placeholder = "ex. 1,255.00"
+            closeDateSearch()
+            break            
+        case "DATE_CREATED":
+        case "INVOICE_DATE":
+            // Open Date
+            openDateSearch()
+            break                
+        default:
+            break;
+    }
+}
+
+function openDateSearch(){
+    let date = new Date;
+    let startDate = document.getElementById('search-date-start');
+    let endDate = document.getElementById('search-date-end');
+    
+    console.log(date.toLocaleDateString())
+
+    startDate.value = date.toLocaleDateString('en-US');
+    endDate.value = date.toLocaleDateString('en-US');
+    console.log(startDate.value)
+
+    searchDate.hidden = false;
+    searchBar.hidden = true;
+}
+
+function closeDateSearch(){
+    searchDate.hidden = true;
+    searchBar.hidden = false;
 }
 
 main();

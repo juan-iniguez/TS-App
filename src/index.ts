@@ -79,8 +79,6 @@ app.get("/api/shipments/:bol/:member_name/:rowid",(req,res)=>{
         data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
         data_payload.TSA_NUM = settings.TSA_NUM;
         data_payload.TARIFF = settings.TARIFF;
-        // console.log("CHECK THE STATUS OF THIS SHIPMENT:")
-        // console.log(data_payload);
         res.render("pages/shipment", {data:data_payload});
       })
     }
@@ -105,7 +103,6 @@ app.get("/api/shipments/:invoice_num",(req,res)=>{
 // Main file upload POST route
 app.post('/api/apl-inv-way', (req,res, next)=>{
   const form = formidable({uploadDir: "public/files"});
-  // console.log(form);
   let file_addr:any[] = [];
   
   // Parsing IS ASYNCHRONOUS, PLEASE PUT ALL CODE INSIDE PROMISE
@@ -155,7 +152,7 @@ app.post('/api/apl-inv-way', (req,res, next)=>{
         console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
         return;
       }
-      // console.log("PYTHON ERROR:" + pythonERROR.status);
+
       // CHECK IF ENTRY IS ALREADY UPLOADED
       if(pythonERROR.status){
         res.send({
@@ -550,7 +547,12 @@ app.post("/api/inv/void",(req,res)=>{
  */
 
 // TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
+
 // TODO: Login feature
+
+// TODO: Reports (Discounts)
+
+
 
 app.listen(process.env.PPORT || process.env.DPORT, () => {
   console.log(`[server]: Server is running at http://0.0.0.0:${process.env.PPORT || process.env.DPORT}`);

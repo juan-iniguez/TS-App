@@ -41,5 +41,19 @@ tr:hover{
 .search-arg{
     background-color: white;
     border-radius: 5px 0px 0px 5px;
-    width: 200px;
+    width: 150px;
+}
+
+#search-date-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 38px;
+}
+
+.search-date{
+    margin-left: 10px;
+    margin-right: 20px;
+    height: 100%;
 }

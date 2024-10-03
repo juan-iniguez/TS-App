@@ -314,15 +314,16 @@ function clearUpload(e){
     // Set up the landing drop in space (Show the label)
     aplInput.labels[0].hidden = false
     let labelContainers = document.getElementsByClassName('form-landing')
-
-    
     currentTab.innerText = currentTab.innerText.split(' ')[0];
-    
-    
     for(let i of labelContainers){
+        console.log(i.id, currentTab.id);
         i.style = '';
-        i.innerHTML = currentTab.id == 'apl-invoice-tab'? '<p>Drop APL Invoice</p><p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>':'<p>Drop APL Waybill</p><p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>'; 
-        
+        if(i.parentElement.htmlFor == currentTab.id.split('-tab')[0]){
+            i.innerHTML = currentTab.id == 'apl-invoice-tab'? 
+            '<p>Drop APL Invoice</p><p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>':
+            '<p>Drop APL Waybill</p><p style="font-size: medium;color: rgb(177, 177, 177);">(.pdf)</p>';      
+            break;       
+        }
     };
     // Hide the Clear Upload button once pressed
     clearBtn.hidden = true;

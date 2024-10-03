@@ -15,7 +15,7 @@
         </header>
         <div style="max-width: 1200px;min-height: 700px;margin-top: 30px;">
             <div class="tab-search-container">
-                <ul style="width: 100%;" class="nav nav-tabs">
+                <ul style="width: 80%;" class="nav nav-tabs">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle active" id="shipments-selected" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Pending Shipments</a>
                         <ul class="dropdown-menu">
@@ -46,6 +46,12 @@
                         <option value="GBL">GBL</option>
                         <option value="TTL_CF">TTL_CF</option>
                     </select>
+                    <div id="search-date-container" hidden>
+                        <p style="display: inline-block;margin: 0px;margin-left:20px;">Start: </p>
+                        <input id="search-date-start" type="date" class="search-date">
+                        <p style="display: inline-block;margin: 0px;">End: </p>
+                        <input id="search-date-end" type="date" class="search-date">
+                    </div>
                     <input type="text" class="form-control" id="search-bar">
                 </div>
             </div>
