@@ -12,6 +12,8 @@ import { apl } from '../../db_calls/apl';
 import { localSettings } from '../../db_calls/settings';
 import { searchDB } from '../../db_calls/search'
 import { appUtils } from "../../utils";
+import { verifyToken } from '../../auth/verifyToken';
+
 
 // Multer configuration - for file upload
 const storage = multer.memoryStorage();
@@ -20,8 +22,19 @@ const upload = multer({ storage: storage });
 import express from "express";
 const router = express.Router();
 
+function checkPermissions(){
+
+}
+
+router.use(verifyToken)
+
+
+
 // Main file upload POST route
-router.post('/apl-inv-way', (req, res, next) => {
+router.post('/apl-inv-way',(req:any, res, next) => {
+
+    if(!req.user){res.sendStatus(401).json({message: "Unauthorized"});next()}
+
     const form = formidable({ uploadDir: "public/files" });
     let file_addr: any[] = [];
 
@@ -110,7 +123,8 @@ router.post('/apl-inv-way', (req, res, next) => {
 
 /***** START A CRUD IMPLEMENTATION AND CONNECT TO DB *****/
 // Upload Invoice and Waybill to DB
-router.post('/db-invoice-waybill', (req, res) => {
+router.post('/db-invoice-waybill',(req:any, res,next) => {
+    if(!req.user){res.sendStatus(401).json({message: "Unauthorized"});next()}
 
     let invoice = req.body.invoice;
     let waybill = req.body.waybill;
@@ -346,7 +360,7 @@ router.get('/create-dew-inv/:BOL/:MEMBER_NAME/:rowid', async (req:any, res:any) 
     aplDB.getShipmentInvoice(req.params.MEMBER_NAME, req.params.BOL, req.params.rowid)
         .then((response: any) => {
             if (response.exists == true) {
-                res.redirect('/get-inv/' + response.data[0].INVOICE_NUM);
+                res.redirect('/api/get-inv/' + response.data[0].INVOICE_NUM);
             } else {
                 // Create Entry DB for LOCAL_INVOICES
                 aplDB.getShipment(data_payload, req.params.MEMBER_NAME, req.params.BOL, req.params.rowid).then(async (data) => {

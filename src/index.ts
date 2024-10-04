@@ -6,9 +6,11 @@ import 'dotenv/config'
 import express, { Express, Request, Response } from "express";
 const app: Express = express();
 
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+import { verifyToken } from './auth/verifyToken';
 
 // Connect to MongoDB database
 mongoose.connect('mongodb://apl.san.dewittco.com:27017/user_authentication')
@@ -23,32 +25,12 @@ mongoose.connect('mongodb://apl.san.dewittco.com:27017/user_authentication')
 const userSchema = new mongoose.Schema({
   username: String,
   email: String,
-  password: String
+  password: String,
+  permissions: String,
 });
 
 // Create a User model based on the schema
 const User = mongoose.model('User', userSchema);
-
-const verifyToken = (req:any, res:any, next:any) => {
-  console.log(req.headers);
-  const token = req.headers['XSRF-TOKEN'];
-  if (!token) {
-    // return res.status(401).json({ error: 'Unauthorized' });
-    // Middleware for JWT validation
-    return res.redirect('/login');
-
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err:any, decoded:any) => {
-    if (err) {
-      // return res.status(401).json({ error: 'Unauthorized' });
-      return res.redirect('/login')
-    }
-    req.user = decoded;
-    next();
-  });
-};
-
 
 // DotENV setup for environment variables
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
@@ -58,36 +40,53 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static('public'))
 app.set('view engine', 'ejs');
 app.use(bodyParser.json()) // Parses json, multi-part (file), url-encoded
+app.use(verifyToken)
 
 
 // ********** SITE ROUTES *********** 
 // Home page
-app.get("/", (req: Request, res: Response) => {
-  res.render('pages/index');
+app.get("/", (req: any, res: Response) => {
+  // console.log("ROOT",req.user);
+  res.render('pages/index', req.user);
 });
 
 // APL Invoice and Waybill upload page
-app.get("/upload", verifyToken,(req:Request,res:Response)=>{
-  res.render("pages/upload");
+app.get("/upload",(req:any,res)=>{
+  console.log(req.user)
+  req.user?res.render("pages/upload", req.user):res.redirect('/login');
 })
 
 // Settings
-app.get("/settings", verifyToken,(req:Request,res:Response)=>{
-  res.render("pages/settings");
+app.get("/settings",(req:any,res:Response)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render("pages/settings", req.user);
+  }
 })
 
 // Page for searching db tables
-app.get("/search", verifyToken,(req:Request,res:Response)=>{
-  res.render("pages/search");
+app.get("/search",(req:any,res:Response)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render("pages/search", req.user);
+  }
+
 })
 
 // Page for getting Reports
-app.get("/reports",(req,res)=>{
-  res.render("pages/reports");
+app.get("/reports",(req:any,res)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render("pages/reports", req.user);
+  }
+
 })
 
-app.get("/login", (req,res)=>{
-  res.render("pages/login");
+app.get("/login", (req:any,res)=>{
+  res.render("pages/login", req.user);
 })
 
 
@@ -115,7 +114,8 @@ app.post('/api/register',  async (req, res) => {
     const newUser = new User({
       username: req.body.username,
       email: req.body.email,
-      password: hashedPassword
+      password: hashedPassword,
+      permissions: req.body.permissions,
     });
     
     await newUser.save();
@@ -127,6 +127,7 @@ app.post('/api/register',  async (req, res) => {
 
 // Route to authenticate and log in a user
 app.post('/api/login', async (req, res) => {
+  console.log("START LOGIN")
   try {
     // Check if the email exists
     const user = await User.findOne({ email: req.body.email });
@@ -136,15 +137,16 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Compare passwords
-    const passwordMatch = await bcrypt.compare(req.body.password, user.password);
+    const passwordMatch = await bcrypt.compare(req.body.password, user.password!);
     console.log(passwordMatch);
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Generate JWT token
-    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
-    res.setHeader('Set-Cookie', `XSRF-TOKEN=${token}; HttpOnly;Max-Age=300;SameSite=Strict`)
+    const token = jwt.sign({ email: user.email, user: user.username }, process.env.JWT_SECRET!);
+    console.log(token)
+    res.setHeader('Set-Cookie', `XSRF-TOKEN=${token}; HttpOnly;Max-Age=3600;SameSite=Strict;Secure;Path=/`)
     res.send(200)
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
@@ -165,7 +167,10 @@ app.get('/api/user', verifyToken, async (req:any, res:any) => {
   }
 });
 
-
+app.get('/api/logout', (req,res)=>{
+  res.status(202).clearCookie('XSRF-TOKEN')
+  res.redirect('/')
+})
 
 // TODO: When pulling bunker, use invoice bunker as default. However, show note if Invoice Bunker does not match Bunker RATE
 /**

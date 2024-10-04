@@ -2,11 +2,13 @@ import fs from "fs";
 import express from "express";
 import { aplDB } from '../../db_calls/shipments';
 const router = express.Router();
+import { verifyToken, apiAuthCheck } from '../../auth/verifyToken';
+router.use(verifyToken);
+router.use(apiAuthCheck);
 
 // SHIPMENTS
 // Main page for showing the shipment information
-router.get("/:bol/:member_name/:rowid", (req, res) => {
-
+router.get("/:bol/:member_name/:rowid", (req:any, res,next) => {
     let data_payload: any = {}
     let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
 
@@ -15,7 +17,7 @@ router.get("/:bol/:member_name/:rowid", (req, res) => {
             if (data.exists) {
                 let data_payload = data.data[0];
                 // SHOW INVOICE THAT IS ALREADY PRESENT
-                res.redirect(`/shipments/${data_payload.INVOICE_NUM}`)
+                res.redirect(`/api/shipments/${data_payload.INVOICE_NUM}`)
             } else {
                 aplDB.getShipment(data_payload, req.params.member_name, req.params.bol, req.params.rowid).then((data: any) => {
                     data_payload = data;
@@ -23,14 +25,14 @@ router.get("/:bol/:member_name/:rowid", (req, res) => {
                     data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
                     data_payload.TSA_NUM = settings.TSA_NUM;
                     data_payload.TARIFF = settings.TARIFF;
-                    res.render("pages/shipment", { data: data_payload });
+                    res.render("pages/shipment", { ...req.user,...{ data: data_payload }});
                 })
             }
         })
 })
 
 // Shipment information for already created invoices
-router.get("/:invoice_num", (req, res) => {
+router.get("/:invoice_num", (req:any, res, next) => {
     aplDB.getShipmentInvoice(undefined, undefined, undefined, req.params.invoice_num)
         .then((data: any) => {
             let data_payload = data.data[0];
@@ -40,7 +42,7 @@ router.get("/:invoice_num", (req, res) => {
             data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
             data_payload.VOID_INFO = JSON.parse(data_payload.VOID_INFO)
             delete data_payload.CHARGES;
-            res.render("pages/shipment", { data: data_payload });
+            res.render("pages/shipment", { ...req.user,...{ data: data_payload }});
         })
 })
 

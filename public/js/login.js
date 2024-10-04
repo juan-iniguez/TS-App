@@ -10,8 +10,8 @@ function login(){
 
     axios.post('/api/login',userSubmission)
     .then(res=>{
+        // console.log(res);
         if(res.status == 200){window.location.href = '/'}
-        console.log(res.status);
     })
     .catch(err=>{
         console.error(err.message, err.response.status);

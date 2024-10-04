@@ -23,14 +23,13 @@
     </li>
   </ul>
   <div class="login-tray" id="login-tray">
-    <% if (true) { %>
-      <a class="login-tray-link">Username</a>
+    <% if (typeof user != 'undefined') { %>
+      <a class="login-tray-link"><%- user %></a>
       <p style="margin:0px"> | </p>
-      <a class="login-tray-link">Log in</a>     
+      <a href="/api/logout" class="login-tray-link">Log Out</a>
     <% } else { %>
-      <a class="login-tray-link">Username</a>
-      <p style="margin:0px"> | </p>
-      <a class="login-tray-link">Log in</a>     
+      <a href="/login" class="login-tray-link">Log In</a>     
     <% } %>
   </div>
+  <!-- <script src="/js/state.js"></script> -->
 </nav>
