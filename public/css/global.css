@@ -18,6 +18,25 @@
     margin-left: 10px;
 }
 
+.login-tray{
+    margin: auto;
+    margin-right: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.login-tray-link{
+    margin: 0px 10px 0px 10px;
+    text-decoration: none;
+    color: rgb(133, 133, 133);
+    cursor: pointer;
+}
+
+.login-tray-link:hover{
+    color: black;
+}
+
 footer{
     display: flex; 
     justify-content: center;

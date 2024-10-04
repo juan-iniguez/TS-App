@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>
+    <link rel="stylesheet" href="/css/login.css">
+    <title>User Login</title>
+</head>  
+<body>
+    <body class="body-container">
+        <div class="container">
+            <header>
+            <%- include('../partials/header'); %>
+            </header>
+            
+            <div id="login-card" class="login-card">
+                <p class="title-login">APL Invoice TS</p>
+                <p class="title-login small">Login</p>
+                <input id="user-email" type="text" placeholder="E-mail" class="login-input">
+                <input id="user-password" type="password" placeholder="Password" class="login-input">
+                <a onclick="login()" class="login-btn">Log In</a>
+            </div>
+            
+            <footer>
+            <%- include('../partials/footer'); %>
+            </footer>
+        </div>
+</body>
+<script src="/js/login.js"></script>
+</html>

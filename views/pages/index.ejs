@@ -1,47 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <%- include('../partials/head'); %>
-  <%- include('../partials/reload'); %>
-  <link rel="stylesheet" href="/css/index.css">
-  <title>APL Invoicing System</title>
-</head>
-<body class="body-container">
-  <div class="container">
-    <header>
-      <%- include('../partials/header'); %>
-    </header>
-    
-    <div style="min-width: 1200px;min-height: 700px;">
-      <div class="jumbotron">
-        <h1>APL Invoice System</h1>
-        <p>Ver 0.1.0</p>
-        <div  class="index-container">
-          <a class="start-button" href="/upload">
-            <img class="rounded start-button-img" src="imgs/upload_2.webp">
-            <p>Upload Invoice/Waybill</p>
-          </a>
-          <a class="start-button" href="/search">
-            <img class="rounded start-button-img" src="/imgs/search.png">
-            <p>Search</p>
-          </a>
-          <a class="start-button" href="/reports">
-            <img class="rounded start-button-img" src="/imgs/reports.png">
-            <p>Reports</p>
-          </a>
-          <a class="start-button" href="/settings">
-            <img class="rounded start-button-img" src="/imgs/settings.png">
-            <p>Settings</p>
-          </a>
+  <head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>
+    <link rel="stylesheet" href="/css/index.css">
+    <title>APL Invoicing System</title>
+  </head>
+  <body class="body-container">
+    <div class="container">
+      <header>
+        <%- include('../partials/header'); %>
+      </header>
+      
+      <div style="min-width: 1200px;min-height: 700px;">
+        <div class="jumbotron">
+          <h1>APL Invoice System</h1>
+          <p>Ver 0.1.0</p>
+          <div  class="index-container">
+            <a class="start-button" href="/upload">
+              <img class="rounded start-button-img" src="imgs/upload_2.webp">
+              <p>Upload Invoice/Waybill</p>
+            </a>
+            <a class="start-button" href="/search">
+              <img class="rounded start-button-img" src="/imgs/search.png">
+              <p>Search</p>
+            </a>
+            <a class="start-button" href="/reports">
+              <img class="rounded start-button-img" src="/imgs/reports.png">
+              <p>Reports</p>
+            </a>
+            <a class="start-button" href="/settings">
+              <img class="rounded start-button-img" src="/imgs/settings.png">
+              <p>Settings</p>
+            </a>
+          </div>
+          <br>
+          <br>
         </div>
-        <br>
-        <br>
       </div>
+      
+      <footer>
+        <%- include('../partials/footer'); %>
+      </footer>
     </div>
-    
-    <footer>
-      <%- include('../partials/footer'); %>
-    </footer>
-</div>
-</body>
+  </body>
 </html>

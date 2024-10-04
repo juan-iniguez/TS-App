@@ -9,3 +9,9 @@ Requirements:
 - NodeJS
 - Express
 - SQLite
+- MongoDB
+
+## Databases 
+
+- SQLite (Data)
+- MongoDB instance (Authentication)
