@@ -188,16 +188,16 @@ app.get('/api/logout', (req,res)=>{
 
 // TODO: Reports (Discounts)
 
-import http from 'http';
+// import http from 'http';
 import https from 'https';
 const privateKey  = fs.readFileSync(path.join(__dirname,'../ssl/sd_dewitt.key'), 'utf8');
 const certificate = fs.readFileSync(path.join(__dirname, '../ssl/sd_dewitt.crt'), 'utf8');
 const credentials = {key: privateKey, cert: certificate};
 
-var httpServer = http.createServer(app);
+// var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
 
-httpServer.listen(80);
+// httpServer.listen(80);
 httpsServer.listen(443, ()=>{
   console.log(`[server]: Server is running at https://0.0.0.0`);
 });

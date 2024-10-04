@@ -12,7 +12,6 @@ export const verifyToken = (req:any, res:any, next:any) => {
     if (!token) {
         // return res.status(401).json({ error: 'Unauthorized' });
         // Middleware for JWT validation
-        console.log("HMM",token);
         return action();
     }
 
