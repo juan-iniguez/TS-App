@@ -149,6 +149,7 @@ app.post('/api/login', async (req, res) => {
     res.setHeader('Set-Cookie', `XSRF-TOKEN=${token}; HttpOnly;Max-Age=3600;SameSite=Strict;Secure;Path=/`)
     res.send(200)
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
