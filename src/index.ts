@@ -13,7 +13,7 @@ import jwt from 'jsonwebtoken';
 import { verifyToken } from './auth/verifyToken';
 
 // Connect to MongoDB database
-mongoose.connect('mongodb://apl.san.dewittco.com:27017/user_authentication')
+mongoose.connect('mongodb://apl.san.dewittco.com:27017/user_authentication',{user: process.env.MONGO_USER, pass: process.env.MONGO_PASS})
 .then(() => {
   console.log('Connected to MongoDB');
 })
@@ -85,10 +85,10 @@ app.get("/reports",(req:any,res)=>{
 
 })
 
+// Login Page
 app.get("/login", (req:any,res)=>{
   res.render("pages/login", req.user);
 })
-
 
 // ********** API ROUTES ***********
 const api = require("./router/api/api")
@@ -96,7 +96,6 @@ app.use("/api", api);
 // ********** SHIPMENT ROUTES ***********
 const shipments = require("./router/shipments/shipments")
 app.use("/api/shipments", shipments);
-
 // ********** AUTH ROUTES ***********
 // Route to register a new user
 app.post('/api/register',  async (req, res) => {
@@ -184,9 +183,7 @@ app.get('/api/logout', (req,res)=>{
  */
 
 // TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
-
 // TODO: Login feature
-
 // TODO: Reports (Discounts)
 
 // import http from 'http';
