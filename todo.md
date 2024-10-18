@@ -36,3 +36,48 @@
     + May 15th / May 31st
     + APL Feb 1st to May 31st
 
+
+# TSP Agreement:
+APL SENDS US THEIR CONTRACT = JAN-FEBRUARY
+
+2024 - February to January
+2025 - June to May?
+
+OCEAN TRANSPORTATION AGREEMENT = JUNE 1st X Year - May 31st X+1 Year
+
+
+
+# Discounts Processing
+Every 2 months these discounts are being processed.
+APL Sends a report of shipments named PAID EXCEPTION report that includes all the discounted money to be paid to the TSPs PER INVOICE #.
+
+This is taken and matched to the LOCAL_INVOICES and calculated with TSP `DISCOUNT_FROM/TO_GUA` to split the amount that goes to DeWitt and the Amount that goes to the TSP
+
+Import TSP based on Yearly "2024-2025" cycle and overwrite if needed to update TSPs.
+
+# Rates
+
+## Bunker Rates (Cycle)
+
+Quarterly Cycle
+
+January 1st - Q1
+April 1st - Q2
+July 1st - Q3
+October 1st - Q4
+
+Manual Enter instead of Upload
+- Equipment Type = Dry
+- Currency USD
+- Types
+  - 20'
+  - 40'/40'H
+  - 45'
+
+Twice input, From and To GUAM
+
+## All other Rates
+
+Yearly Cycle
+
+Effective June 1st to May 31st
