@@ -4,6 +4,7 @@
     <%- include('../partials/head'); %>
     <%- include('../partials/reload'); %>  
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/settings.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
 </head>
@@ -12,24 +13,81 @@
         <header>
             <%- include('../partials/header'); %>
         </header>
-
-        <div style="min-width: 1200px;min-height: 700px;">
-            <h1 style="margin-top: 20px;">TSA Upload</h1>
-            <form action="/api/db-tsp" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" accept=".xlsx">
-                <button type="submit">Upload</button>
-            </form>
-
-            <h1 style="margin-top: 20px;">Rates Upload</h1>
-            <form action="/api/db-rates" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" accept=".xlsx">
-                <button type="submit">Upload</button>
-            </form>
-
+        <!-- Main Site -->
+        <main style="max-width: 1120px;margin:auto;">
+            <h1 style="margin-top: 1em;">Settings</h1>
+            <div class="settings-container">
+                <div class="setting-card">
+                    <div id="card-TSP" class="card-title">
+                        <h1>TSP Management</h1>
+                        <svg class="arrow-svg" focusable="true" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path>
+                        </svg>
+                    </div>
+                    <div id="options-TSP" class="card-options">
+                        <a onclick="exportTSP()" class="option-link"> → Export TSP list (.CSV)</a>
+                        <a data-bs-toggle="modal" data-bs-target="#staticBackdrop" onclick="importModalTSP()" class="option-link"> → Import TSP list (.CSV)</a>
+                    </div>
+                </div>
+                <div class="setting-card">
+                    <div id="card-rates" class="card-title">
+                        <h1>Rates</h1>
+                        <svg class="arrow-svg" focusable="true" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path>
+                        </svg>
+                    </div>
+                    <div id="options-rates" class="card-options">
+                        <a onclick="importRates()" class="option-link">→ Import Rates</a>
+                        <a href="/settings/rates" class="option-link">→ Show Rates</a>
+                    </div>
+                </div>
+                <div class="setting-card">
+                    <div id="card-users" class="card-title">
+                        <h1>Users Management</h1>
+                        <svg class="arrow-svg" focusable="true" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path>
+                        </svg>
+                    </div>
+                    <div id="options-users" class="card-options">
+                        <a href="/settings/user-management" class="option-link">→ Show Users</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Modal for Import TSP List -->
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Import TSP List (.csv)</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="display: flex;flex-direction: column;">
+                            <h2>Upload TSP .csv file</h2>
+                            <input id="tsp-upload-input" type="file" name="file" accept=".csv">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+                        <!-- <button type="button" class="btn btn-primary">Understood</button> -->
+                        <button onclick="uploadTSP()" style="margin-top: 1em;" class="btn btn-primary" type="submit">Upload</button>
+                    </div>
+                </div>
+            </div>
         </div>
-        <footer style="display: flex; justify-content: center;align-items: center;padding: 2em;">
+
+        <!-- Error Handler Message -->
+        <div id="error-container" class="error-container">
+            <p style="font-size: large;padding-top: 35px;" id="error-msg"></p>
+            <a style="font-weight: bold;background-color: #b51111;display: inline-block;height: 100%;color: white;padding: 5px;cursor: pointer;" onclick="hideErrorMsg()">▲ Hide ▲</a>
+        </div>
+
+        <footer>
             <%- include('../partials/footer'); %>
         </footer>
     </div>
 </body>
+<script src="/js/settings.js"></script>
 </html>

@@ -1,0 +1,30 @@
+table {
+  font-size: 14px;
+  display: table;
+  margin: 0 auto;
+  border-collapse: collapse;
+  border-style: hidden;
+  overflow: scroll;
+  /*Remove all the outside
+  borders of the existing table*/
+}
+table td {
+  /* max-width: 800px; */
+  padding: 0.2rem;
+  border: 1px solid rgb(184, 184, 184);
+}
+table th {
+  padding: 0.2rem;
+  border: 1px solid rgb(138, 138, 138);
+  text-align: center;
+  background-color: rgb(203, 203, 203);
+}
+
+table tr {
+  max-width: 100px;
+}
+
+tr:hover{
+  background-color: rgb(202, 202, 202);
+  cursor: pointer;
+}

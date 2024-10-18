@@ -1,0 +1,81 @@
+.settings-container{
+  /* min-width: 1200px; */
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  margin-top: 2em;
+  height: 100%;
+  transition: cubic-bezier(0.755, 0.05, 0.855, 0.06) all 300ms;
+}
+
+.setting-card{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1em;
+  margin: 1em 0em 1em 0em;
+  border: solid 2px rgb(141, 141, 141);
+  background-color: rgb(234, 234, 234);
+  border-radius: 10px;
+}
+
+.card-title{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.card-options{
+  display: flex;
+  flex-direction: column;
+  font-size: 0px;
+  overflow: hidden;
+  opacity: 0%;
+  transition: all 150ms cubic-bezier(0.23, 1, 0.320, 1);
+}
+
+.card-options.open{
+  opacity: 100%;
+  font-size: 1.5em;
+}
+
+.option-link{
+  color: rgb(66, 66, 66);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.arrow-svg{
+  cursor: pointer;
+  transform: rotate(180deg);
+  width: 50px;
+  transition: all cubic-bezier(0.77, 0, 0.175, 1) 120ms;
+}
+
+.arrow-svg.open{
+  transform: rotate(0deg);
+}
+
+.error-container{
+  position: fixed;
+  display: flex;
+  background-color: #ffa5a5;
+  flex-direction: column;
+  top: 0px;
+  width: 100%;
+  left: 0px;
+  align-content: center;
+  text-align: center;
+  justify-content: center;
+  border-radius: 0px 0px 10px 10px;
+  height: 0px;
+  overflow: hidden;
+  transition: cubic-bezier(0.755, 0.05, 0.855, 0.06) all 300ms;
+  z-index: 2000;
+}
+
+.error-container.active{
+  height: 125px;
+}

@@ -34,9 +34,32 @@ function insertRATES(data:any): void{
 /**
  * 
  */
-function getTSP(){}
+function getTSP(){
+    return new Promise((resolve,reject)=>{
+        db.all("SELECT SCAC,TSP_NAME,DISC_FROM_GUA,DISC_TO_GUA,ADDRESS_1,ADDRESS_2,BILLING_EMAIL FROM TSP",(err:any,rows:any)=>{
+            if(err){
+                console.error(err);
+                reject(err);
+            }
+            resolve(rows);
+        });
+    }) 
+}
 
 /**
  * 
  */
-function getRATES(){}
+function getRATES(){
+
+    // Complicated
+    // TODO: MAKE IT DO ALL THE OTHER THINGS
+    return new Promise((resolve,reject)=>{
+        db.all("SELECT * FROM RATES",(result:any, err:any)=>{
+            if(err){
+                console.error(err);
+                reject(err);
+            }
+            resolve(result);
+        });
+    }) 
+}

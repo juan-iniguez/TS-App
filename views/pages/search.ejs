@@ -8,12 +8,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search</title>
 </head>
-<body>
-    <div class="container">
+<body style="scrollbar-width: thin;">
+    <div class="container" style="scrollbar-width: thin;">
         <header>
             <%- include('../partials/header'); %>
         </header>
-        <div style="max-width: 1200px;min-height: 700px;margin-top: 30px;">
+        <div style="max-width: 100%;min-height: 700px;margin-top: 30px; scrollbar-width: thin;">
             <div class="tab-search-container">
                 <ul style="width: 80%;" class="nav nav-tabs">
                     <li class="nav-item dropdown">
@@ -59,7 +59,7 @@
                 <!-- INCLUDE RESULTS -->
             </table>
         </div>
-        <footer style="display: flex; justify-content: center;align-items: center;padding: 2em;">
+        <footer>
             <%- include('../partials/footer'); %>
         </footer>
     </div>

@@ -1,8 +1,9 @@
 from pypdf import PdfReader
 import sys
 import json
-import os
 
+# Vars
+debug_sw = 0
 payload = {}
 
 def stripChars(x):
@@ -15,17 +16,17 @@ def stripChars_int(x):
     y = int(x.replace(",", "").replace("USD", "").replace("$", ""))
     return y
 
-
 def readPDF_invoice(reader):
     payload_invoice = {}
     number_of_pages = len(reader.pages)
     page = reader.pages[0]
     text = page.extract_text(extraction_mode="layout", layout_mode_space_vertically=False)
+    # ! ---- DEBUG PRINT ----
+    if debug_sw == 1: print(text)
     if "1UNI" in text:
         text_transform = text.replace("1UNI", "1 UNI").split("\n")   
     else:
         text_transform = text.split("\n")
-    # print(text)
     # Place of Receipt =
     # Place of Delivery =
     # 
@@ -61,8 +62,9 @@ def readPDF_invoice(reader):
             break
         else:
             invoice_index += 1
-    print(invoice_index)
-    print("Voyage: " + text_transform[invoice_index].replace("  "," ").split("Vessel:")[0].split("Voyage:")[1].strip())
+
+    # print(invoice_index)
+    # print("Voyage: " + text_transform[invoice_index].replace("  "," ").split("Vessel:")[0].split("Voyage:")[1].strip())
     payload_invoice['VOYAGE'] = text_transform[invoice_index].replace("  "," ").split("Vessel:")[0].split("Voyage:")[1].strip()
 
     # print("Vessel: " + text_transform[16].replace("  "," ").split("Vessel:")[1].split("Call Date:")[0].strip())
@@ -145,7 +147,6 @@ def readPDF_invoice(reader):
     # print(payload_invoice)
     payload["invoice"] = payload_invoice
     # print("\n")
-
 
 def readPDF_waybill(reader):
     payload_waybill = {}
@@ -248,13 +249,13 @@ def readPDF_waybill(reader):
         for n in range(4,11):
             print(n)
             if "SM:" in text_transform[n]:
-                print(text_transform[n])
+                # print(text_transform[n])
                 customer_data_index = n
                 break
         
         while has_customer_data == False:
             temp_cust_data = {}
-            print(text_transform[customer_data_index])
+            # print(text_transform[customer_data_index])
             if "SM:" in text_transform[customer_data_index]:
                 temp_cust_data["PIECES"] = text_transform[customer_data_index].split("SM:")[0].strip()
                 temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip()
@@ -283,9 +284,9 @@ def readPDF_waybill(reader):
                 else:
                     customer_data_index += 1
         
-        print(f"BROKE OUT OF LOOP! {i}")
-        print(has_customer_data)
-        print("\n")
+        # print(f"BROKE OUT OF LOOP! {i}")
+        # print(has_customer_data)
+        # print("\n")
 
         # END DATA
         if has_customer_data == True:
@@ -306,13 +307,14 @@ def readPDF_waybill(reader):
                 payload['waybill'] = payload_waybill
                 # print("\n")
 
-
 def main(arg):
 
     # os.remove("public/files/data.json")
-
+    # print(arg[3])
     invoice = arg[1]
     waybill = arg[2]
+    if arg[3] == "-d" or arg[3] == "--debug":
+        debug_sw = 1
 
     pdfs_01 = PdfReader(invoice)
     readPDF_invoice(pdfs_01)
@@ -326,5 +328,4 @@ def main(arg):
 
 if __name__ == "__main__":
     main(sys.argv)
-
 

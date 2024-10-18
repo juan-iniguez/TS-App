@@ -40,8 +40,6 @@
     flex-direction: column;
 }
 
-.invoice-layout{
-}
 
 .invoice-layout.cont{
     display: flex; 

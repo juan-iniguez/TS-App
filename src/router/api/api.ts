@@ -13,7 +13,7 @@ import { localSettings } from '../../db_calls/settings';
 import { searchDB } from '../../db_calls/search'
 import { appUtils } from "../../utils";
 import { verifyToken } from '../../auth/verifyToken';
-
+import csvtojson from 'csvtojson'
 
 // Multer configuration - for file upload
 const storage = multer.memoryStorage();
@@ -22,13 +22,7 @@ const upload = multer({ storage: storage });
 import express from "express";
 const router = express.Router();
 
-function checkPermissions(){
-
-}
-
 router.use(verifyToken)
-
-
 
 // Main file upload POST route
 router.post('/apl-inv-way',(req:any, res, next) => {
@@ -63,14 +57,16 @@ router.post('/apl-inv-way',(req:any, res, next) => {
             status: false,
             msg: String,
         };
-        let pythonProcess = spawn('python3.11', ["scripts/readPDF.py", file_addr[0], file_addr[1]]);
-        let json_data
+        let pythonProcess = spawn('python3.11', ["scripts/readPDF.py", file_addr[0], file_addr[1], "-d"]);
         pythonProcess.stdout.on('data', function (data: Buffer) {
-            // console.log(data.toString());
+            // Get Debug Information from here
+            fs.appendFileSync(path.join(__dirname + "../../../../logs/python/debug.txt"), `-------------------- ${ new Date().toLocaleDateString("en-US") } - ${incoming_pdf[0].originalFilename}: -------------------- \n\n` + data.toString() + "-------------------- END! -------------------- \n\n\n");
+            console.log(data.toString());
         });
         pythonProcess.stderr.on('data', (err: any) => {
             console.error("ERROR: " + err.toString())
             console.warn("Python had an error, please check the script!!!");
+            fs.appendFileSync(path.join(__dirname + "../../../../logs/python/logs.txt"), err.toString());
             if (err) { pythonERROR.status = true; pythonERROR.msg = err.toString() };
         })
         pythonProcess.stdout.on('end', (end: any) => {
@@ -184,34 +180,65 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
 })
 
 // Upload TSP Information to DB
-router.post('/db-tsp', upload.single('file'), (req, res) => {
+// router.post('/db-tsp', upload.single('file'), (req, res) => {
 
+//     try {
+//         const workbook = xlsx.read(req.file!.buffer, { type: 'buffer' });
+//         const sheetName = workbook.SheetNames[0];
+//         const sheet = workbook.Sheets[sheetName];
+
+//         // ARRAY OF TSPS
+//         /* SCAC | DISC_FROM_GUA | DISC_TO_GUA | TSP_NAME | ADDRESS_1 | ADDRESS_2 */
+//         const jsonData = xlsx.utils.sheet_to_json(sheet);
+
+//         for (let i in jsonData) {
+//             let db_payload: any = {};
+//             for (let j in jsonData[i]!) {
+//                 let value: any = jsonData[i];
+//                 db_payload[`$${j}`] = value[j];
+//             }
+//             db_payload["$DATE_CREATED"] = Date.now();
+//             localSettings.insertTSP(db_payload);
+//         }
+
+//         res.json(jsonData);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Failed to process the uploaded file' });
+//     }
+
+//     // console.log(req);
+
+// })
+
+// Upload TSP Information to DB
+router.post('/upload-tsp',upload.any(), (req:any, res) => {
     try {
-        const workbook = xlsx.read(req.file!.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
 
-        // ARRAY OF TSPS
-        /* SCAC | DISC_FROM_GUA | DISC_TO_GUA | TSP_NAME | ADDRESS_1 | ADDRESS_2 */
-        const jsonData = xlsx.utils.sheet_to_json(sheet);
+        let csvBuffer:Buffer = req.files[0].buffer;
 
-        for (let i in jsonData) {
-            let db_payload: any = {};
-            for (let j in jsonData[i]!) {
-                let value: any = jsonData[i];
-                db_payload[`$${j}`] = value[j];
+        csvtojson()
+        .fromString(csvBuffer.toString())
+        .then(jsonData=>{
+            // HERE IS THE CODE TO UPLOAD IT
+            for (let i in jsonData) {
+                let db_payload: any = {};
+                for (let j in jsonData[i]!) {
+                    let value: any = jsonData[i];
+                    db_payload[`$${j}`] = value[j];
+                }
+                db_payload["$DATE_CREATED"] = Date.now();
+                console.log(db_payload);
+                // This adds TSPs with timestamp. 
+                // TODO: Add status of contract?
+                localSettings.insertTSP(db_payload);
             }
-            db_payload["$DATE_CREATED"] = Date.now();
-            localSettings.insertTSP(db_payload);
-        }
-
-        res.json(jsonData);
+            res.send(200);
+        })
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to process the uploaded file' });
     }
-
-    // console.log(req);
 
 })
 
@@ -466,6 +493,20 @@ router.post("/inv/void", (req, res) => {
     // console.log(req.body)
     aplDB.voidLocalInvoice(req.body.REASON, parseInt(req.body.INVOICE_NUM))
     res.send(200);
+})
+
+router.get("/export-tsp", (req,res,next)=>{
+    // console.log(req)
+    localSettings.getTSP()
+    .then(tsp=>{
+        let csv = appUtils.json2csv(tsp);
+        res.type('text/csv')
+        res.attachment("TSP.csv").send(csv);
+    })
+    .catch(err=>{
+        console.error(err);
+        res.sendStatus(403);
+    })
 })
 
 

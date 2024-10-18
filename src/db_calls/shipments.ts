@@ -9,6 +9,7 @@ export let aplDB = {
 
 }
 
+// TODO: See what Rates are being pulled after Rates have been fixed.
 /** Get information for shipment IF invoice is not yet created. 
  * 
  * This calls all the database queries to get the data for a Local Invoice
@@ -27,8 +28,8 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
           }else{
             // console.log(rows);
             data_payload = rows[0];
-            // Get Rates
-            db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=?", data_payload.SCAC,(err:any,rows1:any)=>{
+            // Get TSP
+            db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=? ORDER BY DATE_CREATED DESC LIMIT 1", data_payload.SCAC,(err:any,rows1:any)=>{
                 if(err){
                   console.log(err)
                 }else{
@@ -150,7 +151,7 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                     data_payload.id = parseInt(id);
 
                     for(let j in rows2){
-                      // IF bunker rate? then don't pull that into rates
+                      // IF bunker rate, then don't pull that into rates
                       if(rows2[j].RATE == 'FAF'){
                         let invoiceBunker = JSON.parse(rows[0].CHARGES);
                         invoiceBunker.map((e:any)=>{
@@ -165,7 +166,6 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                       }else{
                         data_payload.RATES[rows2[j].RATE] = rows2[j].AMOUNT;
                         data_payload.RATES.TOTAL += rows2[j].AMOUNT;
-          
                         data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
                         data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
                       }

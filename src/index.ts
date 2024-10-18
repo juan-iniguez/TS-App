@@ -42,7 +42,6 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.json()) // Parses json, multi-part (file), url-encoded
 app.use(verifyToken)
 
-
 // ********** SITE ROUTES *********** 
 // Home page
 app.get("/", (req: any, res: Response) => {
@@ -93,6 +92,9 @@ app.get("/login", (req:any,res)=>{
 // ********** API ROUTES ***********
 const api = require("./router/api/api")
 app.use("/api", api);
+// ********** USER ROUTES ***********
+const users = require("./router/users/users")
+app.use("/users", users);
 // ********** SHIPMENT ROUTES ***********
 const shipments = require("./router/shipments/shipments")
 app.use("/api/shipments", shipments);
@@ -123,32 +125,33 @@ app.post('/api/register',  async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+// ********** SETTINGS ROUTES ***********
+const settings = require("./router/settings/settings")
+app.use("/settings", settings);
+
 
 // Route to authenticate and log in a user
 app.post('/api/login', async (req, res) => {
-  console.log("START LOGIN")
   try {
     // Check if the email exists
     const user = await User.findOne({ email: req.body.email });
-    console.log(user);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Compare passwords
     const passwordMatch = await bcrypt.compare(req.body.password, user.password!);
-    console.log(passwordMatch);
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Generate JWT token
     const token = jwt.sign({ email: user.email, user: user.username }, process.env.JWT_SECRET!);
-    console.log(token)
     res.setHeader('Set-Cookie', `XSRF-TOKEN=${token}; HttpOnly;Max-Age=3600;SameSite=Strict;Secure;Path=/`)
     res.send(200)
-  } catch (error) {
+  } catch (error:any) {
     console.log(error);
+    fs.appendFileSync(path.join(__dirname + '../logs/www/log.txt'), error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -182,9 +185,14 @@ app.get('/api/logout', (req,res)=>{
  * 
  */
 
+// TODO: Make Invoices start count based on a variable setting. ex. INV-2XXXXX
 // TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
-// TODO: Login feature
+
+// TODO: Login feature DONE!
+// TODO: User management for admins to add and remove users.
+
 // TODO: Reports (Discounts)
+// TODO: Settings needs to be redone to add or remove TSPs, and dynamically add or remove Rates
 
 // import http from 'http';
 import https from 'https';
