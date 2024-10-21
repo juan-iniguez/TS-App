@@ -79,3 +79,14 @@
 .error-container.active{
   height: 125px;
 }
+
+.select-year-cycle{
+  background: white;
+  border: solid #b9b9b9 1px;
+  width: 200px;
+  border-radius: 0px 10px 10px 0px;
+}
+
+.input-group-text{
+  border-radius: 10px 0px 0px 10px;
+}

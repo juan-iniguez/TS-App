@@ -45,8 +45,6 @@ APL SENDS US THEIR CONTRACT = JAN-FEBRUARY
 
 OCEAN TRANSPORTATION AGREEMENT = JUNE 1st X Year - May 31st X+1 Year
 
-
-
 # Discounts Processing
 Every 2 months these discounts are being processed.
 APL Sends a report of shipments named PAID EXCEPTION report that includes all the discounted money to be paid to the TSPs PER INVOICE #.

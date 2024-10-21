@@ -212,14 +212,19 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
 // })
 
 // Upload TSP Information to DB
-router.post('/upload-tsp',upload.any(), (req:any, res) => {
-    try {
+router.post('/upload-tsp',upload.any(), async (req:any, res) => {
 
+    // console.log(req.files[0]);
+    console.log(req.query.year);
+    console.log(req.query.action);
+    // res.send(200);
+    // return;
+    try {
         let csvBuffer:Buffer = req.files[0].buffer;
 
         csvtojson()
         .fromString(csvBuffer.toString())
-        .then(jsonData=>{
+        .then((jsonData)=>{
             // HERE IS THE CODE TO UPLOAD IT
             for (let i in jsonData) {
                 let db_payload: any = {};
@@ -228,13 +233,23 @@ router.post('/upload-tsp',upload.any(), (req:any, res) => {
                     db_payload[`$${j}`] = value[j];
                 }
                 db_payload["$DATE_CREATED"] = Date.now();
-                console.log(db_payload);
+                // console.log(db_payload);
+                if(req.query.action == "update"){
+                    db_payload["$YEAR"] = req.query.year;
+                    localSettings.updateTSP(db_payload);
+                }else if(req.query.action == "create"){
+                    db_payload["$YEAR"] = `${req.query.year}-${parseInt(req.query.year)+1}`
+                    localSettings.insertTSP(db_payload)
+                }
+                // console.log(db_payload);
                 // This adds TSPs with timestamp. 
                 // TODO: Add status of contract?
-                localSettings.insertTSP(db_payload);
             }
-            res.send(200);
+            res.sendStatus(200);
         })
+
+
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to process the uploaded file' });
@@ -495,13 +510,14 @@ router.post("/inv/void", (req, res) => {
     res.send(200);
 })
 
+// Export a table with all rows in `TSP` for a specific YEAR 
 router.get("/export-tsp", (req,res,next)=>{
     // console.log(req)
-    localSettings.getTSP()
+    localSettings.getTSP(req.query.year)
     .then(tsp=>{
         let csv = appUtils.json2csv(tsp);
         res.type('text/csv')
-        res.attachment("TSP.csv").send(csv);
+        res.attachment(`${req.query.year}_TSP-List.csv`).send(csv);
     })
     .catch(err=>{
         console.error(err);
@@ -509,6 +525,17 @@ router.get("/export-tsp", (req,res,next)=>{
     })
 })
 
+// Get a list of TSP `YEAR` available to export.
+router.get('/tsp-get-year',(req,res,next)=>{
+    localSettings.getAllYearCyclesTSP()
+    .then(rows=>{
+        res.send(rows);
+    })
+    .catch(err=>{
+        console.error(err);
+        res.sendStatus(403);
+    })
+})
 
 module.exports = router;
 

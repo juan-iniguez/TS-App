@@ -25,8 +25,8 @@
                         </svg>
                     </div>
                     <div id="options-TSP" class="card-options">
-                        <a onclick="exportTSP()" class="option-link"> → Export TSP list (.CSV)</a>
-                        <a data-bs-toggle="modal" data-bs-target="#staticBackdrop" onclick="importModalTSP()" class="option-link"> → Import TSP list (.CSV)</a>
+                        <a data-bs-toggle="modal" data-bs-target="#export-tsp-modal" class="option-link"> → Export TSP list (.CSV)</a>
+                        <a data-bs-toggle="modal" data-bs-target="#staticBackdrop" class="option-link"> → Import TSP list (.CSV)</a>
                     </div>
                 </div>
                 <div class="setting-card">
@@ -55,20 +55,67 @@
             </div>
         </main>
         
+        <!-- Modal for Export TSP List -->
+        <div class="modal fade" id="export-tsp-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Export TSP List (.csv)</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetModalExportTSP()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="display: flex;flex-direction: column;">
+                            <h2>TSP Export</h2>
+                            <p>TSP Year Cycle</p>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="tsp-year-cycle">Year Cycle</label>
+                                </div>
+                                <select class="select-year-cycle" id="tsp-year-cycle">
+                                    <option selected disabled>Choose...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button onclick="exportTSP()" style="margin-top: 1em;" class="btn btn-primary" type="submit">Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal for Import TSP List -->
         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
+
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="staticBackdropLabel">Import TSP List (.csv)</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetModalImportTSP()"></button>
                     </div>
+                    
+                    
                     <div class="modal-body">
                         <div style="display: flex;flex-direction: column;">
-                            <h2>Upload TSP .csv file</h2>
+                            <h2 id="modal-title-importTSP">Upload TSP .csv file</h2>
+                            <p style="margin-top: .25em;margin-bottom: .2em;">Select a year to <b>Update or Add</b> TSP information.</p> 
+                            <p>Or, Add a new list for the next <b>TSP Year Cycle Agreement</b>.</p>
+                            <div id="select-year-container" class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="tsp-year">Year Cycle</label>
+                                </div>
+                                <select class="select-year-cycle" id="tsp-year">
+                                    <option disabled selected>Choose...</option>
+                                </select>
+                            </div>
+                            <div id="new-year-container" hidden>
+                                <p>Submit a CSV file with <b id="current-tsp-year"></b> TSP list!</p>
+                            </div>
                             <input id="tsp-upload-input" type="file" name="file" accept=".csv">
                         </div>
                     </div>
+
+
                     <div class="modal-footer">
                         <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
                         <!-- <button type="button" class="btn btn-primary">Understood</button> -->

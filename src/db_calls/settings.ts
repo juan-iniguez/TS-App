@@ -5,6 +5,8 @@ export const localSettings = {
     insertRATES,
     getTSP,
     getRATES,
+    getAllYearCyclesTSP,
+    updateTSP,
 }
 
 /**
@@ -12,11 +14,38 @@ export const localSettings = {
  * @param data
  */
 function insertTSP(data:any): void{
-    db.run("INSERT INTO TSP (SCAC, TSP_NAME, DISC_FROM_GUA, DISC_TO_GUA, ADDRESS_1, ADDRESS_2, DATE_CREATED, BILLING_EMAIL) VALUES ($SCAC, $TSP_NAME, $DISC_FROM_GUA, $DISC_TO_GUA, $ADDRESS_1, $ADDRESS_2, $DATE_CREATED, $BILLING_EMAIL)", data,(result:any, err:any)=>{
+    db.run("INSERT INTO TSP (SCAC, TSP_NAME, DISC_FROM_GUA, DISC_TO_GUA, ADDRESS_1, ADDRESS_2, DATE_CREATED, BILLING_EMAIL,CONTRACT_DATE,YEAR) VALUES ($SCAC, $TSP_NAME, $DISC_FROM_GUA, $DISC_TO_GUA, $ADDRESS_1, $ADDRESS_2, $DATE_CREATED, $BILLING_EMAIL, $CONTRACT_DATE, $YEAR)", data,(result:any, err:any)=>{
+        console.log(result);
+        console.error(err);
         if(err){
             console.error(err);
         }
     });
+}
+
+/**
+ * 
+ * @param data 
+ */
+function updateTSP(data:any):void{
+
+    let checkDB={
+        $YEAR: data["$YEAR"],
+        $SCAC: data["$SCAC"],
+    }
+    // console.log(checkDB);
+    db.all("SELECT SCAC FROM TSP WHERE SCAC=$SCAC AND YEAR=$YEAR",checkDB,(err:any,rows:any)=>{
+        if(err){console.log(err);console.log('Error?')}
+        if(rows.length > 0){
+            db.run("UPDATE TSP SET TSP_NAME=$TSP_NAME,DISC_FROM_GUA=$DISC_FROM_GUA,DISC_TO_GUA=$DISC_TO_GUA,ADDRESS_1=$ADDRESS_1,ADDRESS_2=$ADDRESS_2, DATE_CREATED=$DATE_CREATED,BILLING_EMAIL=$BILLING_EMAIL,CONTRACT_DATE=$CONTRACT_DATE WHERE SCAC=$SCAC AND YEAR=$YEAR", data,(res:any,err:any)=>{
+                if(err){console.error(err);}
+            })
+        }else{
+            db.run("INSERT INTO TSP (SCAC,TSP_NAME,DISC_FROM_GUA,DISC_TO_GUA,ADDRESS_1,ADDRESS_2,DATE_CREATED,BILLING_EMAIL,CONTRACT_DATE,YEAR) VALUES ($SCAC,$TSP_NAME,$DISC_FROM_GUA,$DISC_TO_GUA,$ADDRESS_1,$ADDRESS_2,$DATE_CREATED,$BILLING_EMAIL,$CONTRACT_DATE,$YEAR)",data,(res:any,err:any)=>{
+                if(err){console.error(err)};
+            })
+        }
+    })
 }
 
 /**
@@ -34,15 +63,25 @@ function insertRATES(data:any): void{
 /**
  * 
  */
-function getTSP(){
+function getTSP(year:any){
     return new Promise((resolve,reject)=>{
-        db.all("SELECT SCAC,TSP_NAME,DISC_FROM_GUA,DISC_TO_GUA,ADDRESS_1,ADDRESS_2,BILLING_EMAIL FROM TSP",(err:any,rows:any)=>{
-            if(err){
-                console.error(err);
-                reject(err);
-            }
-            resolve(rows);
-        });
+        if(year){
+            db.all("SELECT SCAC,TSP_NAME,DISC_FROM_GUA,DISC_TO_GUA,ADDRESS_1,ADDRESS_2,BILLING_EMAIL,CONTRACT_DATE,YEAR FROM TSP WHERE YEAR=?",year,(err:any,rows:any)=>{
+                if(err){
+                    console.error(err);
+                    reject(err);
+                }
+                resolve(rows);
+            });
+        }else{
+            db.all("SELECT SCAC,TSP_NAME,DISC_FROM_GUA,DISC_TO_GUA,ADDRESS_1,ADDRESS_2,BILLING_EMAIL,CONTRACT_DATE,YEAR FROM TSP",(err:any,rows:any)=>{
+                if(err){
+                    console.error(err);
+                    reject(err);
+                }
+                resolve(rows);
+            });
+        }
     }) 
 }
 
@@ -62,4 +101,17 @@ function getRATES(){
             resolve(result);
         });
     }) 
+}
+
+function getAllYearCyclesTSP(){
+    return new Promise((resolve,reject)=>{
+        db.all('SELECT DISTINCT YEAR FROM TSP', (err,row:any)=>{
+            if(err){reject(err);return;}
+            let response = [];
+            for(let i in row){
+                response.push(row[i].YEAR);
+            }
+            return resolve(response);
+        })
+    })
 }
