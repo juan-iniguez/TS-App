@@ -22,7 +22,10 @@ def readPDF_invoice(reader):
     page = reader.pages[0]
     text = page.extract_text(extraction_mode="layout", layout_mode_space_vertically=False)
     # ! ---- DEBUG PRINT ----
-    if debug_sw == 1: print(text)
+    if debug_sw == 1: 
+        print("% INVOICE START %")
+        print(text)
+        print("% INVOICE END %")
     if "1UNI" in text:
         text_transform = text.replace("1UNI", "1 UNI").split("\n")   
     else:
