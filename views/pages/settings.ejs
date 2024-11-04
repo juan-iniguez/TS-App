@@ -37,8 +37,8 @@
                         </svg>
                     </div>
                     <div id="options-rates" class="card-options">
-                        <a onclick="importRates()" class="option-link">→ Import Rates</a>
-                        <a href="/settings/rates" class="option-link">→ Show Rates</a>
+                        <a data-bs-toggle="modal" data-bs-target="#export-rates-modal" class="option-link">→ Export Rates (.CSV)</a>
+                        <a data-bs-toggle="modal" data-bs-target="#import-rates-modal" class="option-link">→ Import Rates (.CSV)</a>
                     </div>
                 </div>
                 <div class="setting-card">
@@ -84,6 +84,8 @@
             </div>
         </div>
 
+
+
         <!-- Modal for Import TSP List -->
         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -120,6 +122,147 @@
                         <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
                         <!-- <button type="button" class="btn btn-primary">Understood</button> -->
                         <button onclick="uploadTSP()" style="margin-top: 1em;" class="btn btn-primary" type="submit">Upload</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Export Rates List -->
+        <div class="modal fade" id="export-rates-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Export Rates (.csv)</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetModalExportRates()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div style="display: flex;flex-direction: column;">
+                            <h2>Rates Export</h2>
+
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link active" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#yearly-tab-pane" type="button" role="tab" aria-controls="yearly-tab-pane" aria-selected="true">Yearly</a>
+                                    <!-- <a class="nav-link active" href="#">Yearly</a> -->
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="quarterly-tab" data-bs-toggle="tab" data-bs-target="#quarterly-tab-pane" type="button" role="tab" aria-controls="quarterly-tab-pane" aria-selected="false">Quarterly</a>
+                                    <!-- <a class="nav-link" href="#">Quarterly</a> -->
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="myTabContent">
+                                <div class="tab-pane fade show active" id="yearly-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                                    <p style="margin-top: .5em;">Rates Year Cycle</p>
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <label class="input-group-text" for="tsp-year-cycle">Year Cycle</label>
+                                        </div>
+                                        <select class="select-year-cycle" id="rates-year-cycle">
+                                            <option selected disabled>Choose...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="quarterly-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                                    <p style="margin-top: .5em;">Quarterly Bunker Rates Export</p>
+                                    <div class="input-group mb-3">
+                                        
+                                        <span class="input-group-text">Year</span>
+                                        <select id="export-rates-year" class="form-select" aria-label="Year">
+                                            <option selected disabled>Choose...</option>
+                                        </select>
+                                        <span class="input-group-text">Quarter</span>
+                                        <select id="export-rates-quarterly" class="form-select" aria-label="Year">
+                                            <option selected disabled>Choose Year First...</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button onclick="exportRates()" style="margin-top: 1em;" class="btn btn-primary" type="submit">Export</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Import Rates List -->
+        <div class="modal fade" id="import-rates-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Import Rates (.csv)</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="resetModalImportRates()"></button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div style="display: flex;flex-direction: column;">
+
+                            <h2 id="modal-title-importTSP">Upload Rates .csv file</h2>
+                            <p style="margin-top: .25em;margin-bottom: .2em;">Select a year to <b>Update or Add</b> Rates information.</p> 
+                            <p>Or, Add a new list for the next <b>Rates Year Cycle Agreement</b>.</p>
+                            
+                            <ul class="nav nav-tabs">
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link active" id="yearly-tab" data-bs-toggle="tab" data-bs-target="#i-yearly-tab-pane" type="button" role="tab" aria-controls="i-yearly-tab-pane" aria-selected="true">Yearly</a>
+                                    <!-- <a class="nav-link active" href="#">Yearly</a> -->
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <a class="nav-link" id="i-quarterly-tab" data-bs-toggle="tab" data-bs-target="#i-quarterly-tab-pane" type="button" role="tab" aria-controls="i-quarterly-tab-pane" aria-selected="false">Quarterly</a>
+                                    <!-- <a class="nav-link" href="#">Quarterly</a> -->
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="myTabContent">
+                                <div class="tab-pane fade show active" id="i-yearly-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+                                    <p style="margin-top: .5em;">Rates Year Cycle</p>
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <label class="input-group-text" for="i-rates-year-cycle">Year Cycle</label>
+                                        </div>
+                                        <select class="select-year-cycle" id="i-rates-year-cycle">
+                                            <option selected disabled>Choose...</option>
+                                        </select>
+                                    </div>
+                                    <input id="yrates-upload-input" type="file" name="file" accept=".csv">
+                                </div>
+                                <div class="tab-pane fade" id="i-quarterly-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                                    <p style="margin-top: .5em;">Quarterly Bunker Rates Export</p>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">Year</span>
+                                        <select id="i-rates-year" class="form-select" aria-label="Year">
+                                            <option selected disabled>Choose...</option>
+                                        </select>
+                                        <span class="input-group-text">Quarter</span>
+                                        <select id="i-rates-quarterly" class="form-select" aria-label="Year">
+                                            <option selected disabled>Choose Year First...</option>
+                                        </select>
+                                    </div>
+                                    <input id="qrates-upload-input" type="file" name="file" accept=".csv">
+                                </div>
+                            </div>
+                            <div id="new-year-container" hidden>
+                                <p>Submit a CSV file with <b id="current-rate-year"></b> Rates list!</p>
+                            </div>
+                            
+                            <!-- <div id="select-year-container" class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <label class="input-group-text" for="rate-year">Year Cycle</label>
+                                </div>
+                                <select class="select-year-cycle" id="rate-year">
+                                    <option disabled selected>Choose...</option>
+                                </select>
+                            </div> -->
+                            
+                        </div>
+                    </div>
+
+
+                    <div class="modal-footer">
+                        <button onclick="importRates()" style="margin-top: 1em;" class="btn btn-primary" type="submit">Upload</button>
                     </div>
                 </div>
             </div>

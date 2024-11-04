@@ -537,5 +537,38 @@ router.get('/tsp-get-year',(req,res,next)=>{
     })
 })
 
+// !! RATES 
+router.get('/rates-get-year',(req,res,next)=>{
+    localSettings.getAllYearCyclesRates()
+    .then(rows=>{
+        res.send(rows);
+    })
+    .catch(err=>{
+        console.error(err);
+        res.sendStatus(403);
+    })
+})
+
+router.get('/export-rates', (req,res,next)=>{
+    const year:any=req.query.year;
+    const quarter:any=req.query.quarter || null;
+
+    localSettings.getRATES(year,quarter)
+    .then(rates=>{
+        let csv = appUtils.json2csv(rates);
+        res.type('text/csv')
+        res.attachment(`${year}_${quarter||"Q1"}_Rates.csv`).send(csv);
+    })
+    .catch(err=>{
+        console.error(err);
+        res.sendStatus(403);
+    })
+})
+
+router.post('/upload-rates',(req,res,next)=>{
+    console.table(req.query);
+    res.sendStatus(200);
+})
+
 module.exports = router;
 

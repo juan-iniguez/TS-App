@@ -28,8 +28,8 @@ export const verifyToken = (req:any, res:any, next:any) => {
 };
 
 export const apiAuthCheck = (req:any, res:any, next:any) => {
-    console.warn("HERES THE USER")
-    console.log(req.user);
+    // console.warn("HERES THE USER")
+    // console.log(req.user);
     if(!req.user){res.redirect('/login')}else{
         next();
     }

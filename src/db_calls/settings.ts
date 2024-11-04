@@ -6,6 +6,7 @@ export const localSettings = {
     getTSP,
     getRATES,
     getAllYearCyclesTSP,
+    getAllYearCyclesRates,
     updateTSP,
 }
 
@@ -88,18 +89,34 @@ function getTSP(year:any){
 /**
  * 
  */
-function getRATES(){
-
+function getRATES(year:string,quarter:string){
     // Complicated
     // TODO: MAKE IT DO ALL THE OTHER THINGS
     return new Promise((resolve,reject)=>{
-        db.all("SELECT * FROM RATES",(result:any, err:any)=>{
-            if(err){
-                console.error(err);
-                reject(err);
-            }
-            resolve(result);
-        });
+
+        if(!year && !quarter){
+            db.all("SELECT * FROM RATES",(err:any, rows:any)=>{
+                if(err){
+                    console.error(err);
+                    reject(err);
+                }
+                resolve(rows);
+            });
+        }else if(year && !quarter){
+            db.all("SELECT * FROM RATES WHERE YEAR=? AND QUARTER=?",[year,"Q1"],(err:any, rows:any)=>{
+                if(err){
+                    console.error(err);
+                    reject(err);
+                }
+                resolve(rows);
+            });
+        }else{
+            db.all("SELECT * FROM RATES WHERE YEAR=? AND QUARTER=?", [year,quarter],(err,rows)=>{
+                if(err){console.error(err); reject(err)}
+                resolve(rows);
+            })
+        }
+
     }) 
 }
 
@@ -112,6 +129,16 @@ function getAllYearCyclesTSP(){
                 response.push(row[i].YEAR);
             }
             return resolve(response);
+        })
+    })
+}
+
+function getAllYearCyclesRates(){
+    return new Promise((resolve,reject)=>{
+        db.all('SELECT DISTINCT YEAR,QUARTER FROM RATES', (err,rows:any)=>{
+            console.log(rows);
+            if(err){reject(err);return;}
+            return resolve(rows);
         })
     })
 }
