@@ -1,0 +1,11 @@
+main{
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+  margin-top: 1em;
+}
+
+.submit-btn{
+  margin-top: 1em;
+}

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>
+    <link rel="stylesheet" href="/css/uploadStart.css">
+    <title>APL Upload Start Page</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <%- include('../partials/header'); %>
+        </header>
+        <main style="margin-top: 2em;min-height: 70vh;">
+            <h1>Type Invoice Number</h1>
+            <input type="text" placeholder="ex. NAMA123451" id="inv-field">
+            <a onclick="sendReq()" id="submit-inv-num" class="btn btn-primary submit-btn">Get Shipments</a>
+        </main>
+        <footer style="display: flex; justify-content: center;align-items: center;padding: 2em;">
+            <%- include('../partials/footer'); %>
+        </footer>
+    </div>
+</body>
+<script src="/js/uploadStart.js"></script>
+</html>

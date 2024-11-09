@@ -315,19 +315,15 @@ def main(arg):
 
     # os.remove("public/files/data.json")
     # print(arg[3])
-    invoice = arg[1]
-    waybill = arg[2]
-    if arg[3] == "-d" or arg[3] == "--debug":
+    waybill = arg[1]
+    if arg[2] == "-d" or arg[2] == "--debug":
         debug_sw = 1
-
-    pdfs_01 = PdfReader(invoice)
-    readPDF_invoice(pdfs_01)
 
     pdfs_02 = PdfReader(waybill)
     readPDF_waybill(pdfs_02)
 
     # print(payload)
-    with open("public/files/data.json", "w") as outfile: 
+    with open(f"{arg[1].split('.pdf')[0]}.json", "w") as outfile: 
         json.dump(payload, outfile)
 
 if __name__ == "__main__":

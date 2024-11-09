@@ -1,18 +1,21 @@
-import fs from "fs";
+import fs, { watch } from "fs";
 import formidable from 'formidable';
 const spawn = require("child_process").spawn;
 import path from "path";
 import multer from 'multer';
 // !XLSX IS VULNERABLE!
 import xlsx from 'xlsx';
+import axios from 'axios';
+
 // Local calls for tasks
 import { aplDB } from '../../db_calls/shipments';
-import { writePDF } from "../../pdf_calls/pdf";
+import { writePDF, readPDF } from "../../pdf_calls/pdf";
 import { apl } from '../../db_calls/apl';
 import { localSettings } from '../../db_calls/settings';
 import { searchDB } from '../../db_calls/search'
 import { appUtils } from "../../utils";
 import { verifyToken } from '../../auth/verifyToken';
+import { oauth } from '../../auth/APL_oauth';
 import csvtojson from 'csvtojson'
 
 // Multer configuration - for file upload
@@ -24,7 +27,7 @@ const router = express.Router();
 
 router.use(verifyToken)
 
-// Main file upload POST route
+// ! Main file upload POST route (DEPRECATING FOR APL API) 
 router.post('/apl-inv-way',(req:any, res, next) => {
 
     if(!req.user){res.sendStatus(401).json({message: "Unauthorized"});next()}
@@ -116,6 +119,77 @@ router.post('/apl-inv-way',(req:any, res, next) => {
     });
 
 })
+
+// ? API APL to download Waybill and process with Script
+// ? Supercedes the method above.
+// router.post('/apl-inv-waybill', (req,res,next)=>{
+
+//     let waybill_bol = req.body.bol;
+
+//     apl.getWaybillPDF(waybill_bol);
+
+//     // Now action the script with arguments
+//     let pythonERROR = {
+//         status: false,
+//         msg: String,
+//     };
+//     let pythonProcess = spawn('python3.11', ["scripts/readPDF.py", file_addr[0], file_addr[1], "-d"]);
+//     pythonProcess.stdout.on('data', function (data: Buffer) {
+//         // Get Debug Information from here
+//         fs.appendFileSync(path.join(__dirname + "../../../../logs/python/debug.txt"), `-------------------- ${ new Date().toLocaleDateString("en-US") } - ${incoming_pdf[0].originalFilename}: -------------------- \n\n` + data.toString() + "-------------------- END! -------------------- \n\n\n");
+//         console.log(data.toString());
+//     });
+//     pythonProcess.stderr.on('data', (err: any) => {
+//         console.error("ERROR: " + err.toString())
+//         console.warn("Python had an error, please check the script!!!");
+//         fs.appendFileSync(path.join(__dirname + "../../../../logs/python/logs.txt"), err.toString());
+//         if (err) { pythonERROR.status = true; pythonERROR.msg = err.toString() };
+//     })
+//     pythonProcess.stdout.on('end', (end: any) => {
+//         let result = JSON.parse(fs.readFileSync("public/files/data.json", 'utf8'));
+//         // console.log(result)
+//         if (!result.invoice || !result.waybill) {
+//             res.send({
+//                 reason: "One of your files could not be processed!",
+//                 status: 500,
+//             });
+//             console.error("No Invoice or Waybill found in files!!!");
+//             console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
+//             return;
+//         }
+
+//         // CHECK IF ENTRY IS ALREADY UPLOADED
+//         if (pythonERROR.status) {
+//             res.send({
+//                 reason: "There was an issue parsing the files, please contact your administrator. (Python Parsing Error)",
+//                 status: 500,
+//             });
+//         } else {
+//             // console.log(result.invoice.BOL)
+//             apl.checkInv(result.invoice.BOL)
+//                 .then((resolve) => {
+//                     if (resolve[0] == undefined) {
+//                         res.send({ status: "OK", all: result })
+//                     } else {
+//                         res.send({
+//                             reason: "Shipment Invoice or Waybill already exists.",
+//                             status: 200,
+//                         });
+//                         console.error("Shipment Invoice or Waybill already exists.")
+//                         console.warn('User tried uploading: ' + result.invoice.BOL + " --- Already Exists in the Database")
+//                     }
+//                 }).catch((reason) => {
+//                     res.send({
+//                         reason: reason.toString(),
+//                         status: 500,
+//                     });
+//                     console.error("Undefined Error: " + reason.toString());
+//                     console.warn("Revise Python file, this could be a parsing issue")
+//                 })
+//         }
+
+//     })
+// })
 
 /***** START A CRUD IMPLEMENTATION AND CONNECT TO DB *****/
 // Upload Invoice and Waybill to DB
@@ -569,6 +643,72 @@ router.post('/upload-rates',(req,res,next)=>{
     console.table(req.query);
     res.sendStatus(200);
 })
+
+/* *
+ * APL API STARTS HERE 
+ */
+// !! REQUEST THE INVOICE USING THE APL API ENDPOINTS!!! SUPER IMPORTANT!!! :)
+router.post('/apl/inv/:invoice_num', (req,res,next)=>{
+    // * Check if it already exists in our DATABASE
+    apl.checkInv(null,req.params.invoice_num)
+    .then(rows=>{
+        if(rows.length > 0){
+            res.send({
+                error: 403,
+                msg: "INVOICE EXISTS IN DATABASE ALREADY",
+            });
+            return
+        }else{
+            getInvAPL()
+        }
+    })
+    .catch(err=>{
+        console.error(err);
+    });
+
+    function getInvAPL(){
+        apl.getInvoiceData(req.params.invoice_num)
+        .then(invData=>{
+            getWayAPL(invData)
+        })
+        .catch(err=>{
+            res.send(err)
+        })
+    }
+
+    function getWayAPL(invData:any){
+        // console.log(data.invoice.transportDocumentReference);
+        apl.getWaybillPDF(invData.invoice.transportDocumentReference)
+        .then(wayPDF=>{
+            readPDF.parseWaybill(wayPDF,invData.invoice.transportDocumentReference)
+            .then((waybillData:any)=>{
+                let payload = {...waybillData}
+                payload.all.invoice = appUtils.InvoiceApi2localformat(invData);
+                
+                console.log(req.body);
+                if(req.body.peek){
+                    res.send({
+                        status:"OK",
+                        invoice_number: req.params.invoice_num,
+                    })
+                }else{
+                    res.send(payload);
+                }
+            })
+            .catch(err=>{
+                res.send(err);
+            })
+        })
+        .catch(err=>{
+            console.log("Error in file")
+            console.log(err);
+            res.send(err);
+        })
+    }
+
+})
+
+
 
 module.exports = router;
 

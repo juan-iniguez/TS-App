@@ -3,9 +3,16 @@ import { PDFDocument } from 'pdf-lib'
 import { aplDB } from '../db_calls/shipments';
 import { db } from '../db_init/db_init'
 import { appUtils } from '../utils';
+import { spawn } from 'child_process';
+import { apl } from '../db_calls/apl';
+import path from 'path';
 
 export let writePDF = {
-    writeOceanInv
+    writeOceanInv,
+}
+
+export let readPDF = {
+    parseWaybill,
 }
 
 async function writeOceanInv(data:any, val:any, initInv:boolean){
@@ -130,4 +137,70 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
     const pdfBytes = await pdfDoc.save();
     return pdfBytes
 
+}
+
+function parseWaybill(waybillPDF:any, BOL:string){
+    return new Promise((resolve,reject)=>{
+        let waybill_dir = path.join(__dirname + `../../../cache/waybills/${BOL}`);
+        fs.writeFileSync( waybill_dir+'.pdf',Buffer.from(waybillPDF.data))        
+        // Now action the script with arguments
+        let pythonERROR = {
+            status: false,
+            msg: String,
+        };
+        let pythonProcess = spawn('python3.11', ["scripts/readWaybillPDF.py", waybill_dir+'.pdf' , "-d"]);
+        
+        pythonProcess.stdout.on('data', function (data: Buffer) {
+            // Get Debug Information from here
+            fs.appendFileSync(path.join(__dirname + "../../../logs/python/debug.txt"), `-------------------- ${ new Date().toLocaleDateString("en-US") } - ${BOL}: -------------------- \n\n` + data.toString() + "-------------------- END! -------------------- \n\n\n");
+            // console.log(data.toString());
+        });
+        pythonProcess.stderr.on('data', (err: any) => {
+            console.error("ERROR: " + err.toString())
+            console.warn("Python had an error, please check the script!!!");
+            fs.appendFileSync(path.join(__dirname + "../../../logs/python/logs.txt"), err.toString());
+            if (err) { pythonERROR.status = true; pythonERROR.msg = err.toString() };
+        })
+        pythonProcess.stdout.on('end', (end: any) => {
+            let result = JSON.parse(fs.readFileSync(waybill_dir +'.json', 'utf8'));
+            // console.log(result)
+            if (!result.waybill) {
+                console.error("No Invoice or Waybill found in files!!!");
+                console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
+                reject({
+                    reason: "One of your files could not be processed!",
+                    status: 500,
+                });
+            }
+            // CHECK IF ENTRY IS ALREADY UPLOADED
+            if (pythonERROR.status) {
+                reject({
+                    reason: "There was an issue parsing the files, please contact your administrator. (Python Parsing Error)",
+                    status: 500,
+                });
+            }else{
+                apl.checkInv(result.waybill.BOL)
+                .then((data_res) => {
+                    if (data_res[0] == undefined) {
+                        resolve({ status: "OK", all: result })
+                    } else {
+                        console.error("Shipment Invoice or Waybill already exists.")
+                        console.warn('User tried uploading: ' + result.invoice.BOL + " --- Already Exists in the Database")
+                        reject({
+                            reason: "Shipment Invoice or Waybill already exists.",
+                            status: 200,
+                        });
+                    }
+                })
+                .catch((reason) => {
+                    console.error("Undefined Error: " + reason.toString());
+                    console.warn("Revise Python file, this could be a parsing issue")
+                    reject({
+                        reason: reason.toString(),
+                        status: 500,
+                    });
+                })
+            }
+        })
+    })
 }

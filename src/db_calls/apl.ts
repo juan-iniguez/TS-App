@@ -1,10 +1,14 @@
 import { db } from '../db_init/db_init'
+import { oauth } from '../auth/APL_oauth';
+import axios from 'axios';
 
 export const apl = {
     entryInv,
     entryWay,
     entryShipment,
     checkInv,
+    getWaybillPDF,
+    getInvoiceData,
 }
 
 /**
@@ -59,14 +63,100 @@ function entryShipment(data:any): void{
  * @param BOL 
  * @returns Promise with err or rows from SQL query
  */
-function checkInv(BOL:any): Promise<any>{
+function checkInv(BOL?:any, INVOICE_NUM?:any): Promise<any>{
     return new Promise((resolve,reject)=>{
-        db.all("SELECT APL_INVOICES.BOL FROM APL_INVOICES INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL = APL_WAYBILLS.BOL WHERE APL_INVOICES.BOL=?", BOL,(err,rows:Array<any>)=>{
-            if(err){
-                reject(err)
-            }else{
-                resolve(rows)
-            }
-        });
+        if(BOL != undefined && INVOICE_NUM == undefined){
+            db.all("SELECT APL_INVOICES.BOL FROM APL_INVOICES INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL = APL_WAYBILLS.BOL WHERE APL_INVOICES.BOL=?", BOL,(err,rows:Array<any>)=>{
+                if(err){
+                    reject(err)
+                }else{
+                    resolve(rows)
+                }
+            });
+        }else if(BOL == undefined && INVOICE_NUM != undefined){
+            console.log("INVOICE NUM: ", INVOICE_NUM)
+            db.all("SELECT BOL FROM APL_INVOICES WHERE INVOICE_NUM=?", INVOICE_NUM, (err,rows)=>{
+                err?reject(err):resolve(rows);
+            })
+
+        }
+    })
+}
+
+
+// ? Cache for Invoice Data (in Memory Cache, volatile)
+let inMemoryCache = new Map();
+
+async function setCacheToExpire(invoice_num:any,data:any){
+    inMemoryCache.set(invoice_num,data)
+    setTimeout(()=>{
+        inMemoryCache.delete(invoice_num)
+    },3600000)
+}
+
+
+/**
+ * 
+ * Get Waybill PDF from APL's API 
+ * 
+ * @param BOL 
+ */
+function getWaybillPDF(BOL:any){
+    return new Promise((resolve,reject)=>{
+        // * Check if it already exists in CACHE
+        if(inMemoryCache.get(BOL)){
+            resolve(inMemoryCache.get(BOL))
+            return
+        }
+        oauth.getTokenInv('blcopy:load:be').then((token:any)=>{
+            axios.get(`https://apis.cma-cgm.net/shipping/shippingdocument/blcopy/v1/document?blNumber=${BOL}`,{
+                responseType: 'arraybuffer',
+                headers:{
+                    "Authorization": "Bearer " + token,
+                    Accept: "application/pdf",
+                }
+            })
+            .then(response=>{
+                // * CACHE THE DATA
+                let invData = response;
+                setCacheToExpire(BOL,invData);
+                resolve(invData);
+            })
+            .catch(err=>{
+                reject(err.response.data);
+            })
+        })
+    }) 
+}
+
+/**
+ * 
+ * Get Invoice data from APL API
+ * 
+ * @param invoice_num 
+ */
+function getInvoiceData(invoice_num:any){
+    return new Promise((resolve,reject)=>{
+        // * Check if it already exists in CACHE
+        if(inMemoryCache.get(invoice_num)){
+            resolve(inMemoryCache.get(invoice_num))
+            return
+        }
+        oauth.getTokenInv('invoicepartnerdata:load:be').then((token:any)=>{
+            axios.get(`https://apis.cma-cgm.net/shipping/invoicing/customer/data/v2/invoices/${invoice_num}/data`,{
+                headers:{
+                    "Authorization": "Bearer " + token,
+                }
+            })
+            .then(response=>{
+                // * CACHE THE DATA
+                let invData = response.data;
+                setCacheToExpire(invoice_num,invData);
+                resolve(invData);
+            })
+            .catch(err=>{
+                reject(err.response.data)
+            })
+        })
     })
 }

@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from "path";
 import bodyParser from 'body-parser';
 import 'dotenv/config'
+import axios from 'axios';
 // Set Express App
 import express, { Express, Request, Response } from "express";
 const app: Express = express();
@@ -175,6 +176,26 @@ app.get('/api/logout', (req,res)=>{
   res.redirect('/')
 })
 
+app.get('/upload/start', (req:any,res,next)=>{
+
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render('pages/uploadStart', req.user);
+  }
+
+
+})
+
+app.get('/upload/details/:invoice_num', (req:any,res,next)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render('pages/uploadDetails', req.user)      
+  }
+})
+
+
 // TODO: When pulling bunker, use invoice bunker as default. However, show note if Invoice Bunker does not match Bunker RATE
 /**
  * Additionally, Instead of making changes or taking the bunker charge face value, 
@@ -196,6 +217,7 @@ app.get('/api/logout', (req,res)=>{
 
 // import http from 'http';
 import https from 'https';
+import { match } from 'assert';
 const privateKey  = fs.readFileSync(path.join(__dirname,'../ssl/sd_dewitt.key'), 'utf8');
 const certificate = fs.readFileSync(path.join(__dirname, '../ssl/sd_dewitt.crt'), 'utf8');
 const credentials = {key: privateKey, cert: certificate};
