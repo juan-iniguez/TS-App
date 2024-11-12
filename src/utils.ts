@@ -50,71 +50,13 @@ function json2csv(jsonData:any){
 }
 
 /**
- *   "invoice": {
-    "BOL": "USG0277735",
-    "INVOICE_NUM": "NAMA1219921",
-    "CUSTOMER_NUM": "0003152148/001",
-    "INVOICE_DATE": "26-JUL-2024",
-    "VOYAGE": "0DBIYW1PL",
-    "VESSEL": "PRESIDENT JQ ADAMS",
-    "RECEIPT_PLACE": "-",
-    "DISCHARGE_PORT": "PITI, GUAM",
-    "LOAD_PORT": "LOS ANGELES, CA",
-    "DELIVERY_PLACE": "-",
-    "CONT_SIZE": "40HC",
-    "CONT_NUM": "CMAU8908730",
-    "CHARGES": [
-      {
-        "SIZE": "40HC",
-        "TYPE": "C",
-        "DESC": "BASIC FREIGHT",
-        "BASED_ON": 1.0,
-        "RATE_CURR": 3768.0,
-        "AMOUNT": 3768.0,
-        "AMOUNT_USD": 3768.0
-      },
-      {
-        "SIZE": "40HC",
-        "TYPE": "C",
-        "DESC": "Bunker surcharge NOS",
-        "BASED_ON": 1.0,
-        "RATE_CURR": 1230.0,
-        "AMOUNT": 1230.0,
-        "AMOUNT_USD": 1230.0
-      },
-      {
-        "SIZE": "40HC",
-        "TYPE": "C",
-        "DESC": "Terminal handl. ch",
-        "BASED_ON": 1.0,
-        "RATE_CURR": 915.0,
-        "AMOUNT": 915.0,
-        "AMOUNT_USD": 915.0
-      },
-      {
-        "SIZE": "40HC",
-        "TYPE": "C",
-        "DESC": "Terminal handl ch origin",
-        "BASED_ON": 1.0,
-        "RATE_CURR": 755.0,
-        "AMOUNT": 755.0,
-        "AMOUNT_USD": 755.0
-      },
-      {
-        "SIZE": "40HC",
-        "TYPE": "C",
-        "DESC": "Container inspection fees and survey fees",
-        "BASED_ON": 1.0,
-        "RATE_CURR": 52.0,
-        "AMOUNT": 52.0,
-        "AMOUNT_USD": 52.0
-      }
-    ],
-    "TOTAL": 6720.0
  * 
+ * This transforms the invoice data that came in from APL API call to a more
+ * DB Friendly version.
  * 
+ * @param inv_data 
+ * @returns Invoice with DB friendly data
  */
-
 function InvoiceApi2localformat(inv_data:any){
     // console.log(inv_data);
     try {        
@@ -136,9 +78,7 @@ function InvoiceApi2localformat(inv_data:any){
         invOutput.CHARGES = [];
 
         for(let chr=0;chr < inv_data.charges.length;chr++){
-            console.log(chr);
             let chargesOutput:any = {};
-            
             chargesOutput.SIZE = inv_data.shipment.equipments[0].equipmentGroupIsoCode;
             chargesOutput.TYPE = "C";
             chargesOutput.DESC = inv_data.charges[chr].chargeDescription;

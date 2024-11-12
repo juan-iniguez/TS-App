@@ -12,9 +12,40 @@
             <%- include('../partials/header'); %>
         </header>
         <main style="margin-top: 2em;min-height: 70vh;">
-            <h1>Type Invoice Number</h1>
-            <input type="text" placeholder="ex. NAMA123451" id="inv-field">
-            <a onclick="sendReq()" id="submit-inv-num" class="btn btn-primary submit-btn">Get Shipments</a>
+
+            <section id="options">
+                <h1>🪄 Start here...</h1>
+                <h2 style="font-size: 1em;">Please choose a method to upload APL Invoices and Waybills</h2>
+                <div class="index-container">
+                    <a style="cursor: pointer;" class="start-button" onclick="showAPIOption()">
+                        <img class="rounded start-button-img" src="/imgs/web-39.svg">
+                        <p>API</p>
+                    </a>
+                    <a class="start-button" href="/upload/pdf">
+                        <img class="rounded start-button-img" src="/imgs/pdf-file.svg">
+                        <p>PDF</p>
+                    </a>
+                    <a class="start-button" href="/upload/manual">
+                        <img class="rounded start-button-img" src="/imgs/reports.png">
+                        <p>Manual</p>
+                    </a>
+                </div>
+            </section>
+
+            <section style="display: flex;flex-direction: column;overflow: hidden;" id="api-option" hidden>
+                <h1>Type Invoice Number</h1>
+                <input type="text" placeholder="ex. NAMA123451" id="inv-field" pattern="[a-zA-Z0-9]*">
+                <a onclick="sendReq()" id="submit-inv-num" class="btn btn-primary submit-btn">Get Shipments</a>
+                <error class="hidden">
+                    <h3 style="font-size: 4em;margin: 0px;">⚠️</h3>
+                    <div style="width: 100%;margin-left: 1em;">
+                        <p style="font-weight: bold;font-size: 1.5em;">Wow</p>
+                        <p style="font-size: 1em;">Nice</p>
+                    </div>
+                </error>
+            </section>
+
+
         </main>
         <footer style="display: flex; justify-content: center;align-items: center;padding: 2em;">
             <%- include('../partials/footer'); %>

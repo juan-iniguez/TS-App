@@ -1,17 +1,16 @@
-import fs from 'fs'
+// Dependencies
+import fs from 'fs';
 import path from "path";
 import bodyParser from 'body-parser';
-import 'dotenv/config'
+import 'dotenv/config';
 import axios from 'axios';
-// Set Express App
-import express, { Express, Request, Response } from "express";
-const app: Express = express();
-
-import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
+import mongoose from 'mongoose';
+// Set Express App
+import express, { Express, Request, Response } from "express";
 import { verifyToken } from './auth/verifyToken';
+const app: Express = express();
 
 // Connect to MongoDB database
 mongoose.connect('mongodb://apl.san.dewittco.com:27017/user_authentication',{user: process.env.MONGO_USER, pass: process.env.MONGO_PASS})
@@ -50,10 +49,29 @@ app.get("/", (req: any, res: Response) => {
   res.render('pages/index', req.user);
 });
 
-// APL Invoice and Waybill upload page
-app.get("/upload",(req:any,res)=>{
+// ! APL Invoice and Waybill upload page
+//
+app.get("/upload/pdf",(req:any,res)=>{
   console.log(req.user)
-  req.user?res.render("pages/upload", req.user):res.redirect('/login');
+  req.user?res.render("pages/uploadPDF", req.user):res.redirect('/login');
+})
+
+// Choose the way to upload the information to the DB
+app.get('/upload/start', (req:any,res,next)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render('pages/uploadStart', req.user);
+  }
+})
+
+// Page with the details from the API CALL
+app.get('/upload/details/:invoice_num', (req:any,res,next)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render('pages/uploadDetails', req.user)      
+  }
 })
 
 // Settings
@@ -176,27 +194,9 @@ app.get('/api/logout', (req,res)=>{
   res.redirect('/')
 })
 
-app.get('/upload/start', (req:any,res,next)=>{
-
-  if(req.user == null){
-    res.redirect('/login')
-  }else{
-    res.render('pages/uploadStart', req.user);
-  }
-
-
-})
-
-app.get('/upload/details/:invoice_num', (req:any,res,next)=>{
-  if(req.user == null){
-    res.redirect('/login')
-  }else{
-    res.render('pages/uploadDetails', req.user)      
-  }
-})
-
 
 // TODO: When pulling bunker, use invoice bunker as default. However, show note if Invoice Bunker does not match Bunker RATE
+
 /**
  * Additionally, Instead of making changes or taking the bunker charge face value, 
  * we need to state from WHICH rate the bunker charge was pulled. 
@@ -206,12 +206,8 @@ app.get('/upload/details/:invoice_num', (req:any,res,next)=>{
  * 
  */
 
-// TODO: Make Invoices start count based on a variable setting. ex. INV-2XXXXX
 // TODO: Refine search feature on `Search`, it doesnt work for dates or amounts etc
-
-// TODO: Login feature DONE!
 // TODO: User management for admins to add and remove users.
-
 // TODO: Reports (Discounts)
 // TODO: Settings needs to be redone to add or remove TSPs, and dynamically add or remove Rates
 
