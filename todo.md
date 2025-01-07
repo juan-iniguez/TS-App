@@ -4,10 +4,13 @@
 # PHASE TWO
 ## API FOR APL???
 - https://www.apl.com/products-services/ecommerce/edi-api-channels
+!!!! DONE !!!!!
+
 
 ## Guam Outbound INV
 - Credit? NO NEED
 - Charge Export Declaration Surcharge = AMS (Make it work for the program)
+!!!! DONE !!!!!
 
 
 ## APL-Invoices
@@ -17,6 +20,19 @@
     + Rebill
     + Void with Date
     + Why voided (JSON OBJ?)
+!!!! DONE !!!!!
+
+# 12/11/24
+## Settings - TSP Management
+!!!! DONE !!!!!
+
+## Settings - Rates Importing and Exporting
+- Rates Importing and exporting options
+
+## User Management - Create a way to manage users
+
+
+
 
 ## Supplemental Invoice
 - Supplemental Series + Inv Number
@@ -24,9 +40,13 @@
 - Supplemental A..B..C..D
 - Concise Charges + Total difference 
 - Keep track of Supplemental
+!!!! DONE !!!!! NO SUPPLEMENTAL INVOICE WAS CREATED
+
 
 ## Login System
 - Individual Log in System
+!!!! DONE !!!!!
+
 
 # PHASE THREE
 

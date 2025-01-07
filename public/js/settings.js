@@ -239,6 +239,7 @@ function resetModalExportRates(){
   exportRatesQuarterly.innerHTML = "<option disabled selected>Choose Year First...</option>";
   exportRatesYear.value = "Choose..."
 }
+
 resetModalExportRates()
 
 function resetModalImportRates(){}

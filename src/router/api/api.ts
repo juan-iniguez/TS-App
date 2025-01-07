@@ -23,6 +23,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 import express from "express";
+import { debug } from "console";
 const router = express.Router();
 
 router.use(verifyToken)
@@ -117,79 +118,7 @@ router.post('/apl-inv-way',(req:any, res, next) => {
 
         })
     });
-
 })
-
-// ? API APL to download Waybill and process with Script
-// ? Supercedes the method above.
-// router.post('/apl-inv-waybill', (req,res,next)=>{
-
-//     let waybill_bol = req.body.bol;
-
-//     apl.getWaybillPDF(waybill_bol);
-
-//     // Now action the script with arguments
-//     let pythonERROR = {
-//         status: false,
-//         msg: String,
-//     };
-//     let pythonProcess = spawn('python3.11', ["scripts/readPDF.py", file_addr[0], file_addr[1], "-d"]);
-//     pythonProcess.stdout.on('data', function (data: Buffer) {
-//         // Get Debug Information from here
-//         fs.appendFileSync(path.join(__dirname + "../../../../logs/python/debug.txt"), `-------------------- ${ new Date().toLocaleDateString("en-US") } - ${incoming_pdf[0].originalFilename}: -------------------- \n\n` + data.toString() + "-------------------- END! -------------------- \n\n\n");
-//         console.log(data.toString());
-//     });
-//     pythonProcess.stderr.on('data', (err: any) => {
-//         console.error("ERROR: " + err.toString())
-//         console.warn("Python had an error, please check the script!!!");
-//         fs.appendFileSync(path.join(__dirname + "../../../../logs/python/logs.txt"), err.toString());
-//         if (err) { pythonERROR.status = true; pythonERROR.msg = err.toString() };
-//     })
-//     pythonProcess.stdout.on('end', (end: any) => {
-//         let result = JSON.parse(fs.readFileSync("public/files/data.json", 'utf8'));
-//         // console.log(result)
-//         if (!result.invoice || !result.waybill) {
-//             res.send({
-//                 reason: "One of your files could not be processed!",
-//                 status: 500,
-//             });
-//             console.error("No Invoice or Waybill found in files!!!");
-//             console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
-//             return;
-//         }
-
-//         // CHECK IF ENTRY IS ALREADY UPLOADED
-//         if (pythonERROR.status) {
-//             res.send({
-//                 reason: "There was an issue parsing the files, please contact your administrator. (Python Parsing Error)",
-//                 status: 500,
-//             });
-//         } else {
-//             // console.log(result.invoice.BOL)
-//             apl.checkInv(result.invoice.BOL)
-//                 .then((resolve) => {
-//                     if (resolve[0] == undefined) {
-//                         res.send({ status: "OK", all: result })
-//                     } else {
-//                         res.send({
-//                             reason: "Shipment Invoice or Waybill already exists.",
-//                             status: 200,
-//                         });
-//                         console.error("Shipment Invoice or Waybill already exists.")
-//                         console.warn('User tried uploading: ' + result.invoice.BOL + " --- Already Exists in the Database")
-//                     }
-//                 }).catch((reason) => {
-//                     res.send({
-//                         reason: reason.toString(),
-//                         status: 500,
-//                     });
-//                     console.error("Undefined Error: " + reason.toString());
-//                     console.warn("Revise Python file, this could be a parsing issue")
-//                 })
-//         }
-
-//     })
-// })
 
 /***** START A CRUD IMPLEMENTATION AND CONNECT TO DB *****/
 // Upload Invoice and Waybill to DB
@@ -677,10 +606,10 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
     }
 
     function getWayAPL(invData:any){
-        // console.log(data.invoice.transportDocumentReference);
+        console.log(invData.shipment.portOfLoading.code);
         apl.getWaybillPDF(invData.invoice.transportDocumentReference)
         .then(wayPDF=>{
-            readPDF.parseWaybill(wayPDF,invData.invoice.transportDocumentReference)
+            readPDF.parseWaybill(wayPDF,invData.invoice.transportDocumentReference, invData.shipment.portOfLoading.code)
             .then((waybillData:any)=>{
                 let payload = {...waybillData}
                 payload.all.invoice = appUtils.InvoiceApi2localformat(invData);
@@ -707,8 +636,6 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
     }
 
 })
-
-
 
 module.exports = router;
 

@@ -108,30 +108,40 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         }else{
             textField.setText(db_payload[fields_names[i]]);
         }
+        textField.enableReadOnly()
     }
     
     // CHARGES
     // Charges BASED ON
     form.getTextField("BASED_ON").setText(db_payload.BASED_ON.toString());
 
+    form.getTextField("BASED_ON").acroField.Kids()?.asArray().forEach((e)=>{
+        console.log(e.toString());
+    })
+
     // RATE
     for(let i in db_payload.CHARGES.RATES){
         if(i == "TOTAL"){continue}
         form.getTextField("RATES-" + i).setText(db_payload.CHARGES.RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
+        form.getTextField("RATES-" + i).enableReadOnly();
     }
     
     // NET_RATES
     for(let i in db_payload.CHARGES.NET_RATES){
         if(i == "TOTAL"){continue}
         form.getTextField("NET_RATES-" + i).setText(db_payload.CHARGES.NET_RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
+        form.getTextField("NET_RATES-" + i).enableReadOnly();
     }
     
     form.getTextField("TOTAL").setText(db_payload.CHARGES.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));  
+    form.getTextField("TOTAL").enableReadOnly();  
 
     if(db_payload.VOID > 0){
         db_payload.VOID_INFO = JSON.parse(db_payload.VOID_INFO);
         form.getTextField("VOID_REASON").setText(db_payload.VOID_INFO.reason);
         form.getTextField("VOID_DATE").setText(new Date(db_payload.VOID_INFO.date).toLocaleDateString("en-US"));
+        form.getTextField("VOID_REASON").enableReadOnly();
+        form.getTextField("VOID_DATE").enableReadOnly();
     }
     pdfDoc.setTitle("NVC-"+appUtils.addLeadingZeros(db_payload.INVOICE_NUM))
     const pdfBytes = await pdfDoc.save();
@@ -139,7 +149,7 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
 
 }
 
-function parseWaybill(waybillPDF:any, BOL:string){
+function parseWaybill(waybillPDF:any, BOL:string, code: string){
     return new Promise((resolve,reject)=>{
         let waybill_dir = path.join(__dirname + `../../../cache/waybills/${BOL}`);
         fs.writeFileSync( waybill_dir+'.pdf',Buffer.from(waybillPDF.data))        
@@ -148,7 +158,8 @@ function parseWaybill(waybillPDF:any, BOL:string){
             status: false,
             msg: String,
         };
-        let pythonProcess = spawn('python3.11', ["scripts/readWaybillPDF.py", waybill_dir+'.pdf' , "-d"]);
+
+        let pythonProcess = code == "GUPIT"? spawn('python3.11', ["scripts/readGuamWaybillPDF.py", waybill_dir+'.pdf' , "-d"]) :spawn('python3.11', ["scripts/readWaybillPDF.py", waybill_dir+'.pdf' , "-d"]);
         
         pythonProcess.stdout.on('data', function (data: Buffer) {
             // Get Debug Information from here

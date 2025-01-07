@@ -54,7 +54,7 @@ app.get("/", (req: any, res: Response) => {
 app.get("/upload/pdf",(req:any,res)=>{
   console.log(req.user)
   req.user?res.render("pages/uploadPDF", req.user):res.redirect('/login');
-})
+}) 
 
 // Choose the way to upload the information to the DB
 app.get('/upload/start', (req:any,res,next)=>{
@@ -71,6 +71,14 @@ app.get('/upload/details/:invoice_num', (req:any,res,next)=>{
     res.redirect('/login')
   }else{
     res.render('pages/uploadDetails', req.user)      
+  }
+})
+
+app.get('/upload/manual',(req:any,res,next)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render('pages/uploadManual', req.user)      
   }
 })
 
@@ -213,7 +221,6 @@ app.get('/api/logout', (req,res)=>{
 
 // import http from 'http';
 import https from 'https';
-import { match } from 'assert';
 const privateKey  = fs.readFileSync(path.join(__dirname,'../ssl/sd_dewitt.key'), 'utf8');
 const certificate = fs.readFileSync(path.join(__dirname, '../ssl/sd_dewitt.crt'), 'utf8');
 const credentials = {key: privateKey, cert: certificate};
@@ -225,5 +232,3 @@ var httpsServer = https.createServer(credentials, app);
 httpsServer.listen(443, ()=>{
   console.log(`[server]: Server is running at https://0.0.0.0`);
 });
-
-// Reload code here
