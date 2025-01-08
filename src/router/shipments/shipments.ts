@@ -25,6 +25,7 @@ router.get("/:bol/:member_name/:rowid", (req:any, res,next) => {
                     data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
                     data_payload.TSA_NUM = settings.TSA_NUM;
                     data_payload.TARIFF = settings.TARIFF;
+                    console.log(data_payload);
                     res.render("pages/shipment", { ...req.user,...{ data: data_payload }});
                 })
             }
