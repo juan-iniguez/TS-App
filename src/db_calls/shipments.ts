@@ -141,7 +141,7 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                   // THIS IS THE CODE THAT PULLS THE RATES AND COMPARES IT TO THE RATES ON THE INVOICE
                   // TODO: FOR BUNKER, PULL THE RATES TO COMPARE WITH INVOICE, NOT TO REPLACE THE INVOICE BUNKER
                   db.all("SELECT RATE,AMOUNT FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE", rate_query,(err:any,rows2:any)=>{
-                    
+                    console.log(rows2)
                     // INITIALIZE `RATES`
                     data_payload.RATES = {};
                     data_payload.RATES.TOTAL = 0;

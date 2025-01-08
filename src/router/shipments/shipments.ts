@@ -19,7 +19,8 @@ router.get("/:bol/:member_name/:rowid", (req:any, res,next) => {
                 // SHOW INVOICE THAT IS ALREADY PRESENT
                 res.redirect(`/api/shipments/${data_payload.INVOICE_NUM}`)
             } else {
-                aplDB.getShipment(data_payload, req.params.member_name, req.params.bol, req.params.rowid).then((data: any) => {
+                aplDB.getShipment(data_payload, req.params.member_name, req.params.bol, req.params.rowid)
+                .then((data: any) => {
                     data_payload = data;
                     data_payload.INVOICE_DATE = "N/A";
                     data_payload.PAYMENT_TERMS = settings.PAYMENT_TERMS[0];
