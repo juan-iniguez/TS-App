@@ -595,6 +595,7 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
         console.error(err);
     });
 
+    // First get the Invoice from APL API
     function getInvAPL(){
         apl.getInvoiceData(req.params.invoice_num)
         .then(invData=>{
@@ -605,16 +606,18 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
         })
     }
 
+    // Then get Waybill PDF copy from APL API
     function getWayAPL(invData:any){
-        console.log(invData.shipment.portOfLoading.code);
         apl.getWaybillPDF(invData.invoice.transportDocumentReference)
         .then(wayPDF=>{
             readPDF.parseWaybill(wayPDF,invData.invoice.transportDocumentReference, invData.shipment.portOfLoading.code)
             .then((waybillData:any)=>{
+                
                 let payload = {...waybillData}
                 payload.all.invoice = appUtils.InvoiceApi2localformat(invData);
                 
-                console.log(req.body);
+                // Peek is whether you need to only send the invoice num for it to auto populate
+                // or you need to return the entire payload (Waybill, Invoice)
                 if(req.body.peek){
                     res.send({
                         status:"OK",

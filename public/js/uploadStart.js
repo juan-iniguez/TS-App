@@ -1,10 +1,34 @@
 
 let invInput = document.getElementById('inv-field');
 let errorCont = document.getElementsByTagName('error')[0];
+let dog = Math.floor(Math.random() * 8) + 1;
+document.getElementById("dogs").src = `/imgs/dogs/${dog}.gif`
+console.log(dog);
+let dogText =  document.getElementById("dogs-text");
+
+async function dogLoop(){
+    if(dogText.innerText.length > 1){
+      setTimeout(()=>{
+        dogText.innerText = dogText.innerText.slice(0,dogText.innerText.length-1);
+        dogLoop()
+      },350)
+    }else{
+      setTimeout(()=>{
+        dogText.innerText = "..."
+        dogLoop()
+      },300)
+    }
+}
+
+dogLoop()
 
 invInput.addEventListener('keyup',invInputAction);
 
 function invInputAction(e){
+  if(e.key == "Enter"){
+    sendReq()
+    return
+  }
   char_san()
   ERROR_CLEAR();
 }
@@ -14,9 +38,6 @@ function char_san(){
   if(!regexp.test(invInput.value)){
     invInput.value = invInput.value.slice(0, invInput.value.length-1);
   }
-
-
-
 }
 
 function validateInput(){
@@ -46,13 +67,15 @@ function sendReq(){
     return;
   }
 
+  toggleWaitReq()
+
   axios.post(`/api/apl/inv/${invInput.value}`, {
     peek: true,
   })
   .then(response=>{
-    console.warn(response?.data);
+    // console.warn(response?.data);
     if(response.data?.status === "OK"){
-      console.log('YAY!')
+      toggleWaitReq()
       window.location.href = window.location.origin + `/upload/details/${response.data.invoice_number}`
     }else{
       let err = {
@@ -60,13 +83,19 @@ function sendReq(){
         msg: response.data?.description,
       }
       ERROR_HANDLE(err)
+      toggleWaitReq()
     }
   })
   .catch(err=>{
     ERROR_HANDLE({status:"Something went wrong...", msg:err});
     console.error(err);
+    toggleWaitReq()
   })
 
+}
+
+function toggleWaitReq(){
+  document.getElementById("wait-screen").classList.toggle('hidden');
 }
 
 function showAPIOption(){
