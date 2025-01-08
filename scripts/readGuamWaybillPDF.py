@@ -115,7 +115,7 @@ def readPDF_waybill(reader):
                     temp_cust_data["PIECES"] = text_transform[customer_data_index].split("Continued From Previous Sheet")[1].split("SM:")[0].strip()
                 else:
                     temp_cust_data["PIECES"] = text_transform[customer_data_index].split("SM:")[0].strip()
-                temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip()
+                temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip().split("/")[0]
                 temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[:-1]
                 customer_data_index += 1
                 temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
