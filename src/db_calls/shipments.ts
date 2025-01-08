@@ -90,7 +90,7 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                         rate_query["$ORIGIN"] = "LA/OAK/SEA";
                         break;
                       case "PITI, GUAM":
-                        rate_query["$ORIGIN"] = "GUAM";
+                        rate_query["$ORIGIN"] = "Guam";
                         break;
                       default:
                         break;
