@@ -22,11 +22,11 @@ export let aplDB = {
  * */
 export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
     return new Promise((resolve,reject)=>{
-        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL = SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL AND SHIPMENTS.rowid=$id", [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
+        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL=SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL AND SHIPMENTS.rowid=$id", [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
           if(err){
             console.log(err)
           }else{
-            // console.log(rows);
+            console.log(rows);
             data_payload = rows[0];
             // Get TSP
             db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=? ORDER BY DATE_CREATED DESC LIMIT 1", data_payload.SCAC,(err:any,rows1:any)=>{
@@ -114,7 +114,10 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                         break
                       case "HONOLULU, HI":
                         rate_query["$DESTINATION"] = "Honolulu, HI (via Los Angeles, CA)";
-                        break      
+                        break
+                      case "TACOMA, WA":
+                        rate_query["$DESTINATION"] = "LA/OAK/SEA";
+                        break  
                       default:
                         break;
                     }
@@ -126,17 +129,19 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                       case "SEATLE, WA":
                       case "TACOMA, WA":
                         rate_query["$DESTINATION"] = "LA/OAK/SEA";
+                        console.log("Going to LA/OAK/SEA")
                         break;
                       case "PITI, GUAM":
                         rate_query["$DESTINATION"] = "Guam";
+                        console.log("Going to PITI, GUAM")
                         break;
                       default:
                         break;
                     }
                   }
-                
+                  console.table(rate_query);
                   // Get the BASED_ON rate
-                  data_payload.BASED_ON = parseFloat((data_payload.TTL_CF / data_payload.CUBIC_FEET).toFixed(5));
+                  data_payload.BASED_ON = parseFloat((data_payload.TTL_CF / data_payload.CUBIC_FEET).toFixed(6));
         
                   // THIS IS THE CODE THAT PULLS THE RATES AND COMPARES IT TO THE RATES ON THE INVOICE
                   // TODO: FOR BUNKER, PULL THE RATES TO COMPARE WITH INVOICE, NOT TO REPLACE THE INVOICE BUNKER

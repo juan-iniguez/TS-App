@@ -11,7 +11,6 @@ router.use(apiAuthCheck);
 router.get("/:bol/:member_name/:rowid", (req:any, res,next) => {
     let data_payload: any = {}
     let settings = JSON.parse(fs.readFileSync('public/files/settings.json', "utf8"));
-
     aplDB.getShipmentInvoice(req.params.member_name, req.params.bol, req.params.rowid)
         .then((data: any) => {
             if (data.exists) {
