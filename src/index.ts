@@ -108,7 +108,15 @@ app.get("/reports",(req:any,res)=>{
   }else{
     res.render("pages/reports", req.user);
   }
+})
 
+// Page for getting Rates Management
+app.get("/rates",(req:any,res)=>{
+  if(req.user == null){
+    res.redirect('/login')
+  }else{
+    res.render("pages/rates", req.user);
+  }
 })
 
 // Login Page

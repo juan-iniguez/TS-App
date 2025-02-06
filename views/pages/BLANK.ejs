@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>  
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/sample.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title</title>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <%- include('../partials/header'); %>
+        </header>
+        <!-- Main Site -->
+        <main style="max-width: 1120px;margin:auto;">
+            <h1 style="margin-top: 1em;">Hero Text</h1>
+
+          </main>
+
+        <!-- Error Handler Message -->
+        <div id="error-container" class="error-container">
+            <p style="font-size: large;padding-top: 35px;" id="error-msg"></p>
+            <a style="font-weight: bold;background-color: #b51111;display: inline-block;height: 100%;color: white;padding: 5px;cursor: pointer;" onclick="hideErrorMsg()">▲ Hide ▲</a>
+        </div>
+
+        <footer>
+            <%- include('../partials/footer'); %>
+        </footer>
+    </div>
+</body>
+<script src="/js/sample.js"></script>
+</html>

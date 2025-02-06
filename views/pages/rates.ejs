@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head'); %>
+    <%- include('../partials/reload'); %>  
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/css/rates.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Management</title>
+</head>
+<body class="focused">
+    <div class="container">
+        <header>
+            <%- include('../partials/header'); %>
+        </header>
+        <!-- Main Site -->
+        <main style="max-width: 1120px;margin:auto;">
+            <h1 style="margin-top: 1em;">Rates Management</h1>
+            <div class="rates-container">
+
+            </div>
+        </main>
+
+
+        <!-- Modal for Export Rates List -->
+        <div class="modal" id="rates-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1>Select a Year</h1>
+                    </div>
+                    <div class="modal-body">
+                        <input style="width: 100%;" placeholder="Start Typing a Year..." id="year-selection" type="text" maxlength="4">
+                    </div>
+                    <div class="modal-footer">
+                        <h2>Most Recent Years</h2>
+                        <div class="rate-years-selection">
+                            <a class="rates-folder">2025</a>
+                            <a class="rates-folder">2024</a>
+                            <a class="rates-folder">2023</a>
+                            <a class="rates-folder">2022</a>
+                            <a class="rates-folder new">+</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
+
+        <!-- Error Handler Message -->
+        <div id="error-container" class="error-container">
+            <p style="font-size: large;padding-top: 35px;" id="error-msg"></p>
+            <a style="font-weight: bold;background-color: #b51111;display: inline-block;height: 100%;color: white;padding: 5px;cursor: pointer;" onclick="hideErrorMsg()">▲ Hide ▲</a>
+        </div>
+
+        <footer>
+            <%- include('../partials/footer'); %>
+        </footer>
+    </div>
+</body>
+<script src="/js/rates.js"></script>
+</html>
