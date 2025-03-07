@@ -99,3 +99,33 @@ Twice input, From and To GUAM
 Yearly Cycle
 
 Effective June 1st to May 31st
+\
+
+
+# BUGS 03/07/25
+
+- at Statement.<anonymous> (/home/administrator/Documents/TS-App/dist/db_call>
+Mar 07 09:15:36 DWVM0003 bash[2368186]: TypeError: Cannot read properties of undefined (reading 'SCAC')
+Mar 07 09:15:36 DWVM0003 bash[2368186]:                                                                                >
+Mar 07 09:15:36 DWVM0003 bash[2368186]:                 db_init_1.db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP >
+Mar 07 09:15:36 DWVM0003 bash[2368186]: /home/administrator/Documents/TS-App/dist/db_calls/shipments.js:37
+
+USG0291788 - DANIELS | TSIF
+USG0291401 - EDEGER | NAVL no scac?
+USG0294430 - SEWARD | 
+USG0292465 - 
+USG0292486
+
+ISSUE; THERE IS A SPACE BEFORE THE "/USMC" NAME
+
+
+-------------------------------
+ALLL SAME
+- GUAM NAMA1239096
+- GUAM NAMA1239101
+- GUAM NAMA1239102
+- GUAM NAMA1240253
+- TO GUAM NAMA1239098
+
+---------------------------------
+

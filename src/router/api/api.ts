@@ -158,10 +158,19 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
     apl.entryInv(invoice_db_ready);
     apl.entryWay(waybill_db_ready);
 
-    // Get SHIPMENTS INTO THE DB
-    let shipments = waybill.SHIPMENTS;
 
-    for (let i in shipments) {
+    /**
+     * There's been issues where User error in the Invoices add an extra
+     * space to the name! We need to make sure there are NO extra spaces at the end
+     * of the MEMBER_NAME.
+    */
+   
+   // Get SHIPMENTS INTO THE DB
+   let shipments = waybill.SHIPMENTS;
+   
+   for (let i in shipments) {
+       
+       // SANITIZE MEMBER_NAME
 
         let shipment_payload = {
             $BOL: invoice.BOL,
@@ -169,7 +178,7 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
             $NET: shipments[i].NET,
             $WEIGHT_LBS: shipments[i].WEIGHT_LBS,
             $SCAC: shipments[i].SCAC,
-            $MEMBER_NAME: shipments[i].SM,
+            $MEMBER_NAME: shipments[i].SM.trim(),
             $GBL: shipments[i].GBL,
             $TTL_CF: shipments[i].TTL_CF,
             $PIECES: shipments[i].PIECES,
