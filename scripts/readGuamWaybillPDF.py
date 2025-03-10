@@ -43,9 +43,9 @@ def readPDF_waybill(reader):
     # Text transform index
 
     # START SCANNING THE PAGES
-    for i in range(number_of_pages):
+    for page in range(number_of_pages):
         tti = 0
-        text = reader.pages[i].extract_text()
+        text = reader.pages[page].extract_text()
         text_transform = text.split("\n")
         print("------------------------- \n")
         print(text)
@@ -151,12 +151,19 @@ def readPDF_waybill(reader):
                 if "HS CODE" in text_transform[customer_data_index]:                
                     # print(f"HS CODE: {text_transform[customer_data_index].split('HS CODE:')[1].strip()}")
                     # payload_waybill['HS CODE'] = text_transform[customer_data_index].split('HS CODE:')[1].strip()
+                    # print("HS CODE")
+                    # print(payload_waybill)
+                    # print(page)
+                    print(text_transform[customer_data_index])
+                    # print(text)
                     customer_data_index += 2
                 if "ETD" in text_transform[customer_data_index]:
+                    print(text_transform[customer_data_index])
                     # print(f"ETD: {text_transform[customer_data_index].split('ETD:')[1].split('USG')[0].strip()}")
                     payload_waybill['ETD'] = text_transform[customer_data_index].split('ETD:')[1].split('USG')[0].strip()
                     customer_data_index += 1
                 if "ETA" in text_transform[customer_data_index]:
+                    print(text_transform[customer_data_index])
                     # print(f"ETA: {text_transform[customer_data_index].split('ETA:')[1].split('USG')[0].strip()}")
                     payload_waybill['ETA'] = text_transform[customer_data_index].split('ETA:')[1].split('USG')[0].strip()
                     has_end_data=True
@@ -165,6 +172,12 @@ def readPDF_waybill(reader):
                     # print("\n")
                     break
                 else:
+                    if "ETD" in payload_waybill and not 'ETA' in payload_waybill and customer_data_index == len(text_transform)-1:
+                        has_end_data=True
+                        payload_waybill["SHIPMENTS"] = customer_data
+                        payload['waybill'] = payload_waybill
+                        # print("\n")
+                        break
                     customer_data_index += 1
 
     print(payload_waybill)
