@@ -116,7 +116,11 @@ def readPDF_waybill(reader):
                 else:
                     temp_cust_data["PIECES"] = text_transform[customer_data_index].split("SM:")[0].strip()
                 temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip().split("/")[0]
-                temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[:-1]
+                try:
+                    temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[:-1]
+                except:
+                    customer_data_index += 1
+                    temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[:-1]
                 customer_data_index += 1
                 temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
                 temp_cust_data["WEIGHT_LBS"] = stripChars(text_transform[customer_data_index].strip().split("LB")[0].split(" ")[-1])
@@ -182,7 +186,9 @@ def readPDF_waybill(reader):
                             # print("\n")
                             break
                         else:
-                            break                            
+                            break
+                    if "ETD" not in payload_waybill and customer_data_index == len(text_transform)-1:
+                        break
                     customer_data_index += 1
 
     print(payload_waybill)
