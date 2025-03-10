@@ -173,11 +173,16 @@ def readPDF_waybill(reader):
                     break
                 else:
                     if "ETD" in payload_waybill and not 'ETA' in payload_waybill and customer_data_index == len(text_transform)-1:
-                        has_end_data=True
-                        payload_waybill["SHIPMENTS"] = customer_data
-                        payload['waybill'] = payload_waybill
-                        # print("\n")
-                        break
+                        print(page)
+                        print(number_of_pages)
+                        if page ==  number_of_pages-1:
+                            has_end_data=True
+                            payload_waybill["SHIPMENTS"] = customer_data
+                            payload['waybill'] = payload_waybill
+                            # print("\n")
+                            break
+                        else:
+                            break                            
                     customer_data_index += 1
 
     print(payload_waybill)
