@@ -150,6 +150,7 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
 }
 
 function parseWaybill(waybillPDF:any, BOL:string, code: string){
+    console.log(code,BOL);
     return new Promise((resolve,reject)=>{
         let waybill_dir = path.join(__dirname + `../../../cache/waybills/${BOL}`);
         fs.writeFileSync( waybill_dir+'.pdf',Buffer.from(waybillPDF.data))        

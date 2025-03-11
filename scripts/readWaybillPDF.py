@@ -1,6 +1,7 @@
 from pypdf import PdfReader
 import sys
 import json
+import re
 
 # Vars
 debug_sw = 0
@@ -125,7 +126,7 @@ def readPDF_invoice(reader):
         individual_chrg = []
         for j in text_transform[i].split("  "):
             if(j != ""):
-               individual_chrg.append(j.strip())
+                individual_chrg.append(j.strip())
         charges['SIZE'] = individual_chrg[0]
         charges['TYPE'] = individual_chrg[1]
         charges['DESC'] = individual_chrg[2]
@@ -184,8 +185,14 @@ def readPDF_waybill(reader):
     has_end_data = False
     customer_data = []
 
-    for i in range(number_of_pages - 1):
-        text = reader.pages[i].extract_text()
+    for page in range(number_of_pages):
+        print(page)
+        print(number_of_pages)
+        print(has_customer_data)
+        print(has_end_data)
+        print(has_start_data)
+
+        text = reader.pages[page].extract_text()
         print("------------------------- \n")
         print(text)
         text_transform = text.split("\n")
@@ -250,69 +257,101 @@ def readPDF_waybill(reader):
 
         # Search for Customer Data start
         for n in range(4,11):
-            print(n)
+            if "HS CODE" in text_transform[n]:
+                break
             if "SM:" in text_transform[n]:
-                # print(text_transform[n])
+                print(text_transform[n])
                 customer_data_index = n
                 break
         
+        temp_cust_data = {}
         while has_customer_data == False:
-            temp_cust_data = {}
-            # print(text_transform[customer_data_index])
-            if "SM:" in text_transform[customer_data_index]:
-                temp_cust_data["PIECES"] = text_transform[customer_data_index].split("SM:")[0].strip()
-                temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip()
-                temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[:-1]
-                customer_data_index += 1
-                temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
-                temp_cust_data["WEIGHT_LBS"] = stripChars(text_transform[customer_data_index].strip().split("LB")[0].split(" ")[-1])
-                temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("GBL:")[1].split(" ")[2][:-2])
-                customer_data_index += 1
-                if "RDD" in text_transform[customer_data_index]:
-                    temp_cust_data["RDD"] = text_transform[customer_data_index].strip().split(" ")[1]
-                else:
-                    temp_cust_data["RDD"] = "N/A"
-                if "NET" in text_transform[customer_data_index]:
-                    temp_cust_data["NET"] = stripChars(text_transform[customer_data_index].strip().split("NET:")[1].strip()) if "USG" not in text_transform[customer_data_index] else stripChars(text_transform[customer_data_index].split("NET:")[1].strip().split("  ")[0])
-                else:
-                    temp_cust_data["NET"] = "N/A"
-                customer_data_index += 1
-                customer_data.append(temp_cust_data)
-            else:
-                if "HS CODE:" in text_transform[customer_data_index]:
-                    has_customer_data = True
-                    break
-                elif "PORT OF DISCHARGE" in text_transform[customer_data_index]:
-                    break
+            print("CHECKING FOR SHIPMENTS")
+            print(text_transform[customer_data_index])
+            print(temp_cust_data)
+            try:
+                if "SM" in text_transform[customer_data_index] or "GBL" in text_transform[customer_data_index] or "RDD" in text_transform[customer_data_index] or "NET" in text_transform[customer_data_index] or "HS CODE" in text_transform[customer_data_index]:
+                    print("CURRENT LINE: ")
+                    print(text_transform[customer_data_index])
+                    if "SM" in text_transform[customer_data_index]:
+                        temp_cust_data["PIECES"] = text_transform[customer_data_index].split("SM:")[0].strip()
+                        temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip()
+                        # temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[0:4]
+                        print("SCAC IS: " + re.findall(r"SCAC:[(\s]?[a-zA-Z]{4}\s?[)]?", text_transform[customer_data_index])[0].split(":")[-1].strip("()"))
+                        temp_cust_data["SCAC"] = re.findall(r"SCAC:[(\s]?[a-zA-Z]{4}\s?[)]?", text_transform[customer_data_index])[0].split(":")[-1].strip("()")
+                        print(temp_cust_data);
+                        if payload_waybill["BOL"] in text_transform[customer_data_index]:
+                            print(temp_cust_data)
+                            print("Exception Rasied")
+                            raise Exception("Next Page")
+                        customer_data_index += 1
+                    if "GBL" in text_transform[customer_data_index]:
+                        temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
+                        temp_cust_data["WEIGHT_LBS"] = stripChars(text_transform[customer_data_index].strip().split("LB")[0].split(" ")[-1])
+                        temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("GBL:")[1].split(" ")[2][:-2])
+                        if payload_waybill["BOL"] in text_transform[customer_data_index]:
+                            print(temp_cust_data)
+                            raise Exception("Next Page")
+                        customer_data_index += 1
+                    if "RDD" in text_transform[customer_data_index] or "NET" in text_transform[customer_data_index]:
+                        if "RDD" in text_transform[customer_data_index]:
+                            temp_cust_data["RDD"] = text_transform[customer_data_index].strip().split(" ")[1]
+                        else:
+                            temp_cust_data["RDD"] = "N/A"
+                        if "NET" in text_transform[customer_data_index]:
+                            temp_cust_data["NET"] = stripChars(text_transform[customer_data_index].strip().split("NET:")[1].strip()) if "USG" not in text_transform[customer_data_index] else stripChars(text_transform[customer_data_index].split("NET:")[1].strip().split("  ")[0])
+                            customer_data.append(temp_cust_data)
+                            print(customer_data)
+                            temp_cust_data={}
+                        else:
+                            temp_cust_data["NET"] = "N/A"
+                            customer_data.append(temp_cust_data)
+                            print(customer_data)
+                            temp_cust_data={}
+                        if payload_waybill["BOL"] in text_transform[customer_data_index]:
+                            print(temp_cust_data)
+                            raise Exception("Next Page")
+                    if "HS CODE" in text_transform[customer_data_index]:
+                        has_customer_data = True
+                        break
+                    else:
+                        customer_data_index += 1
                 else:
                     customer_data_index += 1
-        
+            except:
+                text = reader.pages[page+1].extract_text()
+                text_transform = text.split("\n")
+                customer_data_index = 4
+
         # print(f"BROKE OUT OF LOOP! {i}")
-        # print(has_customer_data)
-        # print("\n")
+        print("HAS CUSTOMER DATA: ")
+        print(has_customer_data)
+        print("\n")
 
         # END DATA
         if has_customer_data == True:
-            if "HS CODE" in text_transform[customer_data_index]:                
-                # print(f"HS CODE: {text_transform[customer_data_index].split('HS CODE:')[1].strip()}")
-                # payload_waybill['HS CODE'] = text_transform[customer_data_index].split('HS CODE:')[1].strip()
-                customer_data_index += 2
-            if "ETD" in text_transform[customer_data_index]:
-                # print(f"ETD: {text_transform[customer_data_index].split('ETD:')[1].split('USG')[0].strip()}")
-                payload_waybill['ETD'] = text_transform[customer_data_index].split('ETD:')[1].split('USG')[0].strip()
-                customer_data_index += 1
-            if "ETA" in text_transform[customer_data_index]:
-                # print(f"ETA: {text_transform[customer_data_index].split('ETA:')[1].split('USG')[0].strip()}")
-                payload_waybill['ETA'] = text_transform[customer_data_index].split('ETA:')[1].split('USG')[0].strip()
-                has_end_data=True
-                payload_waybill["SHIPMENTS"] = customer_data
-                print(payload_waybill)
-                payload['waybill'] = payload_waybill
-                # print("\n")
+            while(True):
+                print(text_transform[customer_data_index])
+                if "HS CODE" in text_transform[customer_data_index]:                
+                    customer_data_index += 1
+                if "ETD" in text_transform[customer_data_index]:
+                    payload_waybill['ETD'] = text_transform[customer_data_index].split('ETD:')[1].split('USG')[0].strip()
+                    customer_data_index += 1
+                if "ETA" in text_transform[customer_data_index]:
+                    payload_waybill['ETA'] = text_transform[customer_data_index].split('ETA:')[1].split('USG')[0].strip()
+                    has_end_data=True
+                    payload_waybill["SHIPMENTS"] = customer_data
+                    print(payload_waybill)
+                    payload['waybill'] = payload_waybill
+                    # print("\n")
+                    break
+                else:
+                    customer_data_index += 1
+                    if customer_data_index == len(text_transform)-1:
+                        print(text_transform[customer_data_index])
+                        break
 
 def main(arg):
-
-
     # os.remove("public/files/data.json")
     # print(arg[3])
     waybill = arg[1]
