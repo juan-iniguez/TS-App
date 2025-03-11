@@ -129,3 +129,7 @@ ALLL SAME
 
 ---------------------------------
 
+03/11/25
+- INVOICES AND SHIPMENTS ARE NOT USING THE SAME RULES
+- Check that the method used to invoke the shipments through invoices are the same and will not cause a overlapping error
+- 
