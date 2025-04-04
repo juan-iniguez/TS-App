@@ -152,7 +152,10 @@ function getInvoiceData(invoice_num:any){
                 // * CACHE THE DATA
                 let invData = response.data;
                 setCacheToExpire(invoice_num,invData);
+                console.log("----------- DATA RECEIVED -----------")
+                console.log(invData);
                 resolve(invData);
+
             })
             .catch(err=>{
                 reject(err.response.data)

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <%- include('../partials/head'); %>
-    <link rel="stylesheet" href="/css/upload.css">
+    <link rel="stylesheet" href="/css/uploadManual.css">
     <title>APL-DEW | Upload</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +34,7 @@
                 <div class="row">
                     <div class="col">
                         <div class="input-group mb-3">
-                            <label class="input-group-text" for="BOL-I">Bill of Landing</label>
+                            <label class="input-group-text" for="BOL-I">Bill of Lading</label>
                             <input type="text" class="form-control" id="BOL-I">
                         </div>
                         <div class="input-group mb-3">
@@ -109,26 +109,71 @@
                 <h2>Charges</h2>
                 <table style="width: 100%;max-width: none;" id="charges-table" rules="all">
                     <tr>
-                        <th>Size</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Based On (UNI)</th>
-                        <th>Rate Currency</th>
-                        <th>Amount</th>
-                        <th>Amount in USD</th>
+                        <th class="td-charge size">Size</th>
+                        <th class="td-charge type">Type</th>
+                        <th class="td-charge desc">Description</th>
+                        <th class="td-charge uni">Based On (UNI)</th>
+                        <th class="td-charge rate">Rate Currency</th>
+                        <th class="td-charge amount">Amount</th>
+                        <th class="td-charge amountusd">Amount in USD</th>
                     </tr>
                     <!-- INCLUDE CHARGES -->
-                    <tr>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
-                        <td><input type="text"></td>
+                    <tr id="FRT00">
+                        <td class="td-charge size" id="ch-size-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge type" id="ch-type-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge desc" id="ch-desc-0"><input disabled class="charge-input" type="text" value="BASIC FREIGHT"></td>
+                        <td class="td-charge uni" id="ch-uni-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge rate" id="ch-rate-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amount" id="ch-amount-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amountusd" id="ch-amountusd-0"><input class="charge-input" type="text"></td>
+                    </tr>
+                    <tr id="BAF03">
+                        <td class="td-charge size" id="ch-size-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge type" id="ch-type-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge desc" id="ch-desc-0"><input disabled class="charge-input" type="text" value="Bunker surcharge NOS"></td>
+                        <td class="td-charge uni" id="ch-uni-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge rate" id="ch-rate-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amount" id="ch-amount-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amountusd" id="ch-amountusd-0"><input class="charge-input" type="text"></td>
+                    </tr>
+                    <tr id="THC34">
+                        <td class="td-charge size" id="ch-size-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge type" id="ch-type-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge desc" id="ch-desc-0"><input disabled class="charge-input" type="text" value="Terminal handl. ch  destination"></td>
+                        <td class="td-charge uni" id="ch-uni-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge rate" id="ch-rate-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amount" id="ch-amount-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amountusd" id="ch-amountusd-0"><input class="charge-input" type="text"></td>
+                    </tr>
+                    <tr id="THC58">
+                        <td class="td-charge size" id="ch-size-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge type" id="ch-type-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge desc" id="ch-desc-0"><input disabled class="charge-input" type="text" value="Terminal handl ch origin"></td>
+                        <td class="td-charge uni" id="ch-uni-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge rate" id="ch-rate-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amount" id="ch-amount-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amountusd" id="ch-amountusd-0"><input class="charge-input" type="text"></td>
+                    </tr>
+                    <tr id="FEE85">
+                        <td class="td-charge size" id="ch-size-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge type" id="ch-type-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge desc" id="ch-desc-0">
+                            <select>
+                                <option value="FEE85">Container inspection fees and survey fees</option>
+                                <option value="CUS16">Export Declaration Surcharge</option>
+                            </select>
+                        </td>
+                        <td class="td-charge uni" id="ch-uni-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge rate" id="ch-rate-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amount" id="ch-amount-0"><input class="charge-input" type="text"></td>
+                        <td class="td-charge amountusd" id="ch-amountusd-0"><input class="charge-input" type="text"></td>
                     </tr>
                 </table>
                 <div style="margin-top: 10px;" class="total-class">
+                    <a class="add-row-btn" id="invoice-addrow-btn" onclick="addRow(this)">
+                        <div style="color: white;display: flex;justify-content: center;text-align: center;text-decoration: none;font-size: 1.2em;padding-top: -10px;">+</div>
+                        <p style="margin-left: .3em;margin-bottom: 0px;">Add row</p>
+                    </a>
                     <div class="input-group total-container">
                         <label style="width: 160px;" class="input-group-text" for="TOTAL-I">Total</label>
                         <input style="text-align: right;" id="TOTAL-I" class="form-control" type="text">

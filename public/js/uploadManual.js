@@ -4,6 +4,9 @@ let tabs = document.getElementsByClassName("nav-link");
 let invoice_number = window.location.href.split('/').pop();
 
 
+
+
+
 let months = ["JAN","FEB","MAR","APR","MAY", "JUN", "JUL","AUG","SEP","OCT","NOV","DEC"];
 let payload_data = {}
 let check_match = {
@@ -99,3 +102,29 @@ async function submit_db(){
         console.error(err);
     })
 }
+
+
+// Table Mechanisms
+
+let invoiceTable = document.getElementById("charges-table").children[0];
+let waybillTable = document.getElementById("shipments-table").children[0];
+let chargesCounter = 0;
+
+
+function addRow(e){
+    // Which table are we modifying?
+    const table = e.id == "invoice-addrow-btn"?invoiceTable:waybillTable;
+
+    let columns = ["size", "type", "desc", "uni", "rate", "amount", "amountusd"];
+    chargesCounter++
+    const tr = document.createElement("tr");
+    for(let n of columns){
+        const td = document.createElement("td");
+        td.className = "td-charge";
+        td.id = `ch-${n}-${chargesCounter}`
+        td.innerHTML = `<input id='${n}-${chargesCounter}' class="charge-input" type="text">`;
+        tr.appendChild(td);
+    }
+    table.appendChild(tr);
+
+} 

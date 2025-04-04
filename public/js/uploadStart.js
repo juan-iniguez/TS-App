@@ -79,8 +79,8 @@ function sendReq(){
       window.location.href = window.location.origin + `/upload/details/${response.data.invoice_number}`
     }else{
       let err = {
-        status: response.data?.reason,
-        msg: response.data?.description,
+        status: response.data?.reason || response.data?.error,
+        msg: response.data?.description || response.data?.msg,
       }
       ERROR_HANDLE(err)
       toggleWaitReq()
