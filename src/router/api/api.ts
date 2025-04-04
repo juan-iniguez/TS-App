@@ -641,6 +641,7 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
             })
         })
         .catch(err=>{
+            console.log(`SENDING ERR: ${err}`);
             console.log("Error in file")
             console.log(err);
             res.send(err);

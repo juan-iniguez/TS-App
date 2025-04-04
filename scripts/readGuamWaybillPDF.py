@@ -124,21 +124,32 @@ def readPDF_waybill(reader):
                 customer_data_index += 1
                 temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
                 temp_cust_data["WEIGHT_LBS"] = stripChars(text_transform[customer_data_index].strip().split("LB")[0].split(" ")[-1])
-                temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("GBL:")[1].split(" ")[2][:-2])
+                temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("CF")[0].split(" ")[-1])
                 customer_data_index += 1
+                # Sometimes waybills don't have RDD or NET I guess
+                if "SM:" in text_transform[customer_data_index] or "HS CODE:" in text_transform[customer_data_index]:
+                    print("No RDD or NET")
+                    temp_cust_data["RDD"] = "N/A"
+                    temp_cust_data["NET"] = "N/A"
+                    customer_data.append(temp_cust_data)
+                    if "HS CODE:" in text_transform[customer_data_index]:
+                        continue
+                    customer_data_index = customer_data_index - 1
+                    continue
                 if "RDD" in text_transform[customer_data_index]:
                     temp_cust_data["RDD"] = text_transform[customer_data_index].strip().split(" ")[1]
                 else:
                     temp_cust_data["RDD"] = "N/A"
                 if "NET" in text_transform[customer_data_index]:
-                    temp_cust_data["NET"] = stripChars_int(re.findall(r'\b\w+\b' , text_transform[customer_data_index])[1])
+                    print( re.findall(r"\b\w+,?\w+\b", text_transform[customer_data_index].strip().split("NET:")[1].strip())[0])
+                    temp_cust_data["NET"] = stripChars(re.findall(r"\b\w+,?\w+\b", text_transform[customer_data_index].strip().split("NET:")[1].strip())[0])
                 else:
                     temp_cust_data["NET"] = "N/A"
                 customer_data_index += 1
                 customer_data.append(temp_cust_data)
-                
             else:
                 print("Else?")
+                print(text_transform[customer_data_index])
                 if "HS CODE:" in text_transform[customer_data_index]:
                     has_customer_data = True
                     print("TRUE")

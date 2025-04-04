@@ -123,7 +123,15 @@ function getWaybillPDF(BOL:any){
                 resolve(invData);
             })
             .catch(err=>{
-                reject(err.response.data);
+                console.error("Error with getting file, check if the waybill is available or if the request is wrong.");
+
+                let ERR_MSG = {
+                    error: `APL API`,
+                    msg: `${err.response.status}: ${err.response.statusText}\n${err.response.config.data == undefined?"No Data Received from APL API\nWaybill does not exist":"Data:" + err.response.config.data + "\n Waybill request might be incorrect or malformed"}`
+                }
+
+                console.warn(`Code: ${err.response.status}\nStatus: ${err.response.statusText}\nData: ${err.response.config.data}\n`);
+                reject(ERR_MSG);
             })
         })
     }) 

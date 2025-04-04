@@ -132,6 +132,7 @@ async function submit() {
             // console.log(res.data);
             confirmDetails(res.data.all)
         }else{
+            // ERROR INCOMING
             document.getElementById("error-banner").innerText = `Error Uploading your file:
             Status:${res.data.status} - ${res.data.reason}`;
             document.getElementById("error-banner").style = `font-size: large;padding-top: 25px;`

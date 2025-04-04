@@ -186,15 +186,15 @@ def readPDF_waybill(reader):
     customer_data = []
 
     for page in range(number_of_pages):
-        print(page)
-        print(number_of_pages)
-        print(has_customer_data)
-        print(has_end_data)
-        print(has_start_data)
+        print(f"Current Page:{page}")
+        print(f"Number of Pages:{number_of_pages}")
+        print(f"CD:{has_customer_data}")
+        print(f"ED:{has_end_data}")
+        print(f"SD:{has_start_data}")
 
         text = reader.pages[page].extract_text()
-        print("------------------------- \n")
-        print(text)
+        # print("------------------------- \n")
+        # print(text)
         text_transform = text.split("\n")
 
         payload_waybill['BOL'] = "USG" + text.split("USG")[1].split(" ")[0]
@@ -280,16 +280,19 @@ def readPDF_waybill(reader):
                         print(temp_cust_data);
                         if payload_waybill["BOL"] in text_transform[customer_data_index]:
                             print(temp_cust_data)
-                            print("Exception Rasied")
-                            raise Exception("Next Page")
+                            print("Exception Rasied: FIRST LINE")
+                            raise IndexError("Next Page")
                         customer_data_index += 1
+                    print("CURRENT LINE: ")
+                    print(text_transform[customer_data_index])
                     if "GBL" in text_transform[customer_data_index]:
                         temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
                         temp_cust_data["WEIGHT_LBS"] = stripChars(text_transform[customer_data_index].strip().split("LB")[0].split(" ")[-1])
-                        temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("GBL:")[1].split(" ")[2][:-2])
+                        temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("CF")[0].split(" ")[-1])
                         if payload_waybill["BOL"] in text_transform[customer_data_index]:
                             print(temp_cust_data)
-                            raise Exception("Next Page")
+                            print("Exception Rasied: SECOND LINE")
+                            raise IndexError("Next Page")
                         customer_data_index += 1
                     if "RDD" in text_transform[customer_data_index] or "NET" in text_transform[customer_data_index]:
                         if "RDD" in text_transform[customer_data_index]:
@@ -308,18 +311,22 @@ def readPDF_waybill(reader):
                             temp_cust_data={}
                         if payload_waybill["BOL"] in text_transform[customer_data_index]:
                             print(temp_cust_data)
-                            raise Exception("Next Page")
+                            print("Exception Rasied: THIRD LINE")
+                            raise IndexError("Next Page")
                     if "HS CODE" in text_transform[customer_data_index]:
                         has_customer_data = True
+                        print("Exception Rasied: HS CODE REACHED")
                         break
                     else:
                         customer_data_index += 1
                 else:
                     customer_data_index += 1
-            except:
+            except IndexError:
+                print("EXCEPTION HAS BEEN RAISED")
                 text = reader.pages[page+1].extract_text()
                 text_transform = text.split("\n")
                 customer_data_index = 4
+            print("END LOOP, INTO NEXT")
 
         # print(f"BROKE OUT OF LOOP! {i}")
         print("HAS CUSTOMER DATA: ")

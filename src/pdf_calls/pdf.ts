@@ -170,7 +170,7 @@ function parseWaybill(waybillPDF:any, BOL:string, code: string){
         pythonProcess.stderr.on('data', (err: any) => {
             console.error("ERROR: " + err.toString())
             console.warn("Python had an error, please check the script!!!");
-            fs.appendFileSync(path.join(__dirname + "../../../logs/python/logs.txt"), err.toString());
+            fs.appendFileSync(path.join(__dirname + "../../../logs/python/logs.txt"), `${new Date().toLocaleDateString("en-US")}\n${err.toString()}`);
             if (err) { pythonERROR.status = true; pythonERROR.msg = err.toString() };
         })
         pythonProcess.stdout.on('end', (end: any) => {
