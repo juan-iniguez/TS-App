@@ -275,7 +275,9 @@ def readPDF_waybill(reader):
                     print(text_transform[customer_data_index])
                     if "SM" in text_transform[customer_data_index]:
                         temp_cust_data["PIECES"] = text_transform[customer_data_index].split("SM:")[0].strip()
-                        temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip()
+                        name = re.findall(r"\b\w+\b", text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip())
+                        # temp_cust_data["SM"] = text_transform[customer_data_index].split("SM:")[1].split("SCAC:")[0].strip()
+                        temp_cust_data["SM"] = f"{name[0]},{name[1]}"
                         temp_cust_data["SCAC"] = re.findall(r"SCAC:[(\s]?[a-zA-Z]{4}\s?[)]?", text_transform[customer_data_index])[0].split(":")[-1].strip("()").strip(" ")
                         print(temp_cust_data);
                         if payload_waybill["BOL"] in text_transform[customer_data_index]:
