@@ -133,3 +133,14 @@ ALLL SAME
 - INVOICES AND SHIPMENTS ARE NOT USING THE SAME RULES
 - Check that the method used to invoke the shipments through invoices are the same and will not cause a overlapping error
 - 
+
+
+
+# BUGS 04/04/25
+
+NAMA1242866
+NAMA1242860
+NAMA1243130
+NAMA1244083
+NAMA1244084
+NAMA1243907
