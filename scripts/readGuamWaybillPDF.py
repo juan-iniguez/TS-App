@@ -124,6 +124,7 @@ def readPDF_waybill(reader):
                     customer_data_index += 1
                     temp_cust_data["SCAC"] = text_transform[customer_data_index].split("(")[1].strip()[:-1]
                 customer_data_index += 1
+                print("DEBUG:" + text_transform[customer_data_index])
                 temp_cust_data["GBL"] = text_transform[customer_data_index].strip().split("GBL:")[1].strip().split(" ")[0]
                 temp_cust_data["WEIGHT_LBS"] = stripChars(text_transform[customer_data_index].strip().split("LB")[0].split(" ")[-1])
                 temp_cust_data["TTL_CF"] = stripChars(text_transform[customer_data_index].strip().split("CF")[0].split(" ")[-1])

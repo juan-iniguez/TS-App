@@ -92,6 +92,7 @@ router.post('/apl-inv-way',(req:any, res, next) => {
                     reason: "There was an issue parsing the files, please contact your administrator. (Python Parsing Error)",
                     status: 500,
                 });
+                next();
             } else {
                 // console.log(result.invoice.BOL)
                 apl.checkInv(result.invoice.BOL)

@@ -174,23 +174,24 @@ function parseWaybill(waybillPDF:any, BOL:string, code: string){
             if (err) { pythonERROR.status = true; pythonERROR.msg = err.toString() };
         })
         pythonProcess.stdout.on('end', (end: any) => {
-            let result = JSON.parse(fs.readFileSync(waybill_dir +'.json', 'utf8'));
-            // console.log(result)
-            if (!result.waybill) {
-                console.error("No Invoice or Waybill found in files!!!");
-                console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
-                reject({
-                    reason: "One of your files could not be processed!",
-                    status: 500,
-                });
-            }
             // CHECK IF ENTRY IS ALREADY UPLOADED
             if (pythonERROR.status) {
                 reject({
-                    reason: "There was an issue parsing the files, please contact your administrator. (Python Parsing Error)",
+                    reason: "There was an issue parsing the files,\n please contact your administrator. (Python Parsing Error)",
                     status: 500,
+                    description: pythonERROR.msg,
                 });
             }else{
+                let result = JSON.parse(fs.readFileSync(waybill_dir +'.json', 'utf8'));
+                // console.log(result)
+                if (!result.waybill) {
+                    console.error("No Invoice or Waybill found in files!!!");
+                    console.warn("This could be because the user didn't submit the appropriate Invoice or Waybill files");
+                    reject({
+                        reason: "One of your files could not be processed!",
+                        status: 500,
+                    });
+                }
                 apl.checkInv(result.waybill.BOL)
                 .then((data_res) => {
                     if (data_res[0] == undefined) {
