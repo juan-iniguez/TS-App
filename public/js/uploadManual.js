@@ -42,8 +42,8 @@ typeContainer.addEventListener('input',(e)=>{
 })
 
 uniContainer.addEventListener('input',(e)=>{
-    if((e.originalTarget.value).match(/[A-z]/g)){
-        e.originalTarget.value = e.originalTarget.value.slice(0,-1)
+    if((e.target.value).match(/[A-z]/g)){
+        e.target.value = e.target.value.slice(0,-1)
     }
     let uniContainers = document.getElementsByClassName('uni');
     updateInvoiceFields(uniContainers, e);
@@ -107,7 +107,7 @@ function totalUpdate(){
 function updateInvoiceFields(containers, e){
     for(n of containers){
         if(n.tagName != "TH"){
-            n.children[0].value = e.originalTarget.value;
+            n.children[0].value = e.target.value;
         }
     }
 }
@@ -116,16 +116,16 @@ function updateInvoiceFields(containers, e){
 piecesContainer.addEventListener('input', noSpaces);
 memberNameContainer.addEventListener('input', (e)=>{
     if(e.data==null){return};
-    if((e.originalTarget.value).match(/[a-z]/g)){
-        e.originalTarget.value = e.originalTarget.value.toUpperCase()
+    if((e.target.value).match(/[a-z]/g)){
+        e.target.value = e.target.value.toUpperCase()
     }
 
     if((e.data).match(/[0-9]/g)){
-        e.originalTarget.value = e.originalTarget.value.slice(0,-1)
+        e.target.value = e.target.value.slice(0,-1)
     }
 });
 memberNameContainer.addEventListener('focusout',(e)=>{
-    e.originalTarget.value = e.originalTarget.value.trim();
+    e.target.value = e.target.value.trim();
 });
 scacContainer.addEventListener('input', (e)=>{
     upperCase(e);
@@ -142,25 +142,25 @@ function onlyNumbers(e){
     noSpaces(e);
     if((e.data).match(/[^0-9]/g)){
         console.log("HMM")
-        e.originalTarget.value = e.originalTarget.value.slice(0,-1)
+        e.target.value = e.target.value.slice(0,-1)
     }
 }
 
 function noSpaces(e){
-    e.data == " "?e.originalTarget.value = e.originalTarget.value.slice(0,-1):{};
+    e.data == " "?e.target.value = e.target.value.slice(0,-1):{};
 }
 
 function upperCase(e){
     if(e.data==null){return};
     noSpaces(e);
-    if((e.originalTarget.value).match(/[a-z]/g)){
-        e.originalTarget.value = e.originalTarget.value.toUpperCase()
+    if((e.target.value).match(/[a-z]/g)){
+        e.target.value = e.target.value.toUpperCase()
     }
 }
 
 function noSymbols(e){
     if((e.data).match(/[^A-Z]/g)){
-        e.originalTarget.value = e.originalTarget.value.slice(0,-1)
+        e.target.value = e.target.value.slice(0,-1)
     }
 }
 
@@ -174,13 +174,14 @@ for(n of vesselFields){
 for(n of contSizeFields){
     n.addEventListener('input', fieldMirror)
 }
-for(n of contNumFields){
+for(n of contNumFields){ 
     n.addEventListener('input', fieldMirror)
 }
 
 function fieldMirror(e){
-    let fields = (()=>{
-        switch (e.originalTarget.id) {
+    console.log(e)
+    let fields = ((e)=>{
+        switch (e.target.id) {
             case "CONT_NUM-I":
             case "CONT_NUM-W":
                 return contNumFields
@@ -196,16 +197,16 @@ function fieldMirror(e){
             default:
                 break;
         }
-    })() 
+    })(e) 
 
     for(i of fields){
-        if(i!=e.originalTarget){
-            i.value = e.originalTarget.value;
-            if(e.originalTarget.value != ""){
-                e.originalTarget.labels[0].className.includes("false")? e.originalTarget.labels[0].classList.toggle('false'):{}
+        if(i!=e.target){
+            i.value = e.target.value;
+            if(e.target.value != ""){
+                e.target.labels[0].className.includes("false")? e.target.labels[0].classList.toggle('false'):{}
                 i.labels[0].className.includes("false")? i.labels[0].classList.toggle('false'):{}   
             }else{
-                e.originalTarget.labels[0].className.includes("false")?{}:e.originalTarget.labels[0].classList.toggle("false");
+                e.target.labels[0].className.includes("false")?{}:e.target.labels[0].classList.toggle("false");
                 i.labels[0].className.includes("false")?{}:i.labels[0].classList.toggle("false");
             }
         }
@@ -368,15 +369,15 @@ function addRow(e){
                 smInput.className = "charge-input";
                 smInput.addEventListener('input', (e)=>{
                     if(e.data==null){return};
-                    if((e.originalTarget.value).match(/[a-z]/g)){
-                        e.originalTarget.value = e.originalTarget.value.toUpperCase()
+                    if((e.target.value).match(/[a-z]/g)){
+                        e.target.value = e.target.value.toUpperCase()
                     }
                     if((e.data).match(/[0-9]/g)){
-                        e.originalTarget.value = e.originalTarget.value.slice(0,-1)
+                        e.target.value = e.target.value.slice(0,-1)
                     }
                 });
                 smInput.addEventListener('focusout',(e)=>{
-                    e.originalTarget.value = e.originalTarget.value.trim();
+                    e.target.value = e.target.value.trim();
                 });
                 td.insertAdjacentElement('afterbegin', smInput);
             }else{
