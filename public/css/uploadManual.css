@@ -47,6 +47,16 @@
     border: 1px solid black;
 }
 
+.invoice-main-container{
+    min-height: 700px;
+    max-width: 1320px;
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .tbl{
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.311); */
     border-bottom: 1px solid black;
@@ -117,11 +127,11 @@
 }
 
 .form-header{
-    width: 1120px;
+    width: 90%;
     position:relative;
     display: flex;
     flex-direction: row;
-    max-width: 1200px;
+    max-width: 1320px;
 }
 
 .done-btn{
@@ -280,6 +290,11 @@ h1{
     transition: 150ms cubic-bezier(0.455, 0.03, 0.515, 0.955) all;
 }
 
+.remove{
+    background-color: #a94747;
+    margin-left: 1em;
+}
+
 .add-row-btn:hover{
     background-color: blue;
 }
@@ -304,6 +319,7 @@ h1{
 }
 .td-charge.amount{
     width: 10%;
+
 }
 .td-charge.amountusd{
     width: 10%;
@@ -316,4 +332,48 @@ select{
     margin: 0px;
     padding: 0px 0px 0px 10px;
     height: 100%;
+}
+
+.req{
+    background-color: greenyellow;
+}
+
+.false{
+    background-color: red;
+}
+
+input:disabled{
+    background-color: whitesmoke;
+}
+
+input[type="date"]{
+    appearance: none;
+    -moz-appearance: textfield;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator{
+    display: none;
+    -webkit-appearance: none;
+}
+
+.right{
+    text-align: right;
+}
+
+.max{
+    background-color: gray;
+}
+
+.max:hover{
+    background-color: gray;
+}
+
+.pieces{
+    min-width: 75px;
+    max-width: 75px;
+}
+
+.rdd{
+    min-width: 140px;
+    max-width: 140px;
 }
