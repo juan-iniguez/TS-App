@@ -310,18 +310,18 @@ h1{
     width: 40%;
     
 }
-.td-charge.uni{
+.td-charge.based_on{
     width: 10%;
 
 }
-.td-charge.rate{
+.td-charge.rate_curr{
     width: 10%;
 }
 .td-charge.amount{
     width: 10%;
 
 }
-.td-charge.amountusd{
+.td-charge.amount_usd{
     width: 10%;
 }
 
@@ -376,4 +376,9 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 .rdd{
     min-width: 140px;
     max-width: 140px;
+}
+
+.ERR_FIELD{
+    box-shadow: #a94747 0px 0px 5px;
+    background-color: #ff6e6e;
 }

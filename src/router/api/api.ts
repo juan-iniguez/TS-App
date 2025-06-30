@@ -94,7 +94,6 @@ router.post('/apl-inv-way',(req:any, res, next) => {
                 });
                 next();
             } else {
-                // console.log(result.invoice.BOL)
                 apl.checkInv(result.invoice.BOL)
                     .then((resolve) => {
                         if (resolve[0] == undefined) {
@@ -116,7 +115,6 @@ router.post('/apl-inv-way',(req:any, res, next) => {
                         console.warn("Revise Python file, this could be a parsing issue")
                     })
             }
-
         })
     });
 })

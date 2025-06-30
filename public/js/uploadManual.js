@@ -1,10 +1,11 @@
+
 let formLabels = document.getElementsByClassName('form-label');
 let tabs = document.getElementsByClassName("nav-link");
 let invoice_number = window.location.href.split('/').pop();
 let contSize = document.getElementById('CONT_SIZE-I');
 let typeContainer = document.getElementById('ch-type-0').children[0];
-let uniContainer = document.getElementById('ch-uni-0').children[0];
-let amountUSDContainers = document.getElementsByClassName('amountusd');
+let uniContainer = document.getElementById('ch-based_on-0').children[0];
+let amountUSDContainers = document.getElementsByClassName('amount_usd');
 let options = document.getElementsByClassName('options');
 let piecesContainer = document.getElementById('sh-pieces-0').children[0];
 let memberNameContainer = document.getElementById('sh-sm-0').children[0];
@@ -14,21 +15,30 @@ let weightLBSContainer = document.getElementById('sh-weight_lbs-0').children[0];
 let ttlCFContainer = document.getElementById('sh-ttl_cf-0').children[0];
 let rddContainer = document.getElementById('sh-rdd-0').children[0];
 let netContainer = document.getElementById('sh-net-0').children[0];
+let totalWeigthLBS = document.getElementById('WEIGHT_LBS-W');
+let totalCubicFeet = document.getElementById('CUBIC_FEET-W');
 
 let bolFields = document.getElementsByClassName('bol');
 let contNumFields = document.getElementsByClassName('cont-num');
 let contSizeFields = document.getElementsByClassName('cont-size');
 let vesselFields = document.getElementsByClassName('vessel')
+let ERR_ = false;
 
 let months = ["JAN","FEB","MAR","APR","MAY", "JUN", "JUL","AUG","SEP","OCT","NOV","DEC"];
-let payload_data = {}
-let check_match = {
-    'BOL': Boolean, 
-    'VESSEL':Boolean,
-    'VOYAGE': Boolean,
-    'CONT_SIZE': Boolean,
-    'CONT_NUM': Boolean,
-};
+let fieldNames = {
+    invoice:["BOL","INVOICE_NUM", "CUSTOMER_NUM", "INVOICE_DATE","VOYAGE", "RECEIPT_PLACE", "DELIVERY_PLACE", "VESSEL","DISCHARGE_PORT", "LOAD_PORT", "CONT_SIZE","CONT_NUM"],
+    waybill:["BOL","VESSEL","CONT_SIZE","CONT_NUM","CODE","WEIGHT_LBS", "ETD", "SERIAL_NUM","CUBIC_FEET","ETA"],
+}
+
+let numberFields = ["AMOUNT", "AMOUNT_USD","BASED_ON","RATE_CURR", "WEIGHT_LBS","CUBIC_FEET","TTL_CF","NET"]
+
+let invoiceTable = document.getElementById("charges-table").children[0];
+let waybillTable = document.getElementById("shipments-table").children[0];
+let chargesCounter = 4;
+let shipmentsCounter = 0;
+
+
+
 
 // LISTENERS Invoice
 contSize.addEventListener('input', (e)=>{
@@ -45,7 +55,7 @@ uniContainer.addEventListener('input',(e)=>{
     if((e.target.value).match(/[A-z]/g)){
         e.target.value = e.target.value.slice(0,-1)
     }
-    let uniContainers = document.getElementsByClassName('uni');
+    let uniContainers = document.getElementsByClassName('based_on');
     updateInvoiceFields(uniContainers, e);
 })
 
@@ -83,7 +93,7 @@ function amountusdUpdate(){
         return
     }
 
-    let rateCurrency = document.getElementById("ch-rate-"+this.id.slice(-1)).children[0];
+    let rateCurrency = document.getElementById("ch-rate_curr-"+this.id.slice(-1)).children[0];
     let amount = document.getElementById("ch-amount-"+this.id.slice(-1)).children[0];
     
     rateCurrency.value = this.children[0].value;
@@ -134,8 +144,10 @@ scacContainer.addEventListener('input', (e)=>{
 gblContainer.addEventListener('input', upperCase);
 weightLBSContainer.addEventListener('input', onlyNumbers);
 ttlCFContainer.addEventListener('input', onlyNumbers);
-// rddContainer.addEventListener('input', noSpaces);
 netContainer.addEventListener('input', onlyNumbers);
+
+totalWeigthLBS.addEventListener('input', onlyNumbers);
+totalCubicFeet.addEventListener('input', onlyNumbers);
 
 function onlyNumbers(e){
     if(e.data==null){return};
@@ -159,7 +171,7 @@ function upperCase(e){
 }
 
 function noSymbols(e){
-    if((e.data).match(/[^A-Z]/g)){
+    if((e.data).match(/[^A-z ]/g)){
         e.target.value = e.target.value.slice(0,-1)
     }
 }
@@ -224,6 +236,13 @@ function ERR_HANDLER(msg){
     errorMsg.classList.contains('hidden')?document.getElementById('error-msg').classList.toggle("hidden"):{};
 }
 
+function ERR_FIELD(e){
+    e.target.classList.toggle("ERR_FIELD");
+    e.target.removeEventListener('focusin', ERR_FIELD);
+    ERR_ = false;
+
+}
+
 // Error Message Hidden
 function hideErrorMsg(){
     document.getElementById('error-msg').classList.toggle("hidden");                
@@ -249,46 +268,121 @@ function toggleInvoice(){
 
 // Submit to DB -> End of the website
 async function submit_db(){
+    let payload_data = {invoice:{},waybill:{}}
 
     // GET DETAILS FROM THE FIELDS
-    let payload_data_out = {}
-    // OPTIMIZE THIS CODE, THIS IS TRASH OMG
-    for(let i in payload_data){
-        payload_data_out[i] = {}
-        for(let j in payload_data[i]){
-            if( i == "invoice"){
-                let el = document.getElementById(j + "-I")
-                if(j == "CHARGES"){
-                    payload_data_out[i][j] = [];
-                    for(let k = 0;k<payload_data[i][j].length;k++){
-                        payload_data_out[i][j].push({});
-                        for(let l in payload_data[i][j][k]){
-                            let el_ch = document.getElementById(`${l}-${k}-I`)
-                            payload_data_out[i][j][k][l] = el_ch.value;
-                        }
-                    }
-                }else{
-                    payload_data_out[i][j] = el.value;
-                }
-            }else{
-                let el = document.getElementById(j + "-W")
-                if(j == "SHIPMENTS"){
-                    payload_data_out[i][j] = [];
-                    for(let k = 0;k<payload_data[i][j].length;k++){
-                        payload_data_out[i][j].push({});
-                        for(let l in payload_data[i][j][k]){
-                            let el_ch = document.getElementById(`${l}-${k}-W`)
-                            payload_data_out[i][j][k][l] = el_ch.value;
-                        }
-                    }
-                }else{
-                    payload_data_out[i][j] = el.value;
-                }
-            }
+    // List detail fields here
+    // Start with Invoice
+    for(n of fieldNames.invoice){
+        const inputValue = document.getElementById(n + "-I");
+        if(ERR_){
+            // Error Message
+            break
+        }        
+        if(inputValue.value == "" && !inputValue.disabled){
+            inputValue.classList.toggle("ERR_FIELD")
+            inputValue.addEventListener("focusin", ERR_FIELD);
+            ERR_ = true;
+            console.error("ERROR! : " + inputValue.classList)
+            console.log(inputValue.children[0])
+            break
         }
+
+        payload_data.invoice[n] = inputValue.type == "date"?new Date(inputValue.value).getTime() :inputValue.value;
+    }
+    
+    // Waybill
+    for(n of fieldNames.waybill){
+        const inputValue = document.getElementById(n + "-W");
+        if(ERR_){
+            // Error Message
+            break
+        }        
+        if(inputValue.value == "" && !inputValue.disabled){
+            inputValue.classList.toggle("ERR_FIELD")
+            inputValue.addEventListener("focusin", ERR_FIELD);
+            ERR_ = true;
+            console.error("ERROR! : " + inputValue.classList)
+            console.log(inputValue.children[0])
+            break
+        }
+        payload_data.waybill[n] = inputValue.type == "date"?new Date(inputValue.value).getTime() :inputValue.value;
     }
 
-    axios.post('/api/db-invoice-waybill', payload_data_out).then(res => {
+    if(ERR_){
+        console.log("Returned Before Charges");
+        return};
+    // Charges and Shipments
+    payload_data.invoice["CHARGES"] = [];
+    payload_data.waybill["SHIPMENTS"] = [];
+    // Charges
+    for(n of [invoiceTable,waybillTable]){
+        // Iterating over Invoice Table
+        if(n == invoiceTable){
+            // Get all rows of charges
+            for(i of n.children){
+                if(i.id != ""){
+                    let charge = {};
+                    // Get Charges from Row
+                    for(j of i.children){
+                        if(ERR_){
+                            // ERR MESSAGE
+                            return
+                        }
+                        if(j.tagName != "TH"){
+                            // ? CHECK FOR EMPTY INPUT
+                            console.log(j.children[0].value);
+                            if(j.children[0].value == "" && !j.children[0].disabled || j.children[0].value == "null"){
+                                j.children[0].classList.toggle("ERR_FIELD")
+                                j.children[0].addEventListener("focusin", ERR_FIELD);
+                                ERR_ == true;
+                                console.error("ERROR! : " + j.children[0].classList)
+                                console.log(j.children[0])
+                                return
+                            }
+                            // Check for Number inputs
+                            if(numberFields.includes(j.classList[1].toUpperCase())){
+                                charge[j.classList[1].toUpperCase()] = parseFloat(j.children[0].value);
+                            }else{
+                                charge[j.classList[1].toUpperCase()] = j.children[0].value;
+                            }
+                        }
+                    }
+                    payload_data.invoice["CHARGES"].push(charge);
+                }
+            }
+        }else{
+            // Get Row of Shipments
+            for(i of n.children){
+                if(i.id == "header-shipment"){continue};
+                let shipment = {};
+                // Get Shipments from Row
+                for(j of i.children){
+                    if(j.tagName == "TH"){continue};
+                    // !! Check for Empty Input
+
+                    if(j.children[0].value == "" && !j.children[0].disabled || j.children[0]. value == "null"){
+                        j.children[0].classList.toggle("ERR_FIELD")
+                        j.children[0].addEventListener("focusin", ERR_FIELD);
+                        ERR_ == true;
+                        console.error("ERROR! : " + j.children[0].classList)
+                        console.log(j.children[0])
+                        return
+                    }
+
+                    if(numberFields.includes(j.classList[1].toUpperCase())){
+                        shipment[j.classList[1].toUpperCase()] = parseFloat(j.children[0].value)
+                    }else{
+                        shipment[j.classList[1].toUpperCase()] = j.children[0].type == "date"? new Date(j.children[0].value).getTime():j.children[0].value;
+                    }
+                }
+                payload_data.waybill["SHIPMENTS"].push(shipment);
+            }
+        }
+        console.log(payload_data);
+    };
+
+    axios.post('/api/db-invoice-waybill', payload_data).then(res => {
         if(res.data == "OK"){
             window.location.href = "/search";
         }else{
@@ -301,11 +395,6 @@ async function submit_db(){
 }
 
 // Table Mechanisms
-let invoiceTable = document.getElementById("charges-table").children[0];
-let waybillTable = document.getElementById("shipments-table").children[0];
-let chargesCounter = 4;
-let shipmentsCounter = 0;
-
 function addRow(e){
     if(options.length == 3){
         e.classList.toggle('max');
@@ -315,7 +404,7 @@ function addRow(e){
     // Which table are we modifying?
     const table = e.id == "invoice-addrow-btn"?invoiceTable:waybillTable;
 
-    let columns = table == invoiceTable?["size", "type", "desc", "uni", "rate", "amount", "amountusd"]:["pieces", "sm", "scac","gbl", "weight_lbs", "ttl_cf", "rdd", "net"];
+    let columns = table == invoiceTable?["size", "type", "desc", "based_on", "rate_curr", "amount", "amount_usd"]:["pieces", "sm", "scac","gbl", "weight_lbs", "ttl_cf", "rdd", "net"];
     table == invoiceTable?chargesCounter++:shipmentsCounter++;
     const tr = document.createElement("tr");
     for(let n of columns){
@@ -327,7 +416,8 @@ function addRow(e){
 
         // Select which type of fields to load depending on page
         if(table == invoiceTable){
-            if(n == "amountusd"){
+            tr.id = "EXTRA"
+            if(n == "amount_usd"){
                 const input = document.createElement('input');
                 input.className = "charge-input right";
                 input.type = "text";
@@ -344,11 +434,11 @@ function addRow(e){
             }else{
                 td.innerHTML = (() => {
                     switch (n) {
-                        case "rate":
+                        case "rate_curr":
                             return `<input class="charge-input right" type="text" disabled>`
                         case "amount":
                             return `<input class="charge-input right" type="text" disabled>`
-                        case "uni":
+                        case "based_on":
                             return `<input class="charge-input" type="text" value="${uniContainer.value}" disabled>`
                         case "type":
                             return `<input class="charge-input" type="text" value="${typeContainer.value}" disabled>`
@@ -418,22 +508,21 @@ function addRow(e){
     table.appendChild(tr);
 }
 
-//! WORKING ON THIS ONE
 function removeRow(e){
     
-    const table = e.id == "invoice-addrow-btn"?invoiceTable:waybillTable;
+    const table = e.id == "invoice-removerow-btn"?invoiceTable:waybillTable;
     
     const addBtn = document.getElementById(table == invoiceTable?'invoice-addrow-btn':"waybill-addrow-btn");
 
     if(table == invoiceTable){
-        if(chargesCounter <= 7){
+        if(chargesCounter == 4){
+            return
+        }else if(chargesCounter <= 7){
             chargesCounter == 7?addBtn.classList.toggle('max'):{};
             table.children[table.children.length -1].remove()
             
             totalUpdate()
             chargesCounter--
-        }else if(chargesCounter == 4){
-            return
         }
     }else{
         if(shipmentsCounter == 0){
@@ -447,3 +536,5 @@ function removeRow(e){
     
     
 }
+
+
