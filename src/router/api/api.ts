@@ -119,11 +119,14 @@ router.post('/apl-inv-way',(req:any, res, next) => {
     });
 })
 
+
 /***** START A CRUD IMPLEMENTATION AND CONNECT TO DB *****/
+// ! ENDPOINT FOR SUBMITTING CLIENT SIDE DATA TO DB !
 // Upload Invoice and Waybill to DB
 router.post('/db-invoice-waybill',(req:any, res,next) => {
     if(!req.user){res.sendStatus(401).json({message: "Unauthorized"});next()}
 
+    // Variables for input data and output data
     let invoice = req.body.invoice;
     let waybill = req.body.waybill;
     let invoice_db_ready: any = {}

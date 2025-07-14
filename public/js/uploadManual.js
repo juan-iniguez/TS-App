@@ -62,14 +62,13 @@ uniContainer.addEventListener('input',(e)=>{
 options[0].addEventListener('focusin', optionsUpdate)
 
 function optionsUpdate(){
-    console.log(this)
     let optionsInUse = [];
-
     for(n of options){
         if(n.value != this.value){
             optionsInUse.push(n.value);
         }
     }
+    console.log(optionsInUse)
 
     for(n of this.children){
         if(optionsInUse.includes(n.value)){
@@ -428,7 +427,7 @@ function addRow(e){
                 const selectDesc = document.createElement('select');
                 selectDesc.className = 'options';
                 selectDesc.id = "ch-options-" + n;
-                selectDesc.innerHTML = `<option style="text-align:center" value="null" selected disabled>---------</option><option value="FEE85">Container inspection fees and survey fees</option><option value="RAIL">Pre carriage haulage</option><option value="RAIL">On carriage haulage</option><option value="CUS16">Export Declaration Surcharge</option><option value="AMS">Advance Manifest Compliance Charge (AMS)</option><option value="RAIL">Inland (Rail) Charge</option>`;
+                selectDesc.innerHTML = `<option style="text-align:center" value="null" selected disabled>---------</option><option value="Invasive Species Inspection Fee">Container inspection fees and survey fees</option><option value="Inland (Rail)">Pre carriage haulage</option><option value="Inland (Rail)">On carriage haulage</option><option value="Export Declaration Surcharge">Export Declaration Surcharge</option><option value="AMS">Advance Manifest Compliance Charge (AMS)</option><option value="Inland (Rail)">Inland (Rail) Charge</option>`;
                 selectDesc.addEventListener('focusin', optionsUpdate);
                 td.insertAdjacentElement('afterbegin',selectDesc);
             }else{

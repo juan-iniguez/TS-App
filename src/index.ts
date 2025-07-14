@@ -211,8 +211,8 @@ app.get('/api/logout', (req,res)=>{
 })
 
 
+// TODO: 
 // TODO: When pulling bunker, use invoice bunker as default. However, show note if Invoice Bunker does not match Bunker RATE
-
 /**
  * Additionally, Instead of making changes or taking the bunker charge face value, 
  * we need to state from WHICH rate the bunker charge was pulled. 

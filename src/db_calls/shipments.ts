@@ -27,6 +27,7 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
             console.log(err)
           }else{
             console.log(rows);
+            console.log("GET TSP: " + data_payload.SCAC);
             data_payload = rows[0];
             // Get TSP
             db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=? ORDER BY DATE_CREATED DESC LIMIT 1", data_payload.SCAC,(err:any,rows1:any)=>{
