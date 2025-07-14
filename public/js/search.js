@@ -231,7 +231,7 @@ function openTab(e){
 function search(e){
     let searchText = searchBar.value;
     let argVal = searchArg.value;
-
+    console.log(currentTab);
     axios.post("/api/search", {
         data: currentTab,
         search: searchText,
@@ -239,7 +239,7 @@ function search(e){
     }).then((response)=>{
         // console.log(response);
         clearTable();
-        populateTable(response.data);
+        populateTable(response.data, currentTab);
     })
 
 }
