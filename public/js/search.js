@@ -6,7 +6,7 @@ let searchArg = document.getElementById("search-arg");
 let searchDate = document.getElementById('search-date-container');
 
 searchArg.addEventListener('change', searchDropdownSetInputType)
-searchBar.addEventListener("keyup", search);
+searchBar.addEventListener('input', search);
 
 for(let i in tabs){
     document.getElementById(tabs[i] + "-tab").addEventListener("click", openTab)
@@ -231,7 +231,6 @@ function openTab(e){
 function search(e){
     let searchText = searchBar.value;
     let argVal = searchArg.value;
-    console.log(currentTab);
     axios.post("/api/search", {
         data: currentTab,
         search: searchText,
@@ -285,6 +284,7 @@ function searchDropdownSetInputType(e, n){
         default:
             break;
     }
+    search();
 }
 
 function openDateSearch(){
