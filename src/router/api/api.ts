@@ -23,7 +23,6 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 import express from "express";
-import { debug } from "console";
 const router = express.Router();
 
 router.use(verifyToken)
@@ -149,7 +148,7 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
             waybill_db_ready["$" + x] = JSON.stringify(waybill[x])
         } else {
             if (x.includes("VESSEL") || x.includes("VOYAGE") || x.includes("CONT_SIZE") || x.includes("CONT_NUM")) {
-
+                // ! BAD "IF" CONDITION, DO NOT LEAVE EMPTY. WHAT IS THIS FOR??
             } else {
                 waybill_db_ready["$" + x] = waybill[x];
             }
@@ -166,14 +165,11 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
      * space to the name! We need to make sure there are NO extra spaces at the end
      * of the MEMBER_NAME.
     */
-   
-   // Get SHIPMENTS INTO THE DB
-   let shipments = waybill.SHIPMENTS;
-   
-   for (let i in shipments) {
-       
-       // SANITIZE MEMBER_NAME
 
+    // Get SHIPMENTS INTO THE DB
+    let shipments = waybill.SHIPMENTS;
+
+    for (let i in shipments) {
         let shipment_payload = {
             $BOL: invoice.BOL,
             $RDD: shipments[i].RDD,
@@ -186,7 +182,6 @@ router.post('/db-invoice-waybill',(req:any, res,next) => {
             $PIECES: shipments[i].PIECES,
             $DATE_CREATED: date_now,
         }
-
         apl.entryShipment(shipment_payload);
     }
     res.send("OK");

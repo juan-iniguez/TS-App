@@ -21,14 +21,15 @@ export let aplDB = {
  * Returns data_payload with all properties
  * */
 export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
+  console.info("START GETTING SHIPMENT!")
     return new Promise((resolve,reject)=>{
         db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL=SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL AND SHIPMENTS.rowid=$id", [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
           if(err){
             console.log(err)
           }else{
             console.log(rows);
-            console.log("GET TSP: " + data_payload.SCAC);
             data_payload = rows[0];
+            console.log("GET TSP: " + data_payload.SCAC);
             // Get TSP
             db.all("SELECT TSP_NAME,ADDRESS_1,ADDRESS_2 FROM TSP WHERE SCAC=? ORDER BY DATE_CREATED DESC LIMIT 1", data_payload.SCAC,(err:any,rows1:any)=>{
                 if(err){

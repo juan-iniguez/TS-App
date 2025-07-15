@@ -26,20 +26,16 @@
         <div class="modal" id="rates-modal">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header">
+                    <div id="modal-header" class="modal-section modal-header">
                         <h1>Select a Year</h1>
                     </div>
-                    <div class="modal-body">
-                        <input style="width: 100%;" placeholder="Start Typing a Year..." id="year-selection" type="text" maxlength="4">
+                    <div id="modal-body" class="modal-section modal-body">
+                        <input style="width: 100%;" placeholder="Start Typing a Year..." id="year-selection-input" type="text" maxlength="4">
                     </div>
-                    <div class="modal-footer">
-                        <h2>Most Recent Years</h2>
-                        <div class="rate-years-selection">
-                            <a class="rates-folder">2025</a>
-                            <a class="rates-folder">2024</a>
-                            <a class="rates-folder">2023</a>
-                            <a class="rates-folder">2022</a>
-                            <a class="rates-folder new">+</a>
+                    <div id="modal-footer" class="modal-section modal-footer">
+                        <!-- <h2>Most Recent Years</h2> -->
+                        <div id="rate-years-selection" class="rate-years-selection">
+                            <a id="btn-add-folder" class="rates-folder new">+</a>
                         </div>
                     </div>
                 </div>
