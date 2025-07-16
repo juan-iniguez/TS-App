@@ -89,11 +89,10 @@ function getTSP(year:any){
 /**
  * 
  */
-function getRATES(year:string,quarter:string){
+function getRATES(year:string,quarter:string):Promise<Array<object>>{
     // Complicated
     // TODO: MAKE IT DO ALL THE OTHER THINGS
-    return new Promise((resolve,reject)=>{
-
+    return new Promise((resolve:any,reject:any)=>{
         if(!year && !quarter){
             db.all("SELECT * FROM RATES",(err:any, rows:any)=>{
                 if(err){
@@ -116,8 +115,7 @@ function getRATES(year:string,quarter:string){
                 resolve(rows);
             })
         }
-
-    }) 
+    })
 }
 
 function getAllYearCyclesTSP(){

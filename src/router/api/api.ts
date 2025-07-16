@@ -521,7 +521,6 @@ router.post("/inv/void", (req, res) => {
 
 // Export a table with all rows in `TSP` for a specific YEAR 
 router.get("/export-tsp", (req,res,next)=>{
-    // console.log(req)
     localSettings.getTSP(req.query.year)
     .then(tsp=>{
         let csv = appUtils.json2csv(tsp);
@@ -578,6 +577,30 @@ router.post('/upload-rates',(req,res,next)=>{
     console.table(req.query);
     res.sendStatus(200);
 })
+
+// Check CSV compatibility when Uploading New Rates
+router.post("/rates/csv-compatibility",(req,res,next)=>{
+    console.log(req.body)
+    // Check for Year and Quarter first
+    // If it already exists, REJECT
+    localSettings.getRATES(req.body.year, req.body.quarter)
+    .then(rows=>{
+        if(rows.length > 0){
+            res.statusCode= 409;
+            res.send({
+                msg: "Rates Already Exists!"
+            });
+        }else{
+            // !!!! This is where you left off. Continue to validate CSV Data coming from the client. Headers should be right
+            // csvtojson
+        }
+    })
+    .catch(err=>{
+        console.error(err);
+        res.sendStatus(403);
+    })
+})
+
 
 /* *
  * APL API STARTS HERE 

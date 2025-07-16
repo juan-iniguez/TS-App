@@ -40,8 +40,14 @@
   opacity: 100%;
 }
 
+.modal-content{
+  transition:cubic-bezier(0.86, 0, 0.07, 1) all 300ms;
+  height: 100%;
+}
+
 .clear{
   opacity: 0%;
+  /* height: 0%; */
 }
 
 .focused{
@@ -60,7 +66,6 @@
   font-size: 70px;
   line-height: 0px;
   padding: 0px 0px 10px 0px;
-  /* padding-bottom: 10px; */
   text-align: center;
   background-image: none;
   border-style: dashed;
@@ -101,6 +106,76 @@
 
 .rates-folder:hover{
   background-color: rgba(0, 0, 0, 0.357);
+}
+
+.input-rate-file{
+  margin-top: 1em;
+}
+
+.container-form-ratefile{
+  margin-top: 1em;
+}
+
+.container-ratefile-input{
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+#rate-year{
+  width: 4em;
+}
+
+#label-input-rateyear{
+  background-color: gainsboro;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  border-radius: 5px 0px 0px 5px;
+  width: 50px;
+  padding: .25em;
+  padding-left: .50em;
+}
+
+a{
+  text-decoration: none;
+  color: black;
+}
+
+.btn-preview{
+  font-weight: bold;
+  background-color: gainsboro;
+  padding: .5em .7em .5em .7em;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-preview:hover{
+  background-color: #b8d1f9;
+}
+
+.rate-name{
+  color:#7b7b7b;
+  opacity: 0%;
+  padding: .25em;
+  margin-left: 1em;
+}
+
+.rate-name.display{
+  opacity: 100%;
 }
 
 p{

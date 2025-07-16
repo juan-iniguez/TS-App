@@ -15,6 +15,19 @@ function hideErrorMsg(){
   errorContainer.classList.toggle('active');
 }
 
+function onlyNumbers(e){
+    if(e.data==null){return};
+    noSpaces(e);
+    if((e.data).match(/[^0-9]/g)){
+        console.log("HMM")
+        e.target.value = e.target.value.slice(0,-1)
+    }
+}
+
+function noSpaces(e){
+    e.data == " "?e.target.value = e.target.value.slice(0,-1):{};
+}
+
 yearSelection.addEventListener('input', (e)=>{
   // Prevent default behavior and allow only numbers to be typed.
   var c = this.selectionStart,
@@ -120,7 +133,116 @@ function toggleClearModal(){
   modalFooter.classList.toggle("clear")
 }
 
-
+// When you click the plus sign this will prompt the next modal 
+// for adding new rates using a .CSV
 function addNewRateFolder(){
+  toggleClearModal();
+  setTimeout(()=>{
+    toggleClearModal()
+    // Header
+    modalHeader.innerHTML = `<h1>Add New Rates</h1>`
+    modalBody.innerHTML = "";
+    modalFooter.innerHTML= "";
+    
+    const instructions = document.createElement('p');
+    instructions.innerText = "Please type the Year and select a Quarter. Then upload a .CSV file with the new rates."
+    modalBody.appendChild(instructions);
+    const form = document.createElement('div');
+    form.innerHTML = `<div class="container-ratefile-input">
+    <label id="label-input-rateyear" for="rate-year">Year</label>
+    <input placeholder="XXXX" type="number" id="rate-year" maxlength="4"><select id="input-quarter">
+    <option value="Q1">Q1</option>
+    <option value="Q2">Q2</option>
+    <option value="Q3">Q3</option>
+    <option value="Q4">Q4</option>
+    </select>
+    <p id="rate-name" class="rate-name"></p>
+    </div>
+    <input id="input-rate-file" type="file" class="input-rate-file" accept=".csv">`;
+
+    form.className = "container-form-ratefile"
+    modalBody.appendChild(form);
+
+    const btnPreview = document.createElement('a');
+    btnPreview.className = 'btn-preview';
+    btnPreview.innerText = "Preview"
+    modalFooter.appendChild(btnPreview);
+    btnPreview.addEventListener('click', checkRateFields);
+
+
+    document.getElementById('rate-year').addEventListener('input',(e)=>{
+      onlyNumbers(e)
+      if(e.target.value.length == 5){
+        e.target.value = e.target.value.slice(0,-1);
+      }
+      if(e.target.value.length == 4){
+        updateRateName();
+      }
+    })
+    document.getElementById('input-quarter').addEventListener('input',(e)=>{
+      if(document.getElementById('rate-year').value.length == 4){
+        updateRateName();
+      }
+    })
+  },300)
+}
+
+// Update the text in the rate name preview
+function updateRateName(){
+  const year = document.getElementById('rate-year').value;
+  const inputQuarter = document.getElementById('input-quarter').value
+  const rateName = document.getElementById('rate-name');
+  rateName.innerText = `${year}-${parseInt(year)+1} ${inputQuarter}`
+  if(!rateName.classList.contains('display') && year.length > 0){
+    rateName.classList.toggle('display')
+  }
+}
+
+function checkRateFields(){
+  const year = document.getElementById('rate-year');
+  const quarter = document.getElementById('input-quarter');
+  const file = document.getElementById('input-rate-file');
+  if(year.value.length == 4 && quarter.value != null && file.files.length == 1){
+    try {
+      csvCompatibilityCheck(year.value, quarter.value, file.files[0]);
+      // populateRateTable();
+    } catch (error) {
+      console.error(error);
+    }
+  }else{
+    if(year.value.length != 4){
+      // ! CASE
+    }else if(quarter.value == null){
+      // ! CASE
+    }else if(file.files.length != 1){
+      // ! CASE
+    }
+  }
+}
+
+// This will send a POST request to check with the DB if the CSV and Year/Qtr
+// are compatible.
+function csvCompatibilityCheck(year, quarter, file){
+  axios.post("/api/rates/csv-compatibility", {
+    year: `${year}-${parseInt(year)+1}`,
+    quarter: quarter,
+    file: file,
+  })
+  .then((res)=>{
+    console.log(res);
+  })
+  .catch((err)=>{
+    console.log(err);
+  })
+}
+
+// When you click a folder this will populate the table with the rates
+function populateRateTable(){
+
+  // populate rate table
+
+  // if statement to switch between "Adding new rates" and
+  // Viewing older rates.
+
 
 }
