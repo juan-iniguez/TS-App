@@ -291,7 +291,7 @@ function populateRateTable(data, viewingState){
     }
     table.appendChild(row);
   }
-
+  //!! LEFT OFF HERE GET THE TABLES WORKING FOR EDITING AND SUBMISSION 07/18/2025
 
   if(viewingState){
     createHeaderRow(rateTable);
