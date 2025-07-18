@@ -1,3 +1,4 @@
+
 /** Essentials */
 let errorContainer = document.getElementById('error-container')
 let errorMsg = document.getElementById("error-msg")
@@ -5,6 +6,7 @@ let yearSelection = document.getElementById("year-selection-input");
 let rateYearsSelectionContainer = document.getElementById('rate-years-selection');
 let btnAddRateFolder = document.getElementById("btn-add-folder");
 let modalContainer = document.getElementById('rates-modal');
+let tableData;
 
 function errorHandling(msg){
   !errorContainer.classList.contains('active')?errorContainer.classList.toggle('active'):{};
@@ -81,7 +83,6 @@ function populateRateFolders(data){
       this.className = "rates-folder";
       this.type = "a";
       this.year = year;
-      this.quarter = quarter;
     }
     
     get createFolder(){
@@ -91,7 +92,7 @@ function populateRateFolders(data){
       attQuarter.value = this.quarter;
       let el = document.createElement(this.type);
       el.className = this.className;
-      el.innerHTML = `<p>${this.year}</p><p>${this.quarter}</p>`;
+      el.innerHTML = `<p>${this.year}</p>`;
       el.addEventListener('click',selectRateFolder);
       el.setAttributeNode(attYear);
       el.setAttributeNode(attQuarter);
@@ -100,15 +101,13 @@ function populateRateFolders(data){
       return el;
     }
 
-    yearAndQuarter(year,quarter){
+    year(year){
       this.year = year;
-      this.quarter = quarter;
     }
   }
 
   for(n of data){
-    console.log(n);
-    const rateFolder = new folder(n.YEAR, n.QUARTER);
+    const rateFolder = new folder(n.YEAR);
     btnAddRateFolder.insertAdjacentElement("afterend",rateFolder.createFolder);
   }
 }
@@ -119,7 +118,8 @@ function selectRateFolder(){
   modalContainer.classList.toggle('clear');
   setTimeout(()=>{
     modalContainer.remove()
-    populateRateTable()
+    // AXIOS CALL TO GET DB RATES OF THE YEAR
+    populateRateTable(res.data, 0);
   },300);
 }
 
@@ -127,11 +127,23 @@ const modalHeader = document.getElementById("modal-header"),
 modalBody = document.getElementById("modal-body"),
 modalFooter = document.getElementById("modal-footer");
 
+// To transition between modal options
 function toggleClearModal(){
   modalHeader.classList.toggle("clear")
   modalBody.classList.toggle("clear")
   modalFooter.classList.toggle("clear")
 }
+
+// To clear and delete modal
+function toggleRemoveModal(){
+  let rateModal = document.getElementById('rates-modal');
+  rateModal.classList.toggle('clear');
+  setTimeout(()=>{
+    rateModal.remove();
+    document.getElementsByClassName('focused')[0].classList.toggle('focused');
+  },300)
+}
+
 
 // When you click the plus sign this will prompt the next modal 
 // for adding new rates using a .CSV
@@ -150,13 +162,7 @@ function addNewRateFolder(){
     const form = document.createElement('div');
     form.innerHTML = `<div class="container-ratefile-input">
     <label id="label-input-rateyear" for="rate-year">Year</label>
-    <input placeholder="XXXX" type="number" id="rate-year" maxlength="4"><select id="input-quarter">
-    <option value="Q1">Q1</option>
-    <option value="Q2">Q2</option>
-    <option value="Q3">Q3</option>
-    <option value="Q4">Q4</option>
-    </select>
-    <p id="rate-name" class="rate-name"></p>
+    <input placeholder="XXXX" type="number" id="rate-year" maxlength="4">
     </div>
     <input id="input-rate-file" type="file" class="input-rate-file" accept=".csv">`;
 
@@ -174,45 +180,35 @@ function addNewRateFolder(){
       onlyNumbers(e)
       if(e.target.value.length == 5){
         e.target.value = e.target.value.slice(0,-1);
+        return
       }
       if(e.target.value.length == 4){
-        updateRateName();
+        btnPreview.classList.toggle("enable");
       }
-    })
-    document.getElementById('input-quarter').addEventListener('input',(e)=>{
-      if(document.getElementById('rate-year').value.length == 4){
-        updateRateName();
+      if(e.target.value.length < 4 && btnPreview.classList.contains('enable')){
+        btnPreview.classList.toggle("enable");
       }
     })
   },300)
 }
 
-// Update the text in the rate name preview
-function updateRateName(){
-  const year = document.getElementById('rate-year').value;
-  const inputQuarter = document.getElementById('input-quarter').value
-  const rateName = document.getElementById('rate-name');
-  rateName.innerText = `${year}-${parseInt(year)+1} ${inputQuarter}`
-  if(!rateName.classList.contains('display') && year.length > 0){
-    rateName.classList.toggle('display')
-  }
-}
 
 function checkRateFields(){
   const year = document.getElementById('rate-year');
-  const quarter = document.getElementById('input-quarter');
   const file = document.getElementById('input-rate-file');
-  if(year.value.length == 4 && quarter.value != null && file.files.length == 1){
+  if(!this.classList.contains('enable')){
+    console.log("Not ready");
+    return
+  };
+  if(year.value.length == 4 && file.files.length == 1){
     try {
-      csvCompatibilityCheck(year.value, quarter.value, file.files[0]);
+      csvCompatibilityCheck(year.value, file.files[0]);
       // populateRateTable();
     } catch (error) {
       console.error(error);
     }
   }else{
     if(year.value.length != 4){
-      // ! CASE
-    }else if(quarter.value == null){
       // ! CASE
     }else if(file.files.length != 1){
       // ! CASE
@@ -222,27 +218,93 @@ function checkRateFields(){
 
 // This will send a POST request to check with the DB if the CSV and Year/Qtr
 // are compatible.
-function csvCompatibilityCheck(year, quarter, file){
-  axios.post("/api/rates/csv-compatibility", {
-    year: `${year}-${parseInt(year)+1}`,
-    quarter: quarter,
-    file: file,
+function csvCompatibilityCheck(year, file){
+  let formData = new FormData();
+  formData.append("file", file);
+
+  axios.post("/api/rates/csv-compatibility/" + year,formData,{
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
   .then((res)=>{
-    console.log(res);
+    populateRateTable(res.data, 1);
+    tableData = res.data;
   })
   .catch((err)=>{
     console.log(err);
   })
 }
 
+
 // When you click a folder this will populate the table with the rates
-function populateRateTable(){
+function populateRateTable(data, viewingState){
 
+  const fields = ["ORIGIN", "DESTINATION", "CONT_SIZE", "OCF", "THC_USA", "Guam_THC", "AMS", "RAIL", "ISIF","YEAR","DATE_CREATED"]
+
+  const rateTable = document.getElementById("rate-table")
+  console.log(data);
   // populate rate table
-
   // if statement to switch between "Adding new rates" and
   // Viewing older rates.
+  class rateRow{
+    constructor(data){
+      this.ORIGIN = data.$ORIGIN
+      this.DESTINATION = data.$DESTINATION
+      this.CONT_SIZE = data.$CONT_SIZE
+      this.OCF = data.$OCF
+      this.THC_USA = data.$THC_USA
+      this.Guam_THC = data.$Guam_THC
+      this.AMS = data.$AMS
+      this.RAIL = data.$RAIL
+      this.ISIF = data.$ISIF
+      this.YEAR = data.$YEAR
+      this.DATE_CREATED = data.$DATE_CREATED
+    }
+
+    createRowElement(table){
+      const row = document.createElement('tr');
+      for(n of fields){
+        let td = document.createElement('td')
+        let input = document.createElement('input');
+        td.appendChild(input)
+        if(typeof this[n] == "number"){
+          td.className = "cell rate-number"
+          input.className = "rate-number";
+        }else{
+          td.className = "cell rate-string"
+          input.className = "rate-string";
+        }
+        input.value = this[n];
+        row.appendChild(td);
+      }
+      table.appendChild(row)
+    }
+  }
+
+  function createHeaderRow(table){
+    const row = document.createElement('tr');
+    for(n of fields){
+      const td = document.createElement('th')
+      td.innerText = n;
+      row.appendChild(td);
+    }
+    table.appendChild(row);
+  }
+
+
+  if(viewingState){
+    createHeaderRow(rateTable);
+    for(i of data){
+      console.log(i);
+      let testRow = new rateRow(i);
+      testRow.createRowElement(rateTable);
+    }
+    toggleClearModal();
+    toggleRemoveModal();
+  }else{
+
+  }
 
 
 }

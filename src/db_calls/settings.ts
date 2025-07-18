@@ -50,7 +50,6 @@ function updateTSP(data:any):void{
 }
 
 
-// ! YOU LEFT OFF HERE 07/17/2025 !
 /**
  * Insert entry for `RATES` table
  * @param data
@@ -100,11 +99,11 @@ function getTSP(year:any){
 /**
  * 
  */
-function getRATES(year:string,quarter:string):Promise<Array<object>>{
+function getRATES(year:string):Promise<Array<object>>{
     // Complicated
     // TODO: MAKE IT DO ALL THE OTHER THINGS
     return new Promise((resolve:any,reject:any)=>{
-        if(!year && !quarter){
+        if(!year){
             db.all("SELECT * FROM RATES",(err:any, rows:any)=>{
                 if(err){
                     console.error(err);
@@ -112,19 +111,14 @@ function getRATES(year:string,quarter:string):Promise<Array<object>>{
                 }
                 resolve(rows);
             });
-        }else if(year && !quarter){
-            db.all("SELECT * FROM RATES WHERE YEAR=? AND QUARTER=?",[year,"Q1"],(err:any, rows:any)=>{
+        }else{
+            db.all("SELECT * FROM RATES WHERE YEAR=?",year,(err:any, rows:any)=>{
                 if(err){
                     console.error(err);
                     reject(err);
                 }
                 resolve(rows);
             });
-        }else{
-            db.all("SELECT * FROM RATES WHERE YEAR=? AND QUARTER=?", [year,quarter],(err,rows)=>{
-                if(err){console.error(err); reject(err)}
-                resolve(rows);
-            })
         }
     })
 }
@@ -144,7 +138,7 @@ function getAllYearCyclesTSP(){
 
 function getAllYearCyclesRates(){
     return new Promise((resolve,reject)=>{
-        db.all('SELECT DISTINCT YEAR,QUARTER FROM RATES', (err,rows:any)=>{
+        db.all('SELECT DISTINCT YEAR FROM RATES', (err,rows:any)=>{
             console.log(rows);
             if(err){reject(err);return;}
             return resolve(rows);

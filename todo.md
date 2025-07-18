@@ -144,3 +144,9 @@ NAMA1243130
 NAMA1244083
 NAMA1244084
 NAMA1243907
+
+
+## CHANGES TO DB 07/18/25
+
+-> Rates are changing completely to mirror those in the excel sheet/CSV see APL SCHEMA
+-> 

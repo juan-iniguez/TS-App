@@ -4,7 +4,7 @@ const spawn = require("child_process").spawn;
 import path from "path";
 import multer from 'multer';
 // !XLSX IS VULNERABLE!
-import xlsx from 'xlsx';
+import xlsx, { utils } from 'xlsx';
 import axios from 'axios';
 
 // Local calls for tasks
@@ -23,6 +23,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 import express from "express";
+import { json } from "body-parser";
 const router = express.Router();
 
 router.use(verifyToken)
@@ -562,7 +563,7 @@ router.get('/export-rates', (req,res,next)=>{
     const year:any=req.query.year;
     const quarter:any=req.query.quarter || null;
 
-    localSettings.getRATES(year,quarter)
+    localSettings.getRATES(year)
     .then(rates=>{
         let csv = appUtils.json2csv(rates);
         res.type('text/csv')
@@ -574,9 +575,25 @@ router.get('/export-rates', (req,res,next)=>{
     })
 })
 
-router.post('/upload-rates',(req,res,next)=>{
+router.post('/upload-rates',(req:any,res:any,next)=>{
 
+    // ! Get back here after you are done with the UI 
+    let csvBuffer:Buffer = req.files[0].buffer;
+
+    csvtojson()
+    .fromString(csvBuffer.toString())
+    .then(jsonCSV=>{
+        console.log(jsonCSV);
+    })
+
+    // let data;
     
+    try {
+        // localSettings.insertRATES(data);
+        
+    } catch (error) {
+        
+    }
 
 
     console.table(req.query);
@@ -584,29 +601,70 @@ router.post('/upload-rates',(req,res,next)=>{
 })
 
 // Check CSV compatibility when Uploading New Rates
-router.post("/rates/csv-compatibility",(req,res,next)=>{
-    console.log(req.body)
-    // Check for Year and Quarter first
-    // If it already exists, REJECT
-    localSettings.getRATES(req.body.year, req.body.quarter)
-    .then(rows=>{
-        if(rows.length > 0){
-            res.statusCode= 409;
-            res.send({
-                msg: "Rates Already Exists!"
-            });
-        }else{
-            // !!!! This is where you left off. Continue to validate CSV Data coming from the client. Headers should be right
-            // csvtojson
+router.post("/rates/csv-compatibility/:YEAR",upload.any(),async (req:any,res,next)=>{
+    let date = new Date().getTime();
+    try {
+        let csvBuffer:Buffer = req.files[0].buffer;
+        // Check for Year and Quarter first
+        // If it already exists, REJECT
+        localSettings.getRATES(req.params.YEAR)
+        .then(rows=>{
+            if(rows.length > 0){
+                res.statusCode= 409;
+                res.send({
+                    msg: "Rates Already Exists!"
+                });
+            }else{
+                type rateInsertQuery = {
+                    $ORIGIN: string,
+                    $DESTINATION: string,
+                    $CONT_SIZE: number,
+                    $OCF: number,
+                    "$THC_USA": number,
+                    "$Guam_THC": number,
+                    $AMS: number,
+                    $RAIL: number,
+                    $ISIF: number,
+                    $YEAR: number,
+                    $DATE_CREATED: number,
+                }
 
-
-
-        }
-    })
-    .catch(err=>{
-        console.error(err);
+                // !!!! This is where you left off. Continue to validate CSV Data coming from the client. Headers should be right
+                let sendData:rateInsertQuery[] = [];
+                csvtojson()
+                .fromString(csvBuffer.toString())
+                .then(jsonCSV=>{
+                    for(let n of jsonCSV){
+                        let rateInsert:rateInsertQuery = {
+                            $ORIGIN: n.Origin,
+                            $DESTINATION: n.Destination,
+                            $CONT_SIZE: parseInt(n.Container),
+                            $OCF: parseInt(n.OCF.replace(/[\$,]/g, "")),
+                            "$THC_USA": parseInt(n["THC USA"].replace(/[\$,]/g, "")),
+                            "$Guam_THC": parseInt(n["Guam THC"].replace(/[\$,]/g, "")),
+                            $AMS: parseInt( n.AMS.replace(/[\$,]/g, "")),
+                            $RAIL: parseInt( n["Inland (Rail)"].replace(/[\$,]/g, "")),
+                            $ISIF: parseInt(n["Invasive Species Inspection Fee"].replace(/[\$,]/g, "")),
+                            $YEAR: parseInt(req.params.YEAR),
+                            $DATE_CREATED: date
+                        } 
+                        sendData.push(rateInsert);
+                        // localSettings.insertRATES(rateInsert);
+                    }
+                    console.log(sendData);
+                    res.send(sendData);
+                })
+            }
+        })
+        .catch(err=>{
+            console.error(err);
+            res.sendStatus(403);
+        })        
+    } catch (error) {
+        console.error(error);
         res.sendStatus(403);
-    })
+    }
+
 })
 
 

@@ -182,3 +182,41 @@ p{
   padding: 0px;
   margin: 0px;
 }
+
+.enable{
+  background-color: greenyellow;
+}
+
+td{
+  border: solid rgb(42, 42, 66) 2px;
+  max-width: 100%;
+  background-color: #b8d1f9;
+}
+
+.cell{
+
+}
+
+.rate-number{
+  min-width: 4em;
+  border: none;
+  max-width: 50px;
+}
+
+.rate-string{
+  /* min-width: 4em; */
+  border: none;
+  /* max-width: 100px; */
+  width: 100%;
+}
+
+.cell.rate-number{
+  width: 50px;
+}
+
+
+.rate-table{
+  width: 100%;
+  max-width: 1140px;
+  height: 100%;
+}
