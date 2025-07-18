@@ -49,16 +49,27 @@ function updateTSP(data:any):void{
     })
 }
 
+
+// ! YOU LEFT OFF HERE 07/17/2025 !
 /**
  * Insert entry for `RATES` table
  * @param data
  */
-function insertRATES(data:any): void{
-    db.run("INSERT INTO RATES (RATE, ORIGIN, DESTINATION, CONT_SIZE, AMOUNT, DATE_CREATED) VALUES ($RATE, $ORIGIN, $DESTINATION, $CONT_SIZE, $AMOUNT, $DATE_CREATED)",data,(response:any, err:any)=>{
-        if(err){
-            console.log(err)
-        }
-    })
+function insertRATES(data:any):Promise<number>{
+    return new Promise((resolve,reject)=>{
+        db.run("INSERT INTO RATES (ORIGIN, DESTINATION, CONT_SIZE, OCF, THC_USA, Guam_THC, AMS, RAIL, ISIF, YEAR, DATE_CREATED) VALUES ($ORIGIN, $DESTINATION, $CONT_SIZE, $OCF, $THC_USA, $Guam_THC, $AMS, $RAIL, $ISIF, $YEAR, $DATE_CREATED)",data,(response:any, err:any)=>{
+            if(err){
+                console.error(err)
+                reject({
+                    msg: "Found an Error Inserting Rates",
+                    err: err
+                });
+            }else{
+                console.info(response)
+                resolve(0);
+            }
+        })
+    }) 
 }
 
 /**

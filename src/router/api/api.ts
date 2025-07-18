@@ -266,6 +266,7 @@ router.post('/upload-tsp',upload.any(), async (req:any, res) => {
 
 })
 
+// ? DEPRECATED
 // Upload APL Rates to DB
 router.post('/db-rates', upload.single('file'), (req, res) => {
     let date_now = Date.now();
@@ -574,6 +575,10 @@ router.get('/export-rates', (req,res,next)=>{
 })
 
 router.post('/upload-rates',(req,res,next)=>{
+
+    
+
+
     console.table(req.query);
     res.sendStatus(200);
 })
@@ -593,6 +598,9 @@ router.post("/rates/csv-compatibility",(req,res,next)=>{
         }else{
             // !!!! This is where you left off. Continue to validate CSV Data coming from the client. Headers should be right
             // csvtojson
+
+
+
         }
     })
     .catch(err=>{

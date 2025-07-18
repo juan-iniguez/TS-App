@@ -1,4 +1,6 @@
 import { db } from '../db_init/db_init'
+import { appUtils } from '../utils';
+import chalk from 'chalk';
 
 export let aplDB = {
   getShipment,
@@ -6,7 +8,6 @@ export let aplDB = {
   getInvoiceCount,
   insertLocalInvoice,
   voidLocalInvoice,
-
 }
 
 // TODO: See what Rates are being pulled after Rates have been fixed.
@@ -23,7 +24,7 @@ export let aplDB = {
 export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
   console.info("START GETTING SHIPMENT!")
     return new Promise((resolve,reject)=>{
-        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL=SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL AND SHIPMENTS.rowid=$id", [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
+        db.all("SELECT VESSEL,VOYAGE,DISCHARGE_PORT,LOAD_PORT,CONT_SIZE,CONT_NUM,SCAC,MEMBER_NAME,GBL,TTL_CF,PIECES,RECEIPT_PLACE,CUBIC_FEET,DELIVERY_PLACE,CHARGES,INVOICE_DATE FROM APL_INVOICES INNER JOIN SHIPMENTS ON APL_INVOICES.BOL=SHIPMENTS.BOL INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL=APL_WAYBILLS.BOL WHERE SHIPMENTS.MEMBER_NAME=$MEMBER_NAME AND SHIPMENTS.BOL=$BOL AND SHIPMENTS.rowid=$id", [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
           if(err){
             console.log(err)
           }else{
@@ -42,7 +43,6 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                     data_payload.ADDRESS_1 = "N/A";
                     data_payload.ADDRESS_2 = "N/A";
                   }else{
-                    // console.log(rows);
                     data_payload.TSP_NAME = rows1[0].TSP_NAME;
                     data_payload.ADDRESS_1 = rows1[0].ADDRESS_1;
                     data_payload.ADDRESS_2 = rows1[0].ADDRESS_2;
@@ -141,13 +141,24 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                         break;
                     }
                   }
-                  console.table(rate_query);
+
                   // Get the BASED_ON rate
                   data_payload.BASED_ON = parseFloat((data_payload.TTL_CF / data_payload.CUBIC_FEET).toFixed(6));
-        
+
+                  // Get Rate Year and Quarter based on Invoice Date
+                  rate_query["$YEAR"]= appUtils.findRateYear(data_payload.INVOICE_DATE);
+
+                  console.info(chalk.bgBlue("SHIPMENT RATE QUERY:"));
+                  console.info(rate_query);
+
                   // THIS IS THE CODE THAT PULLS THE RATES AND COMPARES IT TO THE RATES ON THE INVOICE
-                  // TODO: FOR BUNKER, PULL THE RATES TO COMPARE WITH INVOICE, NOT TO REPLACE THE INVOICE BUNKER
-                  db.all("SELECT RATE,AMOUNT FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE", rate_query,(err:any,rows2:any)=>{
+                  // ? RE-WRITE!! The rate DB should pull only the one row that 
+                  // ? matches the Origin, Destination, Container Size and YEAR + QTR.
+                  // ? Year + QTR should be found using the - Invoice Date -
+                  // * Create a Function that can get the YEAR, QTR using the Invoice_date
+                  // * Refactor the code for the query to include these two columns
+
+                  db.all("SELECT * FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE AND YEAR=$YEAR", rate_query,(err:any,rows2:any)=>{
                     console.log(rows2)
                     // INITIALIZE `RATES`
                     data_payload.RATES = {};
@@ -157,6 +168,10 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
 
                     data_payload.id = parseInt(id);
 
+                    data_payload.RATES[""]
+
+
+                    // ! DEPRECATED REWRITE !
                     for(let j in rows2){
                       // IF bunker rate, then don't pull that into rates
                       if(rows2[j].RATE == 'FAF'){

@@ -2,6 +2,7 @@ export let appUtils = {
     addLeadingZeros,
     json2csv,
     InvoiceApi2localformat,
+    findRateYear,
 }
 
 /**
@@ -93,4 +94,24 @@ function InvoiceApi2localformat(inv_data:any){
         console.log(error)
         return error
     }
+}
+
+/**
+ * 
+ * This function was originally to get the `Quarter` and `Year` for which the **Bunker rate** and **Ocean Rates** will be based from.
+ * However, the Bunker rate needs to be done separately since it changes so erratically.
+ * 
+ * @param date 
+ * @returns YEAR
+ */
+function findRateYear(date:number):number{
+    const invDate = new Date(date);
+    // To find Rate Year and Quarter we must define the Quarters
+    // Year will depend on the Quarter plus Year.
+    // Since Rates start on June 1st and so on, on the first of every Quarter Month.
+
+    let YEAR:number = invDate.getMonth()>=6 && invDate.getMonth()<=12?invDate.getFullYear():invDate.getFullYear()-1;
+
+    return YEAR;
+
 }
