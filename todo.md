@@ -149,4 +149,9 @@ NAMA1243907
 ## CHANGES TO DB 07/18/25
 
 -> Rates are changing completely to mirror those in the excel sheet/CSV see APL SCHEMA
--> 
+
+
+## CHANGES TO FRONT END and BACKEND 07/21/25
+
+!!!!!!!! Left off here!
+-> PDF Fields need to be renamed to reflect the new Rates names.

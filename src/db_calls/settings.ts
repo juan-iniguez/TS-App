@@ -98,6 +98,12 @@ function getTSP(year:any){
 
 /**
  * 
+ * Query individual rates from the DB `RATES`
+ * 
+ * Specify a Year to get that Year's rates or get ALL rates
+ * 
+ * @param year 
+ * @returns Rates[objects]
  */
 function getRATES(year:string):Promise<Array<object>>{
     // Complicated
@@ -136,12 +142,20 @@ function getAllYearCyclesTSP(){
     })
 }
 
+/**
+ * When called, it will output the years of all submitted rates in the system
+ * 
+ * This is mainly for populating the Rates folders section in `/rates`
+ * 
+ * @returns All distinct `YEAR` property on RATES
+ */
 function getAllYearCyclesRates(){
     return new Promise((resolve,reject)=>{
         db.all('SELECT DISTINCT YEAR FROM RATES', (err,rows:any)=>{
             console.log(rows);
-            if(err){reject(err);return;}
-            return resolve(rows);
+            if(err){reject(err);return;}else{
+                return resolve(rows);
+            }
         })
     })
 }

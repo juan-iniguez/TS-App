@@ -15,6 +15,16 @@ export let readPDF = {
     parseWaybill,
 }
 
+/**
+ * 
+ * Creates the Ocean Invoice from shipment. This is initiated on the front end from the shipment view.
+ * This will recompile all data and insert a new record to the DB per invoice created.
+ * 
+ * @param data 
+ * @param val 
+ * @param initInv 
+ * @returns PDF in bytes buffer
+ */
 async function writeOceanInv(data:any, val:any, initInv:boolean){
     const pdfDoc = !data.VOID?await PDFDocument.load(fs.readFileSync('resources/TSPInvoice.pdf')):await PDFDocument.load(fs.readFileSync('resources/TSPInvoiceVoid.pdf'));
     const form = pdfDoc.getForm()

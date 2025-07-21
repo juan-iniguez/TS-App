@@ -5,6 +5,8 @@ let errorMsg = document.getElementById("error-msg")
 let yearSelection = document.getElementById("year-selection-input");
 let rateYearsSelectionContainer = document.getElementById('rate-years-selection');
 let btnAddRateFolder = document.getElementById("btn-add-folder");
+let btnCancel = document.getElementById('btn-cancel')
+let btnConfirm = document.getElementById('btn-confirm')
 let modalContainer = document.getElementById('rates-modal');
 let tableData;
 
@@ -61,6 +63,11 @@ function stringToHex(str) {
 
 btnAddRateFolder.addEventListener("click", addNewRateFolder);
 
+btnConfirm.addEventListener('click', submitRates);
+
+btnCancel.addEventListener('click', ()=>{
+  window.location.replace('/rates');
+})
 
 /** Main Javascript */
 
@@ -113,13 +120,13 @@ function populateRateFolders(data){
 }
 
 function selectRateFolder(){
-  console.table({YearRate: this.attributes["data-yearrate"].value,QuarterRate:this.attributes["data-quarterrate"].value});
-  // console.log(this.attributes["data-quarterrate"].value);
-  modalContainer.classList.toggle('clear');
-  setTimeout(()=>{
-    modalContainer.remove()
-    // AXIOS CALL TO GET DB RATES OF THE YEAR
-    populateRateTable(res.data, 0);
+  console.table({YearRate: this.attributes["data-yearrate"].value});
+  setTimeout(()=>{    
+    axios.get(`/api/rates-get/${this.attributes["data-yearrate"].value}`)
+    .then(res=>{
+      console.log(res);
+      populateRateTable(res.data, 0);
+    })
   },300);
 }
 
@@ -143,7 +150,6 @@ function toggleRemoveModal(){
     document.getElementsByClassName('focused')[0].classList.toggle('focused');
   },300)
 }
-
 
 // When you click the plus sign this will prompt the next modal 
 // for adding new rates using a .CSV
@@ -203,7 +209,6 @@ function checkRateFields(){
   if(year.value.length == 4 && file.files.length == 1){
     try {
       csvCompatibilityCheck(year.value, file.files[0]);
-      // populateRateTable();
     } catch (error) {
       console.error(error);
     }
@@ -240,26 +245,29 @@ function csvCompatibilityCheck(year, file){
 // When you click a folder this will populate the table with the rates
 function populateRateTable(data, viewingState){
 
-  const fields = ["ORIGIN", "DESTINATION", "CONT_SIZE", "OCF", "THC_USA", "Guam_THC", "AMS", "RAIL", "ISIF","YEAR","DATE_CREATED"]
+  const fields = ["ORIGIN", "DESTINATION", "CONT_SIZE", "OCF", "THC_USA", "Guam_THC", "AMS", "RAIL", "ISIF"]
 
   const rateTable = document.getElementById("rate-table")
-  console.log(data);
   // populate rate table
   // if statement to switch between "Adding new rates" and
   // Viewing older rates.
+  // bool `viewingState` is the variable that contains the switch between
+  // Adding New Rates, or Viewing old rates. (1 or 0 respectively)
   class rateRow{
     constructor(data){
-      this.ORIGIN = data.$ORIGIN
-      this.DESTINATION = data.$DESTINATION
-      this.CONT_SIZE = data.$CONT_SIZE
-      this.OCF = data.$OCF
-      this.THC_USA = data.$THC_USA
-      this.Guam_THC = data.$Guam_THC
-      this.AMS = data.$AMS
-      this.RAIL = data.$RAIL
-      this.ISIF = data.$ISIF
-      this.YEAR = data.$YEAR
-      this.DATE_CREATED = data.$DATE_CREATED
+      this.ORIGIN = data.$ORIGIN || data.ORIGIN
+      this.DESTINATION = data.$DESTINATION || data.DESTINATION
+      this.CONT_SIZE = data.$CONT_SIZE || data.CONT_SIZE
+      this.OCF = data.$OCF || data.OCF || 0
+
+
+      this.THC_USA = data.$THC_USA || data.THC_USA || 0
+      this.Guam_THC = data.$Guam_THC || data.Guam_THC || 0
+      this.AMS = data.$AMS || data.AMS || 0
+      this.RAIL = data.$RAIL || data.RAIL || 0
+      this.ISIF = data.$ISIF || data.ISIF || 0
+      this.YEAR = data.$YEAR || data.YEAR || 0
+      this.DATE_CREATED = data.$DATE_CREATED || data.DATE_CREATED || 0
     }
 
     createRowElement(table){
@@ -271,11 +279,15 @@ function populateRateTable(data, viewingState){
         if(typeof this[n] == "number"){
           td.className = "cell rate-number"
           input.className = "rate-number";
+          input.disabled = true;
+          n == 'CONT_SIZE'?input.style = 'text-align:center':input.style = 'text-align:right';
+          input.value = this[n].toLocaleString('en-US');
         }else{
+          input.disabled = true;
           td.className = "cell rate-string"
           input.className = "rate-string";
+          input.value = this[n];
         }
-        input.value = this[n];
         row.appendChild(td);
       }
       table.appendChild(row)
@@ -287,24 +299,55 @@ function populateRateTable(data, viewingState){
     for(n of fields){
       const td = document.createElement('th')
       td.innerText = n;
+      td.className = "cell";
       row.appendChild(td);
     }
     table.appendChild(row);
   }
-  //!! LEFT OFF HERE GET THE TABLES WORKING FOR EDITING AND SUBMISSION 07/18/2025
 
-  if(viewingState){
-    createHeaderRow(rateTable);
-    for(i of data){
-      console.log(i);
-      let testRow = new rateRow(i);
-      testRow.createRowElement(rateTable);
-    }
-    toggleClearModal();
-    toggleRemoveModal();
-  }else{
-
+  createHeaderRow(rateTable);
+  for(i of data){
+    let testRow = new rateRow(i);
+    testRow.createRowElement(rateTable);
   }
 
+  toggleClearModal();
+  toggleRemoveModal();
+  if(viewingState){
+    showBtnsConfirm(data[0].$YEAR, viewingState);
+  }else{
+    showBtnsConfirm(data[0].YEAR, viewingState);
+    // What else to do if its just watching rates?
+    // Show Editing Buttons?
+    // Export buttons
+  }
+}
 
+function showBtnsConfirm(year ,state){
+  const confirmation = document.getElementById('container-confirmation');
+  const subheader = document.getElementById('subheader-table');
+  const confirmDiv = document.getElementById('btns-confirm');
+  const updateDiv = document.getElementById('btns-update');
+  subheader.innerText = `${year}-${year+1} Rate Cycle`
+  confirmation.hidden = false;
+  
+  if(!state){
+    confirmDiv.hidden = true;
+    updateDiv.hidden = false;
+  }  
+}
+
+// Final function to submit rates
+function submitRates(){
+  console.log("MOO")
+  console.table(tableData)
+
+  axios.post('/api/upload-rates',tableData)
+  .then((res)=>{
+    console.log(res);
+    window.location.replace("/rates");
+  })
+  .catch(err=>{
+    console.error(err);
+  })
 }

@@ -14,11 +14,23 @@
             <%- include('../partials/header'); %>
         </header>
         <!-- Main Site -->
-        <main style="max-width: 1120px;margin:auto;">
+        <main style="margin:auto;">
             <h1 style="margin-top: 1em;">Rates Management</h1>
+            <div id="container-confirmation" style="display: flex;flex-direction: row;justify-content: space-between;" hidden>
+                <h2 id="subheader-table">2024-2025 Rate Cycle</h2>
+                <div id="btns-confirm">
+                    <a id="btn-cancel" class="btn-cancel btn btn-danger">Cancel</a>
+                    <a id="btn-confirm" class="'btn-confirm btn btn-primary">Confirm</a>
+                </div>
+                <div id="btns-update" hidden>
+                    <a id="btn-reupload" class="btn-cancel btn btn-danger">Re-Upload</a>
+                    <!-- <a id="btn-confirm" class="'btn-confirm btn btn-primary">Confirm</a> -->
+
+                </div>
+            </div>
             <div class="rates-container">
                 <table class="rate-table" id="rate-table">
-                    
+
                 </table>
             </div>
         </main>

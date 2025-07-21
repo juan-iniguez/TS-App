@@ -188,35 +188,57 @@ p{
 }
 
 td{
-  border: solid rgb(42, 42, 66) 2px;
   max-width: 100%;
-  background-color: #b8d1f9;
+  overflow: clip;
+  padding: 1px;
+}
+
+td:first-child,
+th:first-child,
+td:nth-child(2),
+th:nth-child(2) {
+  min-width: 100px;
+  max-width: 200px;
+  width: 200px;
+}
+
+td:nth-child(3),
+th:nth-child(3) {
+  text-align: center;
+}
+
+th{
+    border: black 1px solid;
+    background-color: gainsboro;
+    text-align: center;
 }
 
 .cell{
-
 }
 
 .rate-number{
   min-width: 4em;
+  width: 100%;
   border: none;
-  max-width: 50px;
+
 }
 
 .rate-string{
-  /* min-width: 4em; */
   border: none;
-  /* max-width: 100px; */
   width: 100%;
 }
 
 .cell.rate-number{
   width: 50px;
+  border: black 1px solid;
+}
+
+.cell.rate-string{
+  border: black 1px solid;
 }
 
 
 .rate-table{
   width: 100%;
-  max-width: 1140px;
   height: 100%;
 }

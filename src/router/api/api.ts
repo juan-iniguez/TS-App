@@ -24,6 +24,9 @@ const upload = multer({ storage: storage });
 
 import express from "express";
 import { json } from "body-parser";
+import chalk from "chalk";
+import { error } from "console";
+import { nextLine } from "pdf-lib";
 const router = express.Router();
 
 router.use(verifyToken)
@@ -267,7 +270,7 @@ router.post('/upload-tsp',upload.any(), async (req:any, res) => {
 
 })
 
-// ? DEPRECATED
+// ? DEPRECATED !!!!!
 // Upload APL Rates to DB
 router.post('/db-rates', upload.single('file'), (req, res) => {
     let date_now = Date.now();
@@ -547,7 +550,10 @@ router.get('/tsp-get-year',(req,res,next)=>{
     })
 })
 
-// !! RATES 
+// !! RATES API
+/**
+ * Will call the DB to retrieve all unique years of 
+ */
 router.get('/rates-get-year',(req,res,next)=>{
     localSettings.getAllYearCyclesRates()
     .then(rows=>{
@@ -575,29 +581,44 @@ router.get('/export-rates', (req,res,next)=>{
     })
 })
 
-router.post('/upload-rates',(req:any,res:any,next)=>{
+/**
+ * Upload Rates from a .csv that has been validated
+ * 
+ */
+router.post('/upload-rates', async(req:any,res,next)=>{
 
-    // ! Get back here after you are done with the UI 
-    let csvBuffer:Buffer = req.files[0].buffer;
+    const uploadDataRates = req.body;    
+    let ERROR = 0;
 
-    csvtojson()
-    .fromString(csvBuffer.toString())
-    .then(jsonCSV=>{
-        console.log(jsonCSV);
-    })
+    // Give an order to the rates. So they look similar to
+    // How it was uploaded
 
-    // let data;
-    
-    try {
-        // localSettings.insertRATES(data);
-        
-    } catch (error) {
-        
+    for(let n of uploadDataRates){
+        try {
+            const dbCall = await localSettings.insertRATES(n)
+        } catch (error) {
+            ERROR = 1;
+        } 
     }
+    if(ERROR){
+        res.statusCode = 500;
+        res.send(error);
+    }else{
+        res.status(200).send("Rates uploaded successfully")
+    }
+})
 
-
-    console.table(req.query);
-    res.sendStatus(200);
+router.get('/rates-get/:year',(req,res,next)=>{
+    localSettings.getRATES(req.params.year)
+    .then(rows=>{
+        console.table(rows);
+        res.send(rows);
+    })
+    .catch(err=>{
+        console.error(chalk.bgRedBright("/rates-get/:year"));
+        console.log(err);
+        res.status(500).send(err);
+    })
 })
 
 // Check CSV compatibility when Uploading New Rates
@@ -629,7 +650,6 @@ router.post("/rates/csv-compatibility/:YEAR",upload.any(),async (req:any,res,nex
                     $DATE_CREATED: number,
                 }
 
-                // !!!! This is where you left off. Continue to validate CSV Data coming from the client. Headers should be right
                 let sendData:rateInsertQuery[] = [];
                 csvtojson()
                 .fromString(csvBuffer.toString())
@@ -639,12 +659,12 @@ router.post("/rates/csv-compatibility/:YEAR",upload.any(),async (req:any,res,nex
                             $ORIGIN: n.Origin,
                             $DESTINATION: n.Destination,
                             $CONT_SIZE: parseInt(n.Container),
-                            $OCF: parseInt(n.OCF.replace(/[\$,]/g, "")),
-                            "$THC_USA": parseInt(n["THC USA"].replace(/[\$,]/g, "")),
-                            "$Guam_THC": parseInt(n["Guam THC"].replace(/[\$,]/g, "")),
-                            $AMS: parseInt( n.AMS.replace(/[\$,]/g, "")),
-                            $RAIL: parseInt( n["Inland (Rail)"].replace(/[\$,]/g, "")),
-                            $ISIF: parseInt(n["Invasive Species Inspection Fee"].replace(/[\$,]/g, "")),
+                            $OCF: parseFloat(n.OCF.replace(/[\$,]/g, "")),
+                            "$THC_USA": parseFloat(n["THC USA"].replace(/[\$,]/g, "")),
+                            "$Guam_THC": parseFloat(n["Guam THC"].replace(/[\$,]/g, "")),
+                            $AMS: parseFloat( n.AMS.replace(/[\$,]/g, "")),
+                            $RAIL: parseFloat( n["Inland (Rail)"].replace(/[\$,]/g, "")),
+                            $ISIF: parseFloat(n["Invasive Species Inspection Fee"].replace(/[\$,]/g, "")),
                             $YEAR: parseInt(req.params.YEAR),
                             $DATE_CREATED: date
                         } 

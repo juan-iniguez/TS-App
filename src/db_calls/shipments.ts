@@ -158,41 +158,73 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                   // * Create a Function that can get the YEAR, QTR using the Invoice_date
                   // * Refactor the code for the query to include these two columns
 
-                  db.all("SELECT * FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE AND YEAR=$YEAR", rate_query,(err:any,rows2:any)=>{
+                  db.all("SELECT OCF,THC_USA,Guam_THC,AMS,RAIL,ISIF,YEAR FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE AND YEAR=$YEAR", rate_query,(err:any,rows2:any)=>{
                     console.log(rows2)
+                    let rate = rows2[0];
                     // INITIALIZE `RATES`
                     data_payload.RATES = {};
                     data_payload.RATES.TOTAL = 0;
                     data_payload.NET_RATES = {};
                     data_payload.NET_RATES.TOTAL = 0;
-
                     data_payload.id = parseInt(id);
 
-                    data_payload.RATES[""]
+                    console.log(chalk.bgWhite("Start Rates Calculations: "))
+
+                    data_payload.RATES.OCF = rate.OCF;
+                    data_payload.RATES.THC_USA = rate.THC_USA;
+                    data_payload.RATES.Guam_THC = rate.Guam_THC;
+                    data_payload.RATES.AMS = rate.AMS;
+                    data_payload.RATES.RAIL = rate.RAIL;
+                    data_payload.RATES.ISIF = rate.ISIF;
+                    data_payload.RATES.YEAR = rate.YEAR;
+                    
+                    for(let n in data_payload.RATES){
+                      if(n == "YEAR" || n == "TOTAL"){continue};
+                      data_payload.NET_RATES[n] = rate[n] * data_payload.BASED_ON;
+                      console.log(n);
+                      console.log(data_payload.RATES.TOTAL + rate[n]);
+                      console.log(data_payload.RATES.TOTAL,rate[n]);
+                      data_payload.RATES.TOTAL += rate[n];
+                      data_payload.NET_RATES.TOTAL += rate[n] * data_payload.BASED_ON;
+                    }
+
+                    JSON.parse(rows[0].CHARGES).map((e:any)=>{
+                      if(e.DESC.includes('Bunker')){
+                        let amount = parseInt(e.AMOUNT)
+                        data_payload.RATES.FAF = amount;
+                        data_payload.RATES.TOTAL += amount;
+                        data_payload.NET_RATES.FAF = amount * data_payload.BASED_ON;
+                        data_payload.NET_RATES.TOTAL += amount * data_payload.BASED_ON;
+                      }
+                    })
+                    console.table(data_payload.RATES);
 
 
                     // ! DEPRECATED REWRITE !
-                    for(let j in rows2){
-                      // IF bunker rate, then don't pull that into rates
-                      if(rows2[j].RATE == 'FAF'){
-                        let invoiceBunker = JSON.parse(rows[0].CHARGES);
-                        invoiceBunker.map((e:any)=>{
-                          if(e.DESC.includes('Bunker')){
-                            let amount = parseInt(e.AMOUNT)
-                            data_payload.RATES[rows2[j].RATE] = amount;
-                            data_payload.RATES.TOTAL += amount;
-                            data_payload.NET_RATES[rows2[j].RATE] = amount * data_payload.BASED_ON;
-                            data_payload.NET_RATES.TOTAL += amount * data_payload.BASED_ON;
-                          }
-                        })
-                      }else{
-                        data_payload.RATES[rows2[j].RATE] = rows2[j].AMOUNT;
-                        data_payload.RATES.TOTAL += rows2[j].AMOUNT;
-                        data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
-                        data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
-                      }
-                    }
+                    // for(let j in rows2){
+                    //   // IF bunker rate, then don't pull that into rates
+                    //   if(rows2[j].RATE == 'FAF'){
+                    //     let invoiceBunker = JSON.parse(rows[0].CHARGES);
+                    //     invoiceBunker.map((e:any)=>{
+                    //       if(e.DESC.includes('Bunker')){
+                    //         let amount = parseInt(e.AMOUNT)
+                    //         data_payload.RATES[rows2[j].RATE] = amount;
+                    //         data_payload.RATES.TOTAL += amount;
+                    //         data_payload.NET_RATES[rows2[j].RATE] = amount * data_payload.BASED_ON;
+                    //         data_payload.NET_RATES.TOTAL += amount * data_payload.BASED_ON;
+                    //       }
+                    //     })
+                    //   }else{
+                    //     data_payload.RATES[rows2[j].RATE] = rows2[j].AMOUNT;
+                    //     data_payload.RATES.TOTAL += rows2[j].AMOUNT;
+                    //     data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
+                    //     data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
+                    //   }
+                    // }
+
                     resolve(data_payload);
+
+
                   })
                 }
               }
