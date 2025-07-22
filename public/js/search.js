@@ -237,7 +237,7 @@ function search(e){
 
     axios.post("/api/search", {
         data: currentTab,
-        search: argVal == "DATE_CREATED"?{startDate: startDate.valueAsNumber,endDate: endDate.valueAsNumber}:searchText,
+        search: argVal == "DATE_CREATED" || argVal == "INVOICE_DATE"?{startDate: startDate.valueAsNumber,endDate: endDate.valueAsNumber}:searchText,
         arg: argVal,
     }).then((response)=>{
         clearTable();

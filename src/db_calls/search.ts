@@ -47,6 +47,8 @@ function getShipments(arg:any,search:any, data:any): Promise<any>{
     })  
 }
 function getLocalInvoices(arg:any,search:any): Promise<any>{
+    // console.log("INVOICES!")
+    // console.log(arg,search);
     return new Promise((resolve,reject)=>{
         if(typeof search == 'object'){
             db.all("Select INVOICE_NUM, MEMBER_NAME, BOL, INVOICE_DATE, TOTAL, VOID  from LOCAL_INVOICES WHERE INVOICE_DATE > ? AND INVOICE_DATE < ? ORDER BY INVOICE_DATE ASC LIMIT 50",[search.startDate,search.endDate],(err, rows)=>{
