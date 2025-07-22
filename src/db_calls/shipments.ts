@@ -197,34 +197,8 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                         data_payload.NET_RATES.TOTAL += amount * data_payload.BASED_ON;
                       }
                     })
-                    console.table(data_payload.RATES);
-
-
-                    // ! DEPRECATED REWRITE !
-                    // for(let j in rows2){
-                    //   // IF bunker rate, then don't pull that into rates
-                    //   if(rows2[j].RATE == 'FAF'){
-                    //     let invoiceBunker = JSON.parse(rows[0].CHARGES);
-                    //     invoiceBunker.map((e:any)=>{
-                    //       if(e.DESC.includes('Bunker')){
-                    //         let amount = parseInt(e.AMOUNT)
-                    //         data_payload.RATES[rows2[j].RATE] = amount;
-                    //         data_payload.RATES.TOTAL += amount;
-                    //         data_payload.NET_RATES[rows2[j].RATE] = amount * data_payload.BASED_ON;
-                    //         data_payload.NET_RATES.TOTAL += amount * data_payload.BASED_ON;
-                    //       }
-                    //     })
-                    //   }else{
-                    //     data_payload.RATES[rows2[j].RATE] = rows2[j].AMOUNT;
-                    //     data_payload.RATES.TOTAL += rows2[j].AMOUNT;
-                    //     data_payload.NET_RATES[rows2[j].RATE] = rows2[j].AMOUNT * data_payload.BASED_ON;
-                    //     data_payload.NET_RATES.TOTAL += rows2[j].AMOUNT * data_payload.BASED_ON;
-                    //   }
-                    // }
-
                     resolve(data_payload);
-
-
+                    
                   })
                 }
               }

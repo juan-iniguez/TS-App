@@ -1,13 +1,17 @@
-
 let currentTab = "pendingshipments";
 // let tabs = ["pendingshipments","allshipments", "invoices", "tsp", "rates" ]
 let tabs = ["pendingshipments","allshipments", "invoices" ]
 let searchBar = document.getElementById("search-bar");
 let searchArg = document.getElementById("search-arg");
 let searchDate = document.getElementById('search-date-container');
+let startDate = document.getElementById('search-date-start');
+let endDate = document.getElementById('search-date-end');
+
 
 searchArg.addEventListener('change', searchDropdownSetInputType)
 searchBar.addEventListener('input', search);
+
+startDate.addEventListener('input', search)
 
 for(let i in tabs){
     document.getElementById(tabs[i] + "-tab").addEventListener("click", openTab)
@@ -187,8 +191,6 @@ function openTab(e){
             search: "",
             arg: "",
         }).then(data=>{
-            // console.log("## DATA ##")
-            // console.log(data);
             dropdownSet(data.data[0])
             populateTable(data.data, key);
             searchDropdownSetInputType(undefined, searchArg)
@@ -232,12 +234,12 @@ function openTab(e){
 function search(e){
     let searchText = searchBar.value;
     let argVal = searchArg.value;
+
     axios.post("/api/search", {
         data: currentTab,
-        search: searchText,
+        search: argVal == "DATE_CREATED"?{startDate: startDate.valueAsNumber,endDate: endDate.valueAsNumber}:searchText,
         arg: argVal,
     }).then((response)=>{
-        // console.log(response);
         clearTable();
         populateTable(response.data, currentTab);
     })
@@ -289,15 +291,10 @@ function searchDropdownSetInputType(e, n){
 }
 
 function openDateSearch(){
-    let date = new Date;
-    let startDate = document.getElementById('search-date-start');
-    let endDate = document.getElementById('search-date-end');
+    let date = new Date();
     
-    console.log(date.toLocaleDateString())
-
-    startDate.value = date.toLocaleDateString('en-US');
-    endDate.value = date.toLocaleDateString('en-US');
-    console.log(startDate.value)
+    startDate.valueAsDate = new Date(date.getTime() - 900000000);
+    endDate.valueAsDate = date;
 
     searchDate.hidden = false;
     searchBar.hidden = true;

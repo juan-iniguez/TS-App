@@ -155,3 +155,10 @@ NAMA1243907
 
 !!!!!!!! Left off here!
 -> PDF Fields need to be renamed to reflect the new Rates names.
+
+## TODO! 07/22/25 
+
+- Rates have been updated, the DB has a new schema, rates can be imported into the DB using a CSV and rates are taken into consideration when creating a shipment
+- You can now see which cycle of rates are being used when looking at a shipment
+- TODO: Case -> Use invoice charges in case there are NO RATES in the system
+- TODO: Case -> IF no rates, then show "NO RATES UPLOADED FOR THIS YEAR" on the shipment view.
