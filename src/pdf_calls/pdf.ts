@@ -131,14 +131,14 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
 
     // RATE
     for(let i in db_payload.CHARGES.RATES){
-        if(i == "TOTAL"){continue}
+        if(i == "TOTAL" || i == "YEAR"){continue}
         form.getTextField("RATES-" + i).setText(db_payload.CHARGES.RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
         form.getTextField("RATES-" + i).enableReadOnly();
     }
     
     // NET_RATES
     for(let i in db_payload.CHARGES.NET_RATES){
-        if(i == "TOTAL"){continue}
+        if(i == "TOTAL" || i == "YEAR"){continue}
         form.getTextField("NET_RATES-" + i).setText(db_payload.CHARGES.NET_RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
         form.getTextField("NET_RATES-" + i).enableReadOnly();
     }

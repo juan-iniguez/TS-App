@@ -53,7 +53,7 @@ function json2csv(jsonData:any){
 /**
  * 
  * This transforms the invoice data that came in from APL API call to a more
- * DB Friendly version.
+ * DB Friendly version. (cuts unnecessary properties)
  * 
  * @param inv_data 
  * @returns Invoice with DB friendly data
@@ -65,7 +65,7 @@ function InvoiceApi2localformat(inv_data:any){
         invOutput.BOL = inv_data.invoice.transportDocumentReference;
         invOutput.INVOICE_NUM = inv_data.invoice.invoiceNo;
         invOutput.CUSTOMER_NUM = inv_data.payment.payer.code;
-        invOutput.INVOICE_DATE = inv_data.invoice.invoiceDate;
+        invOutput.INVOICE_DATE = inv_data.rateApplicationDate || inv_data.invoice.invoiceDate;
         invOutput.VOYAGE = inv_data.invoicedCall.voyageRef;
         invOutput.VESSEL = inv_data.invoicedCall.vessel.name;
         if(inv_data.shipment?.placeOfReceipt?.name){console.log("NO!")}

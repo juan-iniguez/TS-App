@@ -1,6 +1,7 @@
 
 let currentTab = "pendingshipments";
-let tabs = ["pendingshipments","allshipments", "invoices", "tsp", "rates" ]
+// let tabs = ["pendingshipments","allshipments", "invoices", "tsp", "rates" ]
+let tabs = ["pendingshipments","allshipments", "invoices" ]
 let searchBar = document.getElementById("search-bar");
 let searchArg = document.getElementById("search-arg");
 let searchDate = document.getElementById('search-date-container');
