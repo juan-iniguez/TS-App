@@ -43,6 +43,7 @@ router.get("/:invoice_num", (req:any, res, next) => {
             data_payload.NET_RATES = data_payload.CHARGES.NET_RATES;
             data_payload.VOID_INFO = JSON.parse(data_payload.VOID_INFO)
             delete data_payload.CHARGES;
+            console.log(data_payload);
             res.render("pages/shipment", { ...req.user,...{ data: data_payload }});
         })
 })

@@ -175,14 +175,14 @@
                             <tr>
                                 <td><%= data.BASED_ON %></td>
                                 <td>Origin Terminal Handling Charge</td>
-                                <td><%= data.RATES["THC_USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                                <td><%= data.NET_RATES["THC_USA"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.RATES["THC_USA"] || data.RATES["THC USA"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.NET_RATES["THC_USA"]||data.NET_RATES["THC USA"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
                             </tr>
                             <tr>
                                 <td><%= data.BASED_ON %></td>
                                 <td>Destination Terminal Handing Charge</td>
-                                <td><%= data.RATES["Guam_THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                                <td><%= data.NET_RATES["Guam_THC"].toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.RATES["Guam_THC"] || data.RATES["Guam THC"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.NET_RATES["Guam_THC"] || data.NET_RATES["Guam THC"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
                             </tr>
                             <tr>
                                 <td><%= data.BASED_ON %></td>
@@ -193,14 +193,14 @@
                             <tr>
                                 <td><%= data.BASED_ON %></td>
                                 <td>Inland (Rail) Charge</td>
-                                <td><%= data.RATES.RAIL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                                <td><%= data.NET_RATES.RAIL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.RATES.RAIL || data.RATES["Inland (Rail)"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.NET_RATES.RAIL || data.NET_RATES["Inland (Rail)"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
                             </tr>
                             <tr>
                                 <td><%= data.BASED_ON %></td>
                                 <td>Container Inspection Fee & Survey Fee</td>
-                                <td><%= data.RATES.ISIF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
-                                <td><%= data.NET_RATES.ISIF.toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.RATES.ISIF||data.RATES["Invasive Species Inspection Fee"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
+                                <td><%= (data.NET_RATES.ISIF||data.NET_RATES["Invasive Species Inspection Fee"]).toLocaleString('en-US', {style: 'currency', currency: 'USD'}) %> </td>
                             </tr>
                             <tr>
                                 <td></td>
