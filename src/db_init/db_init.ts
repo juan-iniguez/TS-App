@@ -1,7 +1,7 @@
 import sqlite3 from 'sqlite3';
 
 // Open DB Connection
-export let db = new sqlite3.Database('db/apl.db', (err) => {
+export let db:sqlite3.Database = new sqlite3.Database('db/apl.db', (err) => {
     if (err) {
         return console.error(err.message);
     }
