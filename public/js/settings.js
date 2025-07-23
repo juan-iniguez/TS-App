@@ -96,12 +96,21 @@ function uploadTSP(){
     }
   })
   .then(res=>{
-    console.log(res.status);
-    // window.location.reload();
+    // console.log(res.status);
+    successMsg("Successfully Uploaded TSP list! ✅");
+    setTimeout(()=>{
+      window.location.reload();
+    },2000)
   })
   .catch(err=>{
     console.error(err);
   })
+}
+
+function successMsg(msg){
+  !errorContainer.classList.contains('active')?errorContainer.classList.toggle('active'):{};
+  errorContainer.classList.toggle("success");
+  errorMsg.innerText = msg;
 }
 
 function resetModalImportTSP(){

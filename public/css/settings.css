@@ -90,3 +90,7 @@
 .input-group-text{
   border-radius: 10px 0px 0px 10px;
 }
+
+.success{
+  background-color: rgb(94, 221, 96);
+}
