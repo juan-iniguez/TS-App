@@ -131,16 +131,26 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
 
     // RATE
     for(let i in db_payload.CHARGES.RATES){
-        if(i == "TOTAL" || i == "YEAR"){continue}
-        form.getTextField("RATES-" + i).setText(db_payload.CHARGES.RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-        form.getTextField("RATES-" + i).enableReadOnly();
+        let key = i;
+        if(key.includes(" ") && !key.includes("Inland (Rail)") && !key.includes("Invasive Species Inspection Fee")){key = key.replace(/ /g,"_")};
+        if(key.includes("Inland (Rail)")){key = "RAIL"};
+        if(key.includes("Invasive Species Inspection Fee")){key = "ISIF"};
+        if(i == "TOTAL" || i == "YEAR"){continue};
+
+        form.getTextField("RATES-" + key).setText(db_payload.CHARGES.RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
+        form.getTextField("RATES-" + key).enableReadOnly();
     }
     
     // NET_RATES
     for(let i in db_payload.CHARGES.NET_RATES){
+        let key = i;
+        if(key.includes(" ") && !key.includes("Inland (Rail)") && !key.includes("Invasive Species Inspection Fee")){key = key.replace(/ /g,"_")};
+        if(key.includes("Inland (Rail)")){key = "RAIL"};
+        if(key.includes("Invasive Species Inspection Fee")){key = "ISIF"};
         if(i == "TOTAL" || i == "YEAR"){continue}
-        form.getTextField("NET_RATES-" + i).setText(db_payload.CHARGES.NET_RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
-        form.getTextField("NET_RATES-" + i).enableReadOnly();
+        
+        form.getTextField("NET_RATES-" + key).setText(db_payload.CHARGES.NET_RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
+        form.getTextField("NET_RATES-" + key).enableReadOnly();
     }
     
     form.getTextField("TOTAL").setText(db_payload.CHARGES.NET_RATES.TOTAL.toLocaleString('en-US', {style: 'currency', currency: 'USD'}));  

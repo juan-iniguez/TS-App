@@ -1,4 +1,6 @@
+import { resolve } from 'path';
 import { db } from '../db_init/db_init'
+import { rejects } from 'assert';
 // SETTINGS FOR TSP AND RATES
 export const localSettings = {
     insertTSP,
@@ -8,6 +10,17 @@ export const localSettings = {
     getAllYearCyclesTSP,
     getAllYearCyclesRates,
     updateTSP,
+    doesYearExistTSP,
+}
+
+function doesYearExistTSP(year:number):Promise<boolean>{
+    return new Promise((resolve,rejects)=>{
+    db.all("SELECT YEAR FROM TSP WHERE YEAR=?",year,(err,rows)=>{
+            if(err){console.error(err);rejects(err)}
+            if(rows.length==0) resolve(false)
+            else resolve(true)
+        })
+    }) 
 }
 
 /**

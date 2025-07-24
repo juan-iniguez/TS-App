@@ -150,7 +150,11 @@
                     </div>
                     <div class="input-group">
                         <label for="rate-applied" class="input-group-text">Rates Applied:</label>
-                        <input id="rate-applied" class="form-control" value="<%= data.RATES.YEAR %>-<%= data.RATES.YEAR+1 %> Rates Cycle" disabled>
+                        <% if (data.RATES.YEAR == "" || data.RATES.YEAR == undefined || data.RATES.YEAR == null){ %>
+                            <input id="rate-applied" class="form-control" value="No Rates Applicable" disabled>
+                        <% } else { %>
+                            <input id="rate-applied" class="form-control" value="<%= data.RATES.YEAR %>-<%= data.RATES.YEAR+1 %> Rates Cycle" disabled>
+                        <% } %>
                     </div>
                     <div id="charges-table" style="margin-top: 2em;">
                         <table style="width: 100%;">

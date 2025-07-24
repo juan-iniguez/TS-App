@@ -45,12 +45,10 @@ app.use(verifyToken)
 // ********** SITE ROUTES *********** 
 // Home page
 app.get("/", (req: any, res: Response) => {
-  // console.log("ROOT",req.user);
   res.render('pages/index', req.user);
 });
 
 // ! APL Invoice and Waybill upload page
-//
 app.get("/upload/pdf",(req:any,res)=>{
   console.log(req.user)
   req.user?res.render("pages/uploadPDF", req.user):res.redirect('/login');

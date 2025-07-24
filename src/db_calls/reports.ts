@@ -1,13 +1,67 @@
 
 import sqlite3 from 'sqlite3';
 import { db } from '../db_init/db_init'
+const localDiscountPercentage = .05;
+
+
+type mainReportQueryRes = {
+  BOL?:string,
+  APL_INVOICE_NUM?:string,
+  LOCAL_INVOICE_NUM?:string,
+  INVOICE_DATE?: number,
+  GBL?: string,
+  SCAC?: string,
+  TSP_NAME?: string,
+  MEMBER_NAME?: string,
+  RECEIPT_PLACE?: string,
+  LOAD_PORT?: string,
+  DISCHARGE_PORT?: string,
+  DELIVERY_PLACE?: string,
+  CHARGES?: string,
+  TSP_DISCOUNT?:number,
+
+}
+
+type mainReportRes = {
+  // Shipment Info
+  BOL?:string,
+  APL_INVOICE_NUM?:string,
+  LOCAL_INVOICE_NUM?:string,
+  INVOICE_DATE?: number,
+  GBL?: string,
+  SCAC?: string,
+  TSP_NAME?: string,
+  MEMBER_NAME?: string,
+  RECEIPT_PLACE?: string,
+  LOAD_PORT?: string,
+  DISCHARGE_PORT?: string,
+  DELIVERY_PLACE?: string,
+  // Charges
+  CHARGES?: string,
+  OCF?: number,
+  FAF?: number,
+  THC_USA?: number,
+  Guam_THC?: number,
+  AMS?: number,
+  RAIL?: number,
+  ISIF?: number,
+  TOTAL?: number,
+  // TSP Details
+  TSP_DISCOUNT?:number,
+  TSP_DISCOUNT_AMOUNT?: number,
+  LOCAL_DISCOUNT?: number,
+  LOCAL_DISCOUNT_AMOUNT?: number,
+  TOTAL_APL_DISCOUNT_AMOUNT?:number,
+}
+
+
 
 /**
  * Class to call DB for Reports
  */
 export class reports {
   private db:sqlite3.Database;
-  constructor(db:sqlite3.Database, startDate:number, endDate:number){
+  constructor(){
     this.db = db;
   }
 
@@ -19,7 +73,8 @@ export class reports {
    * @param endDate 
    * @returns All fields needed for MAIN REPORT - object[]
    */
-  getMainReport(startDate:number, endDate:number):Promise<object[]>{
+  getMainReport(startDate:number, endDate:number):Promise<mainReportRes[]>{
+    
     const query = `
     SELECT
       LOCAL_INVOICES.BOL,
@@ -40,17 +95,96 @@ export class reports {
     JOIN
       APL_INVOICES ON LOCAL_INVOICES.BOL = APL_INVOICES.BOL
     WHERE
-      LOCAL_INVOICE.INVOICE_DATE > ? AND LOCAL_INVOICE.INVOICE_DATE < ?;
+      LOCAL_INVOICES.INVOICE_DATE > ? AND LOCAL_INVOICES.INVOICE_DATE < ?;
     `;
     return new Promise((resolve,reject)=>{
-      this.db.all(query,[startDate,endDate],(err:any,rows:object[])=>{
+      this.db.all(query,[startDate,endDate],(err:any,rows:Array<mainReportQueryRes>)=>{
         if(err) reject(err);
-        else resolve(rows)
+        else resolve(decompressCharges(rows));
+
       })
     })
   }
 
+  //!! Last One because we need the CSV that APL produces for the company 
   getDiscountReport(){}
 
-  getAccrualsReport(){}
+  /**
+   * 
+   * @param startDate 
+   * @param endDate 
+   * @returns 
+   */
+  getAccrualsReport(startDate:number, endDate:number, year:number):Promise<mainReportRes[]>{
+    const query = `
+    SELECT
+      LOCAL_INVOICES.BOL,
+      LOCAL_INVOICES.MEMBER_NAME,
+      LOCAL_INVOICES.GBL,
+      LOCAL_INVOICES.CHARGES,
+      LOCAL_INVOICES.SCAC,
+      APL_INVOICES.LOAD_PORT,
+      APL_INVOICES.DISCHARGE_PORT,
+      CASE
+        WHEN APL_INVOICES.DISCHARGE_PORT LIKE '%GUAM%' THEN 
+          COALESCE(TSP.DISC_TO_GUA, 0)
+        ELSE 
+          COALESCE(TSP.DISC_FROM_GUA, 0)
+      END AS TSP_DISCOUNT
+    FROM
+      LOCAL_INVOICES
+    JOIN
+      APL_INVOICES ON LOCAL_INVOICES.BOL = APL_INVOICES.BOL
+    LEFT JOIN
+      TSP ON LOCAL_INVOICES.SCAC = TSP.SCAC
+    WHERE
+      LOCAL_INVOICES.INVOICE_DATE > ? AND LOCAL_INVOICES.INVOICE_DATE < ?
+      AND (TSP.YEAR = ? OR TSP.YEAR IS NULL);
+    `;
+
+    return new Promise((resolve, reject)=>{
+      this.db.all(query,[startDate,endDate, year],(err,rows:mainReportQueryRes[])=>{
+        if(err) reject(err);
+        else{
+          console.log(rows);
+          const rowsDecompressed = decompressCharges(rows);
+          let endData:mainReportRes[] = [];
+          for(let n of rowsDecompressed){
+            let {FAF,THC_USA,Guam_THC,AMS,RAIL,ISIF,TOTAL,CHARGES,OCF,TSP_DISCOUNT, ...results}=n;
+            let orderedFields:mainReportRes = {...results};
+            orderedFields.OCF = OCF;
+            orderedFields.TSP_DISCOUNT = TSP_DISCOUNT;
+            orderedFields.TSP_DISCOUNT_AMOUNT = TSP_DISCOUNT! * OCF!;
+            orderedFields.LOCAL_DISCOUNT = .37 - TSP_DISCOUNT!;
+            orderedFields.LOCAL_DISCOUNT_AMOUNT = orderedFields.LOCAL_DISCOUNT! * OCF!;
+            orderedFields.TOTAL_APL_DISCOUNT_AMOUNT = orderedFields.LOCAL_DISCOUNT_AMOUNT + orderedFields.TSP_DISCOUNT_AMOUNT;
+            endData.push(orderedFields);
+          }
+          resolve(endData);
+        }
+      })
+    })
+
+
+  }
+}
+
+function decompressCharges(queryResponse:Array<mainReportQueryRes>):mainReportRes[]{
+  let rowsChargesDecompressed:mainReportRes[] = []
+  // console.table(queryResponse);
+  for(let n of queryResponse){
+    let {CHARGES, ...newRow}:mainReportRes = n;
+    const charges = JSON.parse(CHARGES!);
+    newRow.OCF = charges.NET_RATES.OCF;
+    newRow.FAF = charges.NET_RATES.FAF;
+    newRow.THC_USA = charges.NET_RATES.THC_USA || charges.NET_RATES["THC USA"];
+    newRow.Guam_THC = charges.NET_RATES.Guam_THC || charges.NET_RATES["Guam THC"];
+    newRow.AMS = charges.NET_RATES.AMS;
+    newRow.RAIL = charges.NET_RATES.RAIL!=undefined?charges.NET_RATES.RAIL:charges.NET_RATES["Inland (Rail)"];
+    newRow.ISIF = charges.NET_RATES.ISIF!=undefined?charges.NET_RATES.ISIF:charges.NET_RATES["Invasive Species Inspection Fee"];
+    newRow.TOTAL = charges.NET_RATES.TOTAL;
+    rowsChargesDecompressed.push(newRow);
+  }
+
+  return rowsChargesDecompressed;
 }

@@ -26,12 +26,12 @@ axios.get('/api/tsp-get-year')
   option_break.innerText = "-------------";
   option_break.disabled=true;
   const option_new = document.createElement("option");
-  option_new.innerText = `Add ${parseInt(TSPYearsData[TSPYearsData.length-1].split('-')[0])+1} Year Cycle...`;
-  option_new.value = parseInt(TSPYearsData[TSPYearsData.length-1].split('-')[0])+1;
+  option_new.innerText = `Add ${TSPYearsData[TSPYearsData.length-1]+1} Year Cycle...`;
+  option_new.value = TSPYearsData[TSPYearsData.length-1]+1;
   option_new.addEventListener('click', TSPInsertNewYear);
   option_new.style = 'cursor:pointer;'
   TSPYearsSelect.insertAdjacentElement('beforeend',option_new);
-  document.getElementById('current-tsp-year').innerText = (parseInt(TSPYearsData[TSPYearsData.length-1].split('-')[0])+1)+"-"+(parseInt(TSPYearsData[TSPYearsData.length-1].split('-')[0])+2);
+  document.getElementById('current-tsp-year').innerText = TSPYearsData[TSPYearsData.length-1]+1;
 })
 
 for(let i of cardTitle){
@@ -85,12 +85,11 @@ function uploadTSP(){
     return
   }else if(TSPYearsSelect.value=="Choose..."){
     errorHandling("Please select a Year")
-    return    
+    return
   }
   
   const sel_year = document.getElementById('tsp-year').value;
-  if(sel_year.includes('-')){action = 'update'}
-  axios.post('/api/upload-tsp?year='+sel_year+"&action="+action,formData,{
+  axios.post('/api/upload-tsp?year='+sel_year,formData,{
     headers: {
       'Content-Type': 'multipart/form-data'
     }
@@ -147,41 +146,6 @@ function optionsGen(innerText,value,el){
   el.insertAdjacentElement('beforeend', option);
   return option;
 }
-
-axios.get('/api/rates-get-year')
-.then(res=>{
-  // console.log(res.data);
-  for(let i of res.data){
-    let value = `${i.YEAR} ${i.QUARTER}`;
-
-    // * Set up Export Rates Year Cycles * 
-    if(!yearsRates.includes(i.YEAR)){
-      yearsRates.push(i.YEAR);
-      optionsGen(i.YEAR,i.YEAR,exportRatesYearCycle);
-      qRates[i.YEAR]=[]
-      // * Setup up Quarterly Export fields 
-      optionsGen(i.YEAR,i.YEAR,exportRatesYear).addEventListener('click',selectQuarterlyYear);
-    }
-    qRates[i.YEAR].push(i.QUARTER); // Get Quarters from each year
-
-
-    // * Set up Import Rates Year Cycles *
-    optionsGen(i.YEAR,i.YEAR,importRatesYearCycle);
-    
-  }
-  // New Rates Yearly import
-  let options_break = document.createElement("option");
-  options_break.innerText = "------------";
-  options_break.disabled = true;
-  importRatesYearCycle.insertAdjacentElement('beforeend',options_break);
-  let options_new = document.createElement("option");
-  options_new.innerText = `Add New Yearly Rates ${parseInt(res.data[res.data.length-1]["YEAR"].split('-')[0])+1}-${parseInt(res.data[res.data.length-1]["YEAR"].split('-')[0])+2}...`;
-  importRatesYearCycle.insertAdjacentElement('beforeend',options_new);
-
-})
-.catch(err=>{
-  console.error(err);
-})
 
 /*  
  * TODO: Import Rates by opening modal and selecting whether it is all rates, 

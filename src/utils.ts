@@ -3,6 +3,7 @@ export let appUtils = {
     json2csv,
     InvoiceApi2localformat,
     findRateYear,
+    renameForCSV
 }
 
 /**
@@ -114,4 +115,121 @@ function findRateYear(date:number):number{
 
     return YEAR;
 
+}
+
+type queryToCSV = {
+    "Bill of Lading #"?:string,
+    "APL Invoice"?:string,
+    "Shipment Invoice"?:string,
+    "Date Invoice Created"?: string,
+    "GBL #"?: string,
+    "TSP SCAC"?: string,
+    "TSP Name"?: string,
+    "Shipper Name"?: string,
+    "Origin Name"?: string,
+    "Load Port Name"?: string,
+    "Discharge Port Name"?: string,
+    "Destination Name"?: string,
+    
+    "Basic Ocean Freight"?: number,
+    "Bunker Surcharge NOS"?: number,
+    "Origin Terminal Handling"?: number,
+    "Destination Terminal Handing"?: number,
+    "Advance Manifest Compliance (AMS)"?: number,
+    "Inland (Rail) Charge"?: number,
+    "Container Inspection Fee & Survey Fee"?: number,
+    "Total"?: number,
+    
+    "TSP % RATE"?:number,
+    "TSP DISCOUNT"?:number,
+    "Our %"?: number,
+    "Our DISCOUNT"?: number,
+    "Total APL Discount"?: number,
+}
+
+function renameForCSV(o:any):queryToCSV{
+    let newRow:queryToCSV = {};
+    // console.log(o);
+    for(let n in o){
+        switch (n) {
+            case "BOL":
+                newRow["Bill of Lading #"]=o[n]
+                break;
+            case "APL_INVOICE_NUM":
+                newRow["APL Invoice"]=o[n]
+                break;
+            case "LOCAL_INVOICE_NUM":
+                newRow["Shipment Invoice"]=o[n]
+                break;
+            case "INVOICE_DATE":
+                newRow["Date Invoice Created"]= new Date(o[n]).toLocaleDateString('en-US');
+                break;
+            case "GBL":
+                newRow["GBL #"]=o[n]
+                break;
+            case "SCAC":
+                newRow["TSP SCAC"]=o[n]
+                break;
+            case "TSP_NAME":
+                newRow["TSP Name"]=o[n]
+                break;
+            case "MEMBER_NAME":
+                newRow["Shipper Name"]=o[n]
+                break;
+            case "RECEIPT_PLACE":
+                newRow["Origin Name"]=o[n]
+                break
+            case "LOAD_PORT":
+                newRow["Load Port Name"]=o[n]
+                break;
+            case "DISCHARGE_PORT":
+                newRow["Discharge Port Name"]=o[n]
+                break;
+            case "DELIVERY_PLACE":
+                newRow["Destination Name"]=o[n]
+                break;
+            case "OCF":
+                newRow["Basic Ocean Freight"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "FAF":
+                newRow["Bunker Surcharge NOS"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "THC_USA":
+                newRow["Origin Terminal Handling"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "Guam_THC":
+                newRow["Destination Terminal Handing"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "AMS":
+                newRow["Advance Manifest Compliance (AMS)"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "RAIL":
+                newRow["Inland (Rail) Charge"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "ISIF":
+                newRow["Container Inspection Fee & Survey Fee"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "TOTAL":
+                newRow["Total"]=parseFloat(o[n].toFixed(2))
+                break;
+            case "TSP_DISCOUNT":
+                newRow["TSP % RATE"]=o[n];
+                break
+            case "TSP_DISCOUNT_AMOUNT":    
+                newRow["TSP DISCOUNT"]=parseFloat(o[n].toFixed(2));
+                break
+            case "LOCAL_DISCOUNT":
+                newRow["Our %"]=o[n];
+                break
+            case "LOCAL_DISCOUNT_AMOUNT":
+                newRow["Our DISCOUNT"]=parseFloat(o[n].toFixed(2));
+                break
+            case "TOTAL_APL_DISCOUNT_AMOUNT":
+                newRow["Total APL Discount"]=parseFloat(o[n].toFixed(2));
+                break
+            default:
+                break;
+        }
+    }
+    return newRow;
 }

@@ -16,7 +16,8 @@ import { searchDB } from '../../db_calls/search'
 import { appUtils } from "../../utils";
 import { verifyToken } from '../../auth/verifyToken';
 import { oauth } from '../../auth/APL_oauth';
-import csvtojson from 'csvtojson'
+import { reports } from "../../db_calls/reports";
+import csvtojson from 'csvtojson';
 
 // Multer configuration - for file upload
 const storage = multer.memoryStorage();
@@ -229,7 +230,7 @@ router.post('/upload-tsp',upload.any(), async (req:any, res) => {
 
     // console.log(req.files[0]);
     console.log(req.query.year);
-    console.log(req.query.action);
+    // console.log(req.query.action);
     // res.send(200);
     // return;
     try {
@@ -237,7 +238,7 @@ router.post('/upload-tsp',upload.any(), async (req:any, res) => {
 
         csvtojson()
         .fromString(csvBuffer.toString())
-        .then((jsonData)=>{
+        .then(async (jsonData)=>{
             // HERE IS THE CODE TO UPLOAD IT
             for (let i in jsonData) {
                 let db_payload: any = {};
@@ -246,14 +247,18 @@ router.post('/upload-tsp',upload.any(), async (req:any, res) => {
                     db_payload[`$${j}`] = value[j];
                 }
                 db_payload["$DATE_CREATED"] = Date.now();
-                // console.log(db_payload);
-                if(req.query.action == "update"){
+                try {
+                    const existsYear = await localSettings.doesYearExistTSP(req.query.year);
                     db_payload["$YEAR"] = req.query.year;
-                    localSettings.updateTSP(db_payload);
-                }else if(req.query.action == "create"){
-                    db_payload["$YEAR"] = `${req.query.year}-${parseInt(req.query.year)+1}`
-                    localSettings.insertTSP(db_payload)
+                    if(existsYear){
+                        localSettings.updateTSP(db_payload);
+                    }else{
+                        localSettings.insertTSP(db_payload)
+                    }
+                } catch (error) {
+                    console.log(error);
                 }
+                // console.log(db_payload);
                 // console.log(db_payload);
                 // This adds TSPs with timestamp. 
                 // TODO: Add status of contract?
@@ -755,6 +760,57 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
     }
 
 })
+
+
+/** REPORTS */
+router.get('/reports/mainreport', async (req,res,next)=>{
+    const dateSelected = new Date().getDate();
+    let rep:reports = new reports();
+
+    try {
+        const result = await rep.getMainReport(0,9000000000000)
+        let csvReady = [];
+        for(let n of result){
+            // console.log(n);
+            csvReady.push(appUtils.renameForCSV(n));
+        }
+        let csv = appUtils.json2csv(csvReady);
+        res.type('text/csv')
+        res.attachment(`APL MAIN REPORT-${dateSelected}.csv`).send(csv);
+
+
+    } catch (error) {
+        console.error(error);
+    }
+})
+router.get('/reports/accruals', async (req,res,next)=>{
+    const dateSelected = new Date().getDate();
+    let rep:reports = new reports();
+
+    try {
+        const result = await rep.getAccrualsReport(0,9000000000000, 2024)
+        let csvReady = [];
+        for(let n of result){
+            // console.log(n);
+            csvReady.push(appUtils.renameForCSV(n));
+        }
+        let csv = appUtils.json2csv(csvReady);
+        res.type('text/csv')
+        res.attachment(`TSP Accruals Report-${dateSelected}.csv`).send(csv);
+
+
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+//!! FINISHED HERE, NEED TO DO LAST REPORT 
+//?? FINISH THE UI FOR REPORTS, IT NEEDS FIELDS TO WORK
+//?? MAINLY THE UPLOADING OF APL CSV FOR TSP DISCOUNT
+//?? AND SELECTION OF DATES FOR THE OTHER 2
+//!! BONUS IF WE CAN FORMAT CSV to XLSX and Format the tables
+//!! BONUS IF WE CAN CREATE GRAPHS ON WEBSITE USING CHARTJS
+
 
 module.exports = router;
 
