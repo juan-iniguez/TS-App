@@ -5,6 +5,7 @@
     <%- include('../partials/reload'); %>
     <link rel="stylesheet" href="/css/reports.css">  
     <title>Reports</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
@@ -13,6 +14,9 @@
         </header>
         <main style="margin-top: 2em;min-height: 70vh;">
             <h1>Reports</h1>
+            <div id="charts-container" class="container charts">
+                <canvas class="chart" id="chart-1"></canvas>
+            </div>
             <div class="reports-card">
                 <a href="/api/reports/mainreport">Main Report</a>
                 <a href="#">Discount Report</a>
@@ -23,5 +27,6 @@
             <%- include('../partials/footer'); %>
         </footer>
     </div>
-</body>
+    </body>
+    <script src="/js/reports.js"></script>
 </html>

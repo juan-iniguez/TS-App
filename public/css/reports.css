@@ -2,3 +2,16 @@
     display: flex;
     flex-direction: column;
 }
+
+.container.charts{
+    min-height: 15vh;
+    height: 50vh;
+    padding: 1em;
+    /* box-shadow: beige 0px 0px 20px; */
+}
+
+.chart{
+    box-shadow: rgba(120, 120, 120, 0.131) 0px 5px 20px;
+    padding: 1em;
+    border-radius: 10px;
+}

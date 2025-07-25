@@ -16,7 +16,7 @@ import { searchDB } from '../../db_calls/search'
 import { appUtils } from "../../utils";
 import { verifyToken } from '../../auth/verifyToken';
 import { oauth } from '../../auth/APL_oauth';
-import { reports } from "../../db_calls/reports";
+import { charts, reports } from "../../db_calls/reports";
 import csvtojson from 'csvtojson';
 
 // Multer configuration - for file upload
@@ -28,6 +28,7 @@ import { json } from "body-parser";
 import chalk from "chalk";
 import { error } from "console";
 import { nextLine } from "pdf-lib";
+import { start } from "repl";
 const router = express.Router();
 
 router.use(verifyToken)
@@ -803,6 +804,24 @@ router.get('/reports/accruals', async (req,res,next)=>{
         console.error(error);
     }
 })
+
+router.get('/reports/monthly/:month/:year', async (req,res,next)=>{
+    const month:number = parseInt(req.params.month);
+    const year:number = parseInt(req.params.year);
+    const startDate = new Date(year,month,1).getTime();
+    console.log(chalk.bgRed("START DATE: " + new Date(year,month,1)))
+    const endDate = new Date(year,month+1,0).getTime();
+    console.log(chalk.bgRed("START END: " + new Date(year,month+1,0)))
+    console.log(month,year,startDate,endDate);
+    try {
+        const get = await new charts().MonthlyDashboard(startDate,endDate,year) 
+        res.send(get);
+    } catch (error) {
+        res.status(500).send(error);
+        console.error(error)
+    }
+})
+
 
 //!! FINISHED HERE, NEED TO DO LAST REPORT 
 //?? FINISH THE UI FOR REPORTS, IT NEEDS FIELDS TO WORK
