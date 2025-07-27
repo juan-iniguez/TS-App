@@ -7,7 +7,7 @@ share
 lib
 include
 pyvenv.cfg
-
+python*
 
 # Logs
 logs
