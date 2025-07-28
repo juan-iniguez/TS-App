@@ -72,13 +72,13 @@ function initGraph(data){
   const aplTotalOCF = data[1].datasets[0].data[2] + data[1].datasets[0].data[1] + data[1].datasets[0].data[0];
 
     // APL OCF
-  infoTitles[0].innerText = "$"+parseFloat(aplTotalOCF.toFixed(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  infoTitles[0].innerText = parseFloat(aplTotalOCF.toFixed(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
   // TSP DISC
-  infoTitles[1].innerText = "$"+parseFloat(data[1].datasets[0].data[0].toFixed(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  infoTitles[1].innerText = parseFloat(data[1].datasets[0].data[0].toFixed(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   
   // Company Discount
-  infoTitles[2].innerText = "$"+parseFloat(data[1].datasets[0].data[1].toFixed(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+  infoTitles[2].innerText = parseFloat(data[1].datasets[0].data[1].toFixed(2)).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
 
 }
