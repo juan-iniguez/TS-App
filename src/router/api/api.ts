@@ -809,13 +809,11 @@ router.get('/reports/monthly/:month/:year', async (req,res,next)=>{
     const month:number = parseInt(req.params.month);
     const year:number = parseInt(req.params.year);
     const startDate = new Date(year,month,1).getTime();
-    console.log(chalk.bgRed("START DATE: " + new Date(year,month,1)))
     const endDate = new Date(year,month+1,0).getTime();
-    console.log(chalk.bgRed("START END: " + new Date(year,month+1,0)))
-    console.log(month,year,startDate,endDate);
     try {
         const get = await new charts().MonthlyDashboard(startDate,endDate,year) 
-        res.send(get);
+        const get2 = await new charts().MonthlyDiscountPercentages(startDate,endDate,year)
+        res.send([get,get2]);
     } catch (error) {
         res.status(500).send(error);
         console.error(error)

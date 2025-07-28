@@ -55,12 +55,38 @@ type mainReportRes = {
   TOTAL_APL_DISCOUNT_AMOUNT?:number,
 }
 
-type chartData = {
-  labels?:Array<string>,
-  data?:Array<number>,
-  label?: string,
-  type?: string,
+type chartDataset = {
+    label?: string,
+    data?: number[],
+    borderWidth?: number,
+    backgroundColor?: string,
+    stack?: string,
 }
+
+type chartData = {
+  type?: string,
+  title?:string,
+  labels?:Array<string>,
+  datasets?:Array<chartDataset>,
+}
+
+// type chartData = {
+//   labels?:Array<string>,
+//   data?:Array<number>,
+//   label?: string,
+//   type?: string,
+// }
+
+type how = {
+  labels?:Array<string>,
+  datasets: [{
+    label: "STUFF",
+    data: [0],
+    borderWidth: 1,
+    backgroundColor: "red",
+  }]
+}
+
 
 /**
  * Class to call DB for Reports
@@ -182,6 +208,18 @@ export class charts {
 
   }
 
+  /**
+   * 
+   * Get `chartData` data for monthly TSP and Local Discount from OCF values.
+   * This is BAR data only.
+   * 
+   * @param firstOfMonth 
+   * @param lastOfMonth 
+   * @param year 
+   * @returns ```js 
+   * chartData : {data:[numbers], label:string, labels:[string],type:string}
+   * ```
+   */
   MonthlyDashboard(firstOfMonth?:number,lastOfMonth?:number, year?:number):Promise<chartData>{
     const today = new Date();
     const start = firstOfMonth || new Date(today.getFullYear(),today.getMonth(),1).getTime();
@@ -217,27 +255,134 @@ export class charts {
       AND (TSP.YEAR = ? OR TSP.YEAR IS NULL)
     `
     return new Promise((resolve,reject)=>{
-      db.all(query, [start,end,year],(err,rows:mainReportQueryRes[])=>{
+      db.all(query, [start,end,tspYear],(err,rows:mainReportQueryRes[])=>{
         console.table(rows)
         if(err){reject(err)
         }else{
           let process:mainReportRes[] = calculateDiscount(decompressCharges(rows));
           let chartData:chartData = {
             labels: [],
-            data: [],
+            datasets: 
+            [
+              {
+                label: "Local Discount",
+                data: [],
+                borderWidth: 0,
+                backgroundColor: '#ff9f40',
+                stack:"LOCAL"
+              },
+              {
+                label: "TSP Discount",
+                data: [],
+                borderWidth: 0,
+                backgroundColor: '#36a2eb',
+                stack: "TSP"
+              },
+              {
+                label: "Basic Ocean Freight",
+                data: [],
+                borderWidth: 0,
+                backgroundColor: '#ff6384',
+                stack:"OCF"
+              },
+            ],
           }
           process.map((m)=>{
             if(!chartData.labels!.includes(m.SCAC!)){
               chartData.labels!.push(m.SCAC!);
             }
-            if(chartData.data![chartData.labels!.indexOf(m.SCAC!)] == undefined){
-              chartData.data![chartData.labels!.indexOf(m.SCAC!)] = m.TOTAL_APL_DISCOUNT_AMOUNT!;
+            const indexOfData:number = chartData.labels!.indexOf(m.SCAC!);
+            if(chartData.datasets![0].data![indexOfData] == undefined){
+              chartData.datasets![0].data![indexOfData] = m.LOCAL_DISCOUNT_AMOUNT!;
+              chartData.datasets![1].data![indexOfData] = m.TSP_DISCOUNT_AMOUNT!;
+              chartData.datasets![2].data![indexOfData] = m.OCF! - m.TOTAL_APL_DISCOUNT_AMOUNT!;
             }else{
-              chartData.data![chartData.labels!.indexOf(m.SCAC!)] += m.TOTAL_APL_DISCOUNT_AMOUNT!;
+              chartData.datasets![0].data![indexOfData] += m.LOCAL_DISCOUNT_AMOUNT!;
+              chartData.datasets![1].data![indexOfData] += m.TSP_DISCOUNT_AMOUNT!;
+              chartData.datasets![2].data![indexOfData] += m.OCF! - m.TOTAL_APL_DISCOUNT_AMOUNT!;
             };
           })
-          chartData.label = "Monthly Revenue (TSP Discount/Company Discount)";
+          chartData.title = "Monthly Revenue (TSP Discount/Company Discount)";
           chartData.type = 'bar';
+          resolve(chartData)
+        };
+      })
+    })
+  }
+
+
+  // !!! REPEATING CODE, USE A BETTER DESIGN PATTERN :(
+  /**
+   * 
+   * Get `chartData` data for Monthly revenue. PIE CHART
+   * 
+   * Labels/Data:
+   * - TSP Discount Total
+   * - Local Company Discount Total
+   * - APL Total OCF (Get 63% to compliment with the rest 37%)
+   * 
+   * @param firstOfMonth 
+   * @param lastOfMonth 
+   * @param year 
+   * @returns ```js 
+   * chartData : {data:[numbers], label:string, labels:[string],type:string}
+   * ```
+   */
+  MonthlyDiscountPercentages(firstOfMonth?:number,lastOfMonth?:number, year?:number):Promise<chartData>{
+    const today = new Date();
+    const start = firstOfMonth || new Date(today.getFullYear(),today.getMonth(),1).getTime();
+    const end = lastOfMonth || new Date(today.getFullYear(),today.getMonth()+1,0).getTime();
+    const tspYear = year ||  today.getFullYear();
+    const query =`
+    SELECT 
+      LOCAL_INVOICES.SCAC,
+      LOCAL_INVOICES.CHARGES,
+      LOCAL_INVOICES.MEMBER_NAME,
+      -- Calculate TSP_DISCOUNT
+      CASE
+        WHEN APL_INVOICES.DISCHARGE_PORT LIKE '%GUAM%' THEN 
+          COALESCE(TSP.DISC_TO_GUA, 0)
+        ELSE 
+          COALESCE(TSP.DISC_FROM_GUA, 0)
+      END AS TSP_DISCOUNT,
+      -- Use the calculated TSP_DISCOUNT to calculate LOCAL_DISCOUNT
+      CASE
+        WHEN APL_INVOICES.DISCHARGE_PORT LIKE '%GUAM%' THEN 
+          0.37 - COALESCE(TSP.DISC_TO_GUA, 0)
+        ELSE 
+          0.37 - COALESCE(TSP.DISC_FROM_GUA, 0)
+      END AS LOCAL_DISCOUNT
+    FROM
+      LOCAL_INVOICES
+    JOIN
+      APL_INVOICES ON LOCAL_INVOICES.BOL = APL_INVOICES.BOL
+    LEFT JOIN
+      TSP ON LOCAL_INVOICES.SCAC = TSP.SCAC
+    WHERE
+      LOCAL_INVOICES.INVOICE_DATE BETWEEN ? AND ?
+      AND (TSP.YEAR = ? OR TSP.YEAR IS NULL)
+    `
+    return new Promise((resolve,reject)=>{
+      db.all(query, [start,end,tspYear],(err,rows:mainReportQueryRes[])=>{
+        // console.table(rows)
+        if(err){reject(err)
+        }else{
+          let process:mainReportRes[] = calculateDiscount(decompressCharges(rows));
+          console.log(process);
+          let chartData:chartData = {
+            labels: ["TSP DISCOUNT", "LOCAL DISCOUNT", "BASIC OCEAN FREIGHT"],
+            datasets: [{
+              data:[0,0,0]
+            }],
+          }
+          process.map((m)=>{
+            chartData.datasets![0].data![0] += m.TSP_DISCOUNT_AMOUNT!;
+            chartData.datasets![0].data![1] += m.LOCAL_DISCOUNT_AMOUNT!;
+            chartData.datasets![0].data![2] += m.OCF! - m.TOTAL_APL_DISCOUNT_AMOUNT!;
+          })
+          console.log(chartData.datasets);
+          chartData.title = "Total Monthly Discount From OCF";
+          chartData.type = 'pie';
           resolve(chartData)
         };
       })

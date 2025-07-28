@@ -12,12 +12,25 @@
         <header>
             <%- include('../partials/header'); %>
         </header>
-        <main style="margin-top: 2em;min-height: 70vh;">
+        <main>
             <h1>Reports</h1>
-            <div id="charts-container" class="container charts">
-                <canvas class="chart" id="chart-1"></canvas>
+            <div id="charts-container" class="charts card_">
+                <div class="charts-container">
+                    <div style="width: 100%;height: 100%;">
+                        <canvas class="chart" id="chart-1"></canvas>
+                    </div>
+                    <div>
+                        <canvas class="chart" id="chart-2"></canvas>
+                    </div>
+                    <div class="charts-info-container shadowbox">
+                        <p class="background-info">MONTHLY</p>
+                        <h1 class="info-titles">Total APL OCF: <p class="info-amount"></p> </h1>
+                        <h1 class="info-titles">Total TSP Discount: <p class="info-amount"></p> </h1>
+                        <h1 class="info-titles">Total Company Discount: <p class="info-amount"></p> </h1>
+                    </div>
+                </div>
             </div>
-            <div class="reports-card">
+            <div hidden class="reports-card">
                 <a href="/api/reports/mainreport">Main Report</a>
                 <a href="#">Discount Report</a>
                 <a href="/api/reports/accruals">ATW Accruals Report</a>
