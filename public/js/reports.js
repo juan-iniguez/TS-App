@@ -163,6 +163,15 @@ function selectReport(){
       div.className = "form-cont";
       div.innerHTML = el;
       
+      const header = document.createElement('div');
+      header.style = "display:inherit;width:100%;justify-content:center;align-items: center;";
+      header.innerHTML = `
+        <h1 class="modal-title fs-5" id="exampleModalLabel">${id=="report1"?"Create Main Report 🏆":"Create Accruals Report 📘"}</h1>
+        <button id="btn-close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      `
+
+      // Create your modal
+      modal.modalHeader(header);
       modal.modalBody(div);
       modal.modalFooter(btn);
       setTimeout(()=>{
@@ -173,6 +182,9 @@ function selectReport(){
         dateInputs[0].setAttribute('max', dateInputs[1].value);
         dateInputs[0].addEventListener('change',setMinDate);
         dateInputs[1].addEventListener('change', setMaxDate);
+        document.getElementById('btn-close').addEventListener('click',(e)=>{
+          setTimeout(restoreModal,100);
+        })  
       },200);
       break;
     case "report2":
@@ -271,22 +283,33 @@ function restoreModal(){
     </a>`
 
   const footer = document.createElement('p');
-  footer.innerText = `
-  Choose a Report Type
-  `
+  footer.style = `width:100%;text-align:center;`
+  footer.innerText = `Choose a Report Type`
   
+  const header = document.createElement('div');
+  header.style = "display:inherit;width:100%;justify-content:center;align-items: center;";
+  header.innerHTML = `
+    <h1 class="modal-title fs-5" id="exampleModalLabel">Create a Report</h1>
+    <button id="btn-close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  `
 
   const div = document.createElement('div');
   div.className = 'report-select';
   div.innerHTML = mainModal;
+
   const modal = new reportModal("main");
+  modal.modalHeader(header);
   modal.modalBody(div);
   modal.modalFooter(footer);
+
   setTimeout(()=>{
     for(let n of document.getElementsByClassName('report-option')){
       console.log(n);
       n.addEventListener('click', selectReport);
     }
+    document.getElementById('btn-close').addEventListener('click',(e)=>{
+      restoreModal();
+    })
   },600)
 }
 
