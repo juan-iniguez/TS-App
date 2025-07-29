@@ -163,7 +163,16 @@ function selectReport(){
       div.innerHTML = el;
       
       modal.modalBody(div);
-      modal.modalFooter(btn)
+      modal.modalFooter(btn);
+      setTimeout(()=>{
+        const dateInputs = document.getElementsByClassName('date-input');
+        console.log(dateInputs)
+        dateInputs[1].valueAsNumber = new Date().getTime();
+        dateInputs[1].setAttribute('max', dateInputs[1].value);
+        dateInputs[0].setAttribute('max', dateInputs[1].value);
+        dateInputs[0].addEventListener('change',setMinDate);
+        dateInputs[1].addEventListener('change', setMaxDate);
+      },200)
       break;
 
     case "report2":
@@ -216,4 +225,16 @@ function restoreModal(){
       n.addEventListener('click', selectReport);
     }
   },600)
+}
+
+function setMaxDate(){
+  const dateInput = this;
+  const dateInputs = document.getElementsByClassName('date-input');
+  dateInputs[0].setAttribute('max', dateInput.value);
+}
+
+function setMinDate(){
+  const dateInput = this;
+  const dateInputs = document.getElementsByClassName('date-input');
+  dateInputs[1].setAttribute('min', dateInput.value);
 }
