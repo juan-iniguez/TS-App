@@ -5,7 +5,7 @@ import chalk from 'chalk';
 const localDiscountPercentage = .05;
 
 
-type mainReportQueryRes = {
+export type mainReportQueryRes = {
   BOL?:string,
   APL_INVOICE_NUM?:string,
   LOCAL_INVOICE_NUM?:string,
@@ -23,7 +23,7 @@ type mainReportQueryRes = {
 
 }
 
-type mainReportRes = {
+export type mainReportRes = {
   // Shipment Info
   BOL?:string,
   APL_INVOICE_NUM?:string,
@@ -152,8 +152,10 @@ export class reports {
       LOCAL_INVOICES.BOL,
       LOCAL_INVOICES.MEMBER_NAME,
       LOCAL_INVOICES.GBL,
+      LOCAL_INVOICES.INVOICE_DATE,
       LOCAL_INVOICES.CHARGES,
       LOCAL_INVOICES.SCAC,
+      TSP.YEAR,
       APL_INVOICES.LOAD_PORT,
       APL_INVOICES.DISCHARGE_PORT,
       CASE
@@ -177,7 +179,6 @@ export class reports {
       this.db.all(query,[startDate,endDate, year],(err,rows:mainReportQueryRes[])=>{
         if(err) reject(err);
         else{
-          console.log(rows);
           const rowsDecompressed = decompressCharges(rows);
           let endData:mainReportRes[] = [];
           for(let n of rowsDecompressed){

@@ -111,7 +111,7 @@ function findRateYear(date:number):number{
     // Year will depend on the Quarter plus Year.
     // Since Rates start on June 1st and so on, on the first of every Quarter Month.
 
-    let YEAR:number = invDate.getMonth()>=6 && invDate.getMonth()<=12?invDate.getFullYear():invDate.getFullYear()-1;
+    let YEAR:number = invDate.getMonth()+1>=6 && invDate.getMonth()+1<=12?invDate.getFullYear():invDate.getFullYear()-1;
 
     return YEAR;
 
@@ -139,7 +139,7 @@ type queryToCSV = {
     "Inland (Rail) Charge"?: number,
     "Container Inspection Fee & Survey Fee"?: number,
     "Total"?: number,
-    
+    "TSP Year Cycle"?:number
     "TSP % RATE"?:number,
     "TSP DISCOUNT"?:number,
     "Our %"?: number,
@@ -212,6 +212,8 @@ function renameForCSV(o:any):queryToCSV{
             case "TOTAL":
                 newRow["Total"]=parseFloat(o[n].toFixed(2))
                 break;
+            case "YEAR":
+                newRow["TSP Year Cycle"]=o[n];
             case "TSP_DISCOUNT":
                 newRow["TSP % RATE"]=o[n];
                 break

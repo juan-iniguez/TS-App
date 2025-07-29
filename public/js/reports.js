@@ -140,6 +140,7 @@ function selectReport(){
 
   switch (id) {
     case "report1":
+    case "report3":
       const el = `
         <h1>Select a Date:</h1>
         <div class="date-form">
@@ -157,7 +158,7 @@ function selectReport(){
       const btn = document.createElement('a');
       btn.className = 'btn btn-primary';
       btn.innerText = "Submit";
-      btn.addEventListener('click', submitReport1);
+      btn.addEventListener('click',id=="report1"?submitReport1:submitReport3);
 
       div.className = "form-cont";
       div.innerHTML = el;
@@ -175,11 +176,6 @@ function selectReport(){
       },200);
       break;
     case "report2":
-      break;
-    case "report3":
-      // const el = `
-      
-      // `
       break;
     default:
       break;
@@ -216,6 +212,46 @@ function submitReport1(){
   document.getElementsByClassName('btn-close')[0].click()
 
   restoreModal();
+
+}
+
+function submitReport2(){
+  console.log("Report 2: TSP Discount")
+}
+
+function submitReport3(){
+  console.log("%cReport 3: Accruals", "font-size:24px;background-color:orange;color:black;")
+
+  const startDate = document.getElementById('start-date');
+  const endDate = document.getElementById('end-date');
+
+  if(startDate.value == null || startDate.value == "" || startDate.value == undefined || endDate.value == null || endDate.value == undefined || endDate.value == "" ){
+    const modalFooter = document.getElementsByClassName('modal-footer')[0];
+    const p = document.createElement('p')
+    modalFooter.insertAdjacentElement('beforeend',p);
+    p.innerText = "Please Select a Valid Date";
+    p.style = "color:red;width:auto;text-align:left";
+    startDate.addEventListener('focus',removeWarning)
+    endDate.addEventListener('focus',removeWarning)
+    
+    function removeWarning(){
+      if(p == undefined){
+        this.removeEventListener('focus',removeWarning)
+        return
+      };
+      p.remove();
+      this.removeEventListener('focus',removeWarning)
+    }
+
+    return;
+  }
+
+  window.open(`/api/reports/accruals/${startDate.valueAsNumber}/${endDate.valueAsNumber+86400000}`, '_blank');
+
+  document.getElementsByClassName('btn-close')[0].click()
+
+  restoreModal();
+
 
 }
 

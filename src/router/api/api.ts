@@ -16,7 +16,7 @@ import { searchDB } from '../../db_calls/search'
 import { appUtils } from "../../utils";
 import { verifyToken } from '../../auth/verifyToken';
 import { oauth } from '../../auth/APL_oauth';
-import { charts, reports } from "../../db_calls/reports";
+import { charts, reports, mainReportRes } from "../../db_calls/reports";
 import csvtojson from 'csvtojson';
 
 // Multer configuration - for file upload
@@ -785,41 +785,61 @@ router.get('/reports/mainreport/:startDate/:endDate', async (req,res,next)=>{
         console.error(error);
     }
 })
-router.get('/reports/accruals', async (req,res,next)=>{
-    const dateSelected = new Date().getDate();
+router.get('/reports/accruals/:startDate/:endDate', async (req,res,next)=>{
+    const dateSelected = new Date();
+    const startDate = parseInt(req.params.startDate);
+    const endDate = parseInt(req.params.endDate);
+
     let rep:reports = new reports();
 
+    // Check if Time Period Spans multiple cycles and list them
+
+    let cycles:number[] = [];
+    const yearCount = appUtils.findRateYear(endDate) - appUtils.findRateYear(startDate);
+    let finalResults:mainReportRes[] = [];
+
+    for(let i=0;i<=yearCount;i++){
+        cycles[i] = appUtils.findRateYear(startDate) + i;
+        // Use start date to begin at index 0
+        // Then don't use start date if it's a middle list item
+        // last item use end date 
+
+        // * Only one TSP Year 
+        if(yearCount == 0){
+            console.log("Only one TSP Cycle");
+            const result = await rep.getAccrualsReport(startDate,endDate, appUtils.findRateYear(startDate));
+            finalResults = result;
+            continue
+        }
+        // * Multiple TSP Years
+        if(i == 0){
+            const endDateCycle = new Date( `${cycles[i]+1}-05-31`);
+            const result = await rep.getAccrualsReport(startDate,endDateCycle.getTime(), cycles[i]);
+            finalResults = [...result, ...finalResults];
+        }else if(i == yearCount){
+            const startDateCycle = new Date( `${cycles[i]}-06-01`);
+            const result = await rep.getAccrualsReport(startDateCycle.getTime(),endDate, cycles[i]);
+            finalResults = [...result, ...finalResults];
+        }else{
+            const startDateCycle = new Date( `${cycles[i]}-06-01`);
+            const endDateCycle = new Date( `${cycles[i]+1}-05-31`);
+            const result = await rep.getAccrualsReport(startDateCycle.getTime(),endDateCycle.getTime(), cycles[i]);
+            finalResults = [...result, ...finalResults];
+        }
+    }
     try {
-        const result = await rep.getAccrualsReport(0,9000000000000, 2024)
         let csvReady = [];
-        for(let n of result){
-            // console.log(n);
+        for(let n of finalResults){
             csvReady.push(appUtils.renameForCSV(n));
         }
         let csv = appUtils.json2csv(csvReady);
         res.type('text/csv')
-        res.attachment(`TSP Accruals Report-${dateSelected}.csv`).send(csv);
-
-
+        res.attachment(`TSP Accruals Report.csv`).send(csv);
     } catch (error) {
         console.error(error);
     }
 })
 
-// router.get('/reports/main-report/:startDate/:endDate', async (req,res,next)=>{
-
-//     const startDate = parseInt(req.params.startDate);
-//     const endDate = parseInt(req.params.endDate);
-
-
-//     try {
-//         const get = await new charts().MonthlyDashboard(startDate,endDate,year) 
-
-//     } catch (error) {
-        
-//     }
-
-// })
 
 /**
  * Reports Dashboard Endpoint
