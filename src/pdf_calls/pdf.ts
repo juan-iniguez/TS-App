@@ -28,7 +28,6 @@ export let readPDF = {
 async function writeOceanInv(data:any, val:any, initInv:boolean){
     const pdfDoc = !data.VOID?await PDFDocument.load(fs.readFileSync('resources/TSPInvoice.pdf')):await PDFDocument.load(fs.readFileSync('resources/TSPInvoiceVoid.pdf'));
     const pdfFont = pdfDoc.embedFont(StandardFonts.Helvetica);
-    console.log(pdfFont)
     const form = pdfDoc.getForm()
     let data_payload = data;
     let db_payload;
@@ -110,7 +109,7 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
 
     
     for(let i in fields_names){
-        console.log(replaceUnsupportedCharacters(i,(await pdfFont)))
+        console.log(replaceUnsupportedCharacters(db_payload[fields_names[i]].toString(),(await pdfFont)))
         // Set the text value
         let textField = form.getTextField(fields_names[i]);
         if(typeof(db_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM" && fields_names[i] != "INVOICE_DATE"){
