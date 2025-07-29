@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { PDFDocument } from 'pdf-lib'
+import { PDFDocument, PDFFont } from 'pdf-lib'
 import { aplDB } from '../db_calls/shipments';
 import { db } from '../db_init/db_init'
 import { appUtils } from '../utils';
@@ -27,6 +27,8 @@ export let readPDF = {
  */
 async function writeOceanInv(data:any, val:any, initInv:boolean){
     const pdfDoc = !data.VOID?await PDFDocument.load(fs.readFileSync('resources/TSPInvoice.pdf')):await PDFDocument.load(fs.readFileSync('resources/TSPInvoiceVoid.pdf'));
+    const pdfFont = PDFFont;
+    console.log(pdfFont)
     const form = pdfDoc.getForm()
     let data_payload = data;
     let db_payload;
@@ -106,10 +108,13 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         return x;
     }
 
+    // console.log(replaceUnsupportedCharacters(,));
+
     for(let i in fields_names){
         // Set the text value
         let textField = form.getTextField(fields_names[i]);
         if(typeof(db_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM" && fields_names[i] != "INVOICE_DATE"){
+            
             textField.setText(db_payload[fields_names[i]].toString());
         }else if(fields_names[i] == "INVOICE_NUM"){
             textField.setText("NVC-" + addLeadingZeros(db_payload[fields_names[i]].toString().split('').length) + db_payload[fields_names[i]] );
@@ -121,6 +126,9 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         textField.enableReadOnly()
     }
     
+
+
+
     // CHARGES
     // Charges BASED ON
     form.getTextField("BASED_ON").setText(db_payload.BASED_ON.toString());
@@ -236,4 +244,24 @@ function parseWaybill(waybillPDF:any, BOL:string, code: string){
             }
         })
     })
+}
+
+function replaceUnsupportedCharacters(string:any, font:any) {
+    const charSet = font.getCharacterSet()
+    const codePoints = []
+    for (const codePointStr of string) {
+        const codePoint = codePointStr.codePointAt(0);
+        if (!charSet.includes(codePoint)) {
+            const withoutDiacriticsStr = codePointStr.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+            const withoutDiacritics = withoutDiacriticsStr.charCodeAt(0);
+            if (charSet.includes(withoutDiacritics)) {
+                codePoints.push(withoutDiacritics);
+            } else {
+                codePoints.push('?'.codePointAt(0));
+            }
+        } else {
+            codePoints.push(codePoint)
+        }
+    }
+    return String.fromCodePoint(...codePoints);
 }
