@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { PDFDocument, PDFFont } from 'pdf-lib'
+import { PDFDocument, PDFFont, StandardFonts } from 'pdf-lib'
 import { aplDB } from '../db_calls/shipments';
 import { db } from '../db_init/db_init'
 import { appUtils } from '../utils';
@@ -27,7 +27,7 @@ export let readPDF = {
  */
 async function writeOceanInv(data:any, val:any, initInv:boolean){
     const pdfDoc = !data.VOID?await PDFDocument.load(fs.readFileSync('resources/TSPInvoice.pdf')):await PDFDocument.load(fs.readFileSync('resources/TSPInvoiceVoid.pdf'));
-    const pdfFont = PDFFont;
+    const pdfFont = pdfDoc.embedFont(StandardFonts.Helvetica);
     console.log(pdfFont)
     const form = pdfDoc.getForm()
     let data_payload = data;
@@ -108,9 +108,9 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         return x;
     }
 
-    // console.log(replaceUnsupportedCharacters(,));
-
+    
     for(let i in fields_names){
+        console.log(replaceUnsupportedCharacters(i,(await pdfFont)))
         // Set the text value
         let textField = form.getTextField(fields_names[i]);
         if(typeof(db_payload[fields_names[i]]) == typeof(0) && fields_names[i] != "INVOICE_NUM" && fields_names[i] != "INVOICE_DATE"){
