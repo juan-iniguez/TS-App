@@ -764,23 +764,24 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
 
 
 /** REPORTS */
-router.get('/reports/mainreport', async (req,res,next)=>{
-    const dateSelected = new Date().getDate();
+router.get('/reports/mainreport/:startDate/:endDate', async (req,res,next)=>{
+    const dateSelected = new Date();
+    const startDate = parseInt(req.params.startDate);
+    const endDate = parseInt(req.params.endDate);
+
     let rep:reports = new reports();
 
     try {
-        const result = await rep.getMainReport(0,9000000000000)
+        const result = await rep.getMainReport(startDate,endDate)
         let csvReady = [];
         for(let n of result){
-            // console.log(n);
             csvReady.push(appUtils.renameForCSV(n));
         }
         let csv = appUtils.json2csv(csvReady);
         res.type('text/csv')
-        res.attachment(`APL MAIN REPORT-${dateSelected}.csv`).send(csv);
-
-
+        res.attachment(`APL MAIN REPORT_${dateSelected.getMonth()+1}-${dateSelected.getDate()}-${dateSelected.getFullYear()}.csv`).send(csv);
     } catch (error) {
+        res.send(error);
         console.error(error);
     }
 })
@@ -805,6 +806,24 @@ router.get('/reports/accruals', async (req,res,next)=>{
     }
 })
 
+// router.get('/reports/main-report/:startDate/:endDate', async (req,res,next)=>{
+
+//     const startDate = parseInt(req.params.startDate);
+//     const endDate = parseInt(req.params.endDate);
+
+
+//     try {
+//         const get = await new charts().MonthlyDashboard(startDate,endDate,year) 
+
+//     } catch (error) {
+        
+//     }
+
+// })
+
+/**
+ * Reports Dashboard Endpoint
+ *  */ 
 router.get('/reports/monthly/:month/:year', async (req,res,next)=>{
     const month:number = parseInt(req.params.month);
     const year:number = parseInt(req.params.year);

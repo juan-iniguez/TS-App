@@ -12,6 +12,7 @@ searchArg.addEventListener('change', searchDropdownSetInputType)
 searchBar.addEventListener('input', search);
 
 startDate.addEventListener('input', search)
+endDate.addEventListener('input', search)
 
 for(let i in tabs){
     document.getElementById(tabs[i] + "-tab").addEventListener("click", openTab)
@@ -237,7 +238,7 @@ function search(e){
 
     axios.post("/api/search", {
         data: currentTab,
-        search: argVal == "DATE_CREATED" || argVal == "INVOICE_DATE"?{startDate: startDate.valueAsNumber,endDate: endDate.valueAsNumber}:searchText,
+        search: argVal == "DATE_CREATED" || argVal == "INVOICE_DATE"?{startDate: startDate.valueAsNumber,endDate: endDate.valueAsNumber+86400000}:searchText,
         arg: argVal,
     }).then((response)=>{
         clearTable();

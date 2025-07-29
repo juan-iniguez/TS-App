@@ -11,31 +11,31 @@
     <!-- Modal -->
     <div class="modal fade" id="report-modal" tabindex="-1" aria-labelledby="report modal" aria-hidden="true">
         <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Create a Report</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="report-select">
-                    <a style="grid-area: report1;" class="report-option">
-                        <h1 class="report-option-title">Main Report</h1>
-                        <p class="emoji">🏆</p>
-                    </a>
-                    <a style="grid-area: report2;" class="report-option">
-                        <h1 class="report-option-title">Discount Report</h1>
-                        <p class="emoji">📗</p>
-                    </a>
-                    <a style="grid-area: report3;" class="report-option">
-                        <h1 class="report-option-title">Accruals Report</h1>
-                        <p class="emoji">📘</p>
-                    </a>
+            <div id="report-info" class="modal-content">
+                <div class="modal-header show">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Create a Report</h1>
+                    <button id="btn-close" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-            </div>
+                <div class="modal-body show">
+                    <div class="report-select">
+                        <a id="report1" style="grid-area: report1;" class="report-option shadowbox">
+                            <h1 class="report-option-title">Main Report</h1>
+                            <p class="emoji">🏆</p>
+                        </a>
+                        <a id="report2" style="grid-area: report2;" class="report-option shadowbox">
+                            <h1 class="report-option-title">Discount Report</h1>
+                            <p class="emoji">📗</p>
+                        </a>
+                        <a id="report3" style="grid-area: report3;" class="report-option shadowbox">
+                            <h1 class="report-option-title">Accruals Report</h1>
+                            <p class="emoji">📘</p>
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer show">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
             </div>
         </div>
     </div>
@@ -49,7 +49,7 @@
         <main>
             <h1>Reports</h1>
             <!-- Button trigger modal -->
-            <button type="button" class="btn btn-light btn-report-create" data-bs-toggle="modal" data-bs-target="#report-modal">
+            <button type="button" class="btn btn-light btn-report-create shadowbox" data-bs-toggle="modal" data-bs-target="#report-modal">
             Create Report 🛠️
             </button>
             <div id="charts-container" class="charts card_">

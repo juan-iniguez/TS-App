@@ -1,9 +1,25 @@
 const today = new Date();
+const btnsReportOptions = document.getElementsByClassName('report-option')
+
+for(let n of btnsReportOptions){
+  console.log(n);
+  n.addEventListener('click', selectReport);
+}
+
+document.getElementById("report-modal").addEventListener('click', (e)=>{
+  console.log(e);
+  console.log(e.target == document.getElementById("report-modal"));
+  if(e.target == document.getElementById("report-modal")){
+    setTimeout(restoreModal,100)
+  }
+});
+
+document.getElementById('btn-close').addEventListener('click',(e)=>{
+      setTimeout(restoreModal,100)
+})
 
 axios.get('/api/reports/monthly/'+(today.getMonth()) + '/' + (today.getFullYear()))
 .then(res=>{
-  console.log(res.data[0]);
-  console.log(res.data[1]);
   initGraph(res.data);
 })
 .catch(err=>{
@@ -83,3 +99,121 @@ function initGraph(data){
 
 }
 
+class reportModal {
+  type;
+  modalCont = document.getElementById('report-info');
+
+  constructor(type){
+    this.type = type;
+  }
+
+  sectionChange(section,e){
+    section.classList.toggle("hidden");
+    setTimeout(()=>{
+      section.innerHTML = "";
+      section.appendChild(e);
+      setTimeout(()=>{
+        section.classList.toggle("hidden");
+      },100);
+    },100);
+  }
+
+  modalHeader(e){
+    const header = this.modalCont.children[0]
+    this.sectionChange(header,e)
+  }
+
+  modalBody(e){
+    const body = this.modalCont.children[1]
+    this.sectionChange(body,e)
+  }
+  
+  modalFooter(e){
+    const footer = this.modalCont.children[2]
+    this.sectionChange(footer,e)
+  }
+}
+
+function selectReport(){
+  const id = this.id
+  const modal = new reportModal(id);
+
+  switch (id) {
+    case "report1":
+      const el = `
+        <h1>Select a Date:</h1>
+        <div class="date-form">
+          <div class="input-group mb-3">
+            <label class="input-group-text" for="start-date" id="end-date-label">Start</label>
+            <input class="date-input" id="start-date" type="date">
+          </div>
+          <div class="input-group mb-3">
+            <label class="input-group-text" for="end-date" id="end-date-label">End</label>
+            <input class="date-input" id="end-date" type="date">
+          </div>
+        </div>`
+
+      const div = document.createElement('div');
+      const btn = document.createElement('a');
+      btn.className = 'btn btn-primary';
+      btn.innerText = "Submit";
+      btn.addEventListener('click', submitReport1);
+
+      div.className = "form-cont";
+      div.innerHTML = el;
+      
+      modal.modalBody(div);
+      modal.modalFooter(btn)
+      break;
+
+    case "report2":
+      break;
+    case "report3":
+      
+      break;
+    default:
+      break;
+  }
+}
+
+function submitReport1(){
+  const startDate = document.getElementById('start-date');
+  const endDate = document.getElementById('end-date');
+
+  // console.log(new Date(startDate.value).getTime(),new Date(endDate.value).getTime());
+  // console.log(startDate.valueAsNumber,endDate.valueAsNumber);
+  window.open(`/api/reports/mainreport/${startDate.valueAsNumber}/${endDate.valueAsNumber+86400000}`, '_blank');
+
+  document.getElementsByClassName('btn-close')[0].click()
+
+  restoreModal();
+
+}
+
+function restoreModal(){
+  const mainModal = `
+    <a id="report1" style="grid-area: report1;" class="report-option shadowbox">
+      <h1 class="report-option-title">Main Report</h1>
+      <p class="emoji">🏆</p>
+    </a>
+    <a id="report2" style="grid-area: report2;" class="report-option shadowbox">
+      <h1 class="report-option-title">Discount Report</h1>
+      <p class="emoji">📗</p>
+    </a>
+    <a id="report3" style="grid-area: report3;" class="report-option shadowbox">
+      <h1 class="report-option-title">Accruals Report</h1>
+      <p class="emoji">📘</p>
+    </a>`
+
+  const div = document.createElement('div');
+  div.className = 'report-select';
+  div.innerHTML = mainModal;
+  const modal = new reportModal("main");
+  modal.modalBody(div);
+  setTimeout(()=>{
+    for(let n of document.getElementsByClassName('report-option')){
+      console.log(n);
+      n.addEventListener('click', selectReport);
+    }
+  },600)
+}
