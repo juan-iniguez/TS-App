@@ -5,6 +5,7 @@ a{
 .body-container{
     min-width: 800px;
     height: 100vh;
+    overflow: hidden;
 }
 
 .start-button-img{

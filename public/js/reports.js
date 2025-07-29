@@ -172,13 +172,14 @@ function selectReport(){
         dateInputs[0].setAttribute('max', dateInputs[1].value);
         dateInputs[0].addEventListener('change',setMinDate);
         dateInputs[1].addEventListener('change', setMaxDate);
-      },200)
+      },200);
       break;
-
     case "report2":
       break;
     case "report3":
+      // const el = `
       
+      // `
       break;
     default:
       break;
@@ -188,7 +189,26 @@ function selectReport(){
 function submitReport1(){
   const startDate = document.getElementById('start-date');
   const endDate = document.getElementById('end-date');
+  if(startDate.value == null || startDate.value == "" || startDate.value == undefined || endDate.value == null || endDate.value == undefined || endDate.value == "" ){
+    const modalFooter = document.getElementsByClassName('modal-footer')[0];
+    const p = document.createElement('p')
+    modalFooter.insertAdjacentElement('beforeend',p);
+    p.innerText = "Please Select a Valid Date";
+    p.style = "color:red;width:auto;text-align:left";
+    startDate.addEventListener('focus',removeWarning)
+    endDate.addEventListener('focus',removeWarning)
+    
+    function removeWarning(){
+      if(p == undefined){
+        this.removeEventListener('focus',removeWarning)
+        return
+      };
+      p.remove();
+      this.removeEventListener('focus',removeWarning)
+    }
 
+    return;
+  }
   // console.log(new Date(startDate.value).getTime(),new Date(endDate.value).getTime());
   // console.log(startDate.valueAsNumber,endDate.valueAsNumber);
   window.open(`/api/reports/mainreport/${startDate.valueAsNumber}/${endDate.valueAsNumber+86400000}`, '_blank');
@@ -214,11 +234,18 @@ function restoreModal(){
       <p class="emoji">📘</p>
     </a>`
 
+  const footer = document.createElement('p');
+  footer.innerText = `
+  Choose a Report Type
+  `
+  
+
   const div = document.createElement('div');
   div.className = 'report-select';
   div.innerHTML = mainModal;
   const modal = new reportModal("main");
   modal.modalBody(div);
+  modal.modalFooter(footer);
   setTimeout(()=>{
     for(let n of document.getElementsByClassName('report-option')){
       console.log(n);

@@ -186,3 +186,10 @@
     background-color: rgb(227, 227, 227);
     padding: 5px;
 }
+
+.modal-footer{
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    align-items: center;
+}
