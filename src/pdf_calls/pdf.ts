@@ -127,15 +127,16 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
     
 
 
-
     // CHARGES
     // Charges BASED ON
     form.getTextField("BASED_ON").setText(db_payload.BASED_ON.toString());
-
+    
     form.getTextField("BASED_ON").acroField.Kids()?.asArray().forEach((e)=>{
-        console.log(e.toString());
+        // console.log(e.toString());
     })
-
+    
+    console.log("On to RATES");
+    // 
     // RATE
     for(let i in db_payload.CHARGES.RATES){
         let key = i;
@@ -143,7 +144,8 @@ async function writeOceanInv(data:any, val:any, initInv:boolean){
         if(key.includes("Inland (Rail)")){key = "RAIL"};
         if(key.includes("Invasive Species Inspection Fee")){key = "ISIF"};
         if(i == "TOTAL" || i == "YEAR"){continue};
-
+        
+        console.log(db_payload.CHARGES.RATES[i]);
         form.getTextField("RATES-" + key).setText(db_payload.CHARGES.RATES[i].toLocaleString('en-US', {style: 'currency', currency: 'USD'}));
         form.getTextField("RATES-" + key).enableReadOnly();
     }
