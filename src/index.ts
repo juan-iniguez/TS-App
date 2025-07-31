@@ -72,7 +72,6 @@ app.get("/", (req: any, res: Response) => {
 
 // ! APL Invoice and Waybill upload page
 app.get("/upload/pdf",(req:any,res)=>{
-  console.log(req.user)
   req.user?res.render("pages/uploadPDF", req.user):res.redirect('/login');
 }) 
 

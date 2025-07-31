@@ -309,7 +309,7 @@ export class charts {
     `
     return new Promise((resolve,reject)=>{
       db.all(query, [start,end,tspYear],(err,rows:mainReportQueryRes[])=>{
-        console.table(rows)
+        // console.table(rows)
         if(err){reject(err)
         }else{
           let process:mainReportRes[] = calculateDiscount(decompressCharges(rows));
@@ -421,7 +421,7 @@ export class charts {
         if(err){reject(err)
         }else{
           let process:mainReportRes[] = calculateDiscount(decompressCharges(rows));
-          console.log(process);
+          // console.log(process);
           let chartData:chartData = {
             labels: ["TSP DISCOUNT", "LOCAL DISCOUNT", "BASIC OCEAN FREIGHT"],
             datasets: [{
@@ -433,7 +433,7 @@ export class charts {
             chartData.datasets![0].data![1] += m.LOCAL_DISCOUNT_AMOUNT!;
             chartData.datasets![0].data![2] += m.OCF! - m.TOTAL_APL_DISCOUNT_AMOUNT!;
           })
-          console.log(chartData.datasets);
+          // console.log(chartData.datasets);
           chartData.title = "Total Monthly Discount From OCF";
           chartData.type = 'pie';
           resolve(chartData)
