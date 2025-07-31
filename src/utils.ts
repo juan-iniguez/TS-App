@@ -117,7 +117,7 @@ function findRateYear(date:number):number{
 
 }
 
-type queryToCSV = {
+export type queryToCSV = {
     "Bill of Lading #"?:string,
     "APL Invoice"?:string,
     "Shipment Invoice"?:string,

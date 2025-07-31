@@ -13,7 +13,7 @@ import { writePDF, readPDF } from "../../pdf_calls/pdf";
 import { apl } from '../../db_calls/apl';
 import { localSettings } from '../../db_calls/settings';
 import { searchDB } from '../../db_calls/search'
-import { appUtils } from "../../utils";
+import { appUtils, queryToCSV } from "../../utils";
 import { verifyToken } from '../../auth/verifyToken';
 import { oauth } from '../../auth/APL_oauth';
 import { charts, reports, mainReportRes } from "../../db_calls/reports";
@@ -35,7 +35,6 @@ router.use(verifyToken)
 
 // ! Main file upload POST route (DEPRECATING FOR APL API) 
 router.post('/apl-inv-way',(req:any, res, next) => {
-
     if(!req.user){res.sendStatus(401).json({message: "Unauthorized"});next()}
 
     const form = formidable({ uploadDir: "public/files" });
@@ -127,7 +126,7 @@ router.post('/apl-inv-way',(req:any, res, next) => {
 
 /***** START A CRUD IMPLEMENTATION AND CONNECT TO DB *****/
 // ! ENDPOINT FOR SUBMITTING CLIENT SIDE DATA TO DB !
-// Upload Invoice and Waybill to DB
+// Upload Invoice and Waybill to DB (Used in Manual Upload)
 router.post('/db-invoice-waybill',(req:any, res,next) => {
     if(!req.user){res.sendStatus(401).json({message: "Unauthorized"});next()}
 
@@ -840,27 +839,44 @@ router.get('/reports/accruals/:startDate/:endDate', async (req,res,next)=>{
     }
 })
 router.post('/reports/discountreport',upload.any(), async (req:any,res,next)=>{
-    
+    const report = new reports();
     const csvbuffer:Buffer = req.files![0].buffer;
-    let pulledInvoices:object[] = [];
-    csvtojson()
-    .fromString(csvbuffer.toString())
-    .then(data=>{
-        console.log(data);
-        data.map(async (n)=>{
-            console.log(n.BOL);
+
+    try {
+        let pulledInvoices:queryToCSV[] = [];
+        const csvData = await csvtojson().fromString(csvbuffer.toString())
+        for(let n of csvData){
             const shipments:any = await apl.getInv(n.BOL);
-            console.log(shipments);
-            if(shipments.exists){
-                // !! Left off here, Use the pulled Invoice Date to select the Year for the TSP Discount
-                let invoiceDate = shipments.data[0].INVOICE_DATE;
-                // pulledInvoices.push(shipments.data[0]);
+            if(shipments[0] != undefined){
+                const invoiceDate = typeof shipments[0].INVOICE_DATE == 'number'?shipments[0].INVOICE_DATE:new Date(shipments[0].INVOICE_DATE).getTime();
+                const yearRate = appUtils.findRateYear(invoiceDate);
+                const rows = await report.getDiscountReport(n.BOL, yearRate);
+                let formatRows:queryToCSV[] = [];
+                for(let m of rows){
+                    formatRows.push(appUtils.renameForCSV(m));
+                    // console.log(formatRows);
+                }
+                // !! This should be refactored. This is sloppy and can be made better
+                // ? Create a class that includes the types and make them iterable.
+                // ? Also get a types header file to make sure types are being shared.
+                // Add Symbol.iterator manually to make the object iterable
+                (formatRows as any)[Symbol.iterator] = function* () {
+                    for (const key of Object.keys(this) as (keyof queryToCSV)[]) {
+                        yield this[key];
+                    }
+                };
+                
+                pulledInvoices = [...formatRows as any, ...pulledInvoices];
+                console.log(pulledInvoices);
             }
-        })
-
-
-    })
-    res.send();
+        }
+        const csvOut = appUtils.json2csv(pulledInvoices);
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="DiscountReport.csv"');
+        res.status(200).send(csvOut);
+    } catch (error) {
+        console.log(error);
+    }
 })
 
 /**

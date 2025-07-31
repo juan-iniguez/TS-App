@@ -217,7 +217,7 @@ function selectReport(){
       modal.modalHeader(header);
       modal.modalBody(div);
       modal.modalFooter(btn);
-      
+
       setTimeout(()=>{
         document.getElementById('btn-close').addEventListener('click',(e)=>{
           setTimeout(restoreModal,100);
@@ -330,9 +330,23 @@ function submitReport2(){
     formData.append("files", file.files[0]);
 
     axios.post('/api/reports/discountreport', formData, {
-        'Content-Type': 'multipart/form-data'
+        responseType: 'blob'
     }).then(res=>{
-      console.log(res);
+      
+      // Get file and download it
+      const url = window.URL.createObjectURL(res.data);      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'results.csv'; // Same name as sent from server (or override)
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      document.getElementsByClassName('btn-close')[0].click()
+      restoreModal();
+
+
     }).catch(err=>{
       console.error(err);
     })

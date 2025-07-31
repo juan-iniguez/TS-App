@@ -286,8 +286,8 @@ async function submit_db(){
             console.log(inputValue.children[0])
             break
         }
-
-        payload_data.invoice[n] = inputValue.type == "date"?new Date(inputValue.value).getTime() :inputValue.value;
+        // !! This needs to be a string value. Do not change to number value.
+        payload_data.invoice[n] = inputValue.value;
     }
     
     // Waybill

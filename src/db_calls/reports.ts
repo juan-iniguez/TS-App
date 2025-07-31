@@ -138,14 +138,13 @@ export class reports {
   }
 
   //!! Last One because we need the CSV that APL produces for the company 
-  getDiscountReport(startDate:number, endDate:number, year:number):Promise<mainReportRes[]>{
+  getDiscountReport(bol:string, year:number):Promise<mainReportRes[]>{
 
     const query = `
     SELECT
       LOCAL_INVOICES.BOL,
       LOCAL_INVOICES.MEMBER_NAME,
       LOCAL_INVOICES.GBL,
-      LOCAL_INVOICES.INVOICE_DATE,
       LOCAL_INVOICES.CHARGES,
       LOCAL_INVOICES.SCAC,
       TSP.YEAR,
@@ -166,12 +165,12 @@ export class reports {
     LEFT JOIN
       TSP ON LOCAL_INVOICES.SCAC = TSP.SCAC
     WHERE
-      LOCAL_INVOICES.INVOICE_DATE > ? AND LOCAL_INVOICES.INVOICE_DATE < ?
+      LOCAL_INVOICES.BOL = ?
       AND (TSP.YEAR = ? OR TSP.YEAR IS NULL);
     `;
 
     return new Promise((resolve, reject)=>{
-      this.db.all(query,[startDate,endDate, year],(err,rows:mainReportQueryRes[])=>{
+      this.db.all(query,[bol, year],(err,rows:mainReportQueryRes[])=>{
         if(err) reject(err);
         else{
           const rowsDecompressed = decompressCharges(rows);
