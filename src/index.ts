@@ -10,6 +10,28 @@ import mongoose from 'mongoose';
 // Set Express App
 import express, { Express, Request, Response } from "express";
 import { verifyToken } from './auth/verifyToken';
+import { tests } from './tests/db_tests';
+
+/**
+ * DB TESTS
+ */
+
+const testApp = new tests();
+
+async function mainTests(){
+  try {
+    await testApp.mainDB.duplicates("BOL","APL_INVOICES");
+    await testApp.mainDB.duplicates("INVOICE_NUM","APL_INVOICES");
+    await testApp.mainDB.duplicates("BOL","APL_WAYBILLS");
+    await testApp.mainDB.duplicates("INVOICE_NUM","SHIPMENTS");
+    await testApp.mainDB.duplicates("INVOICE_NUM","LOCAL_INVOICES");      
+  } catch (error) {
+    console.error(error)
+    throw new Error("Database integrity has issues.")
+  }
+}mainTests()
+
+
 const app: Express = express();
 
 // Connect to MongoDB database

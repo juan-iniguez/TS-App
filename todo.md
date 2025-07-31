@@ -162,3 +162,9 @@ NAMA1243907
 - You can now see which cycle of rates are being used when looking at a shipment
 - TODO: Case -> Use invoice charges in case there are NO RATES in the system
 - TODO: Case -> IF no rates, then show "NO RATES UPLOADED FOR THIS YEAR" on the shipment view.
+
+## TODO! 07/31/25
+
+- DATA VALIDATION:
+    - Check if Shipments TTL_CF equals the full amount that comes with waybill
+    - ISSUE: A waybill from APL had shipments that together did not equal the full TTL_CF Amount. This is problematic because it affects the OCF computer using the TTL_CF on the shipment information.
