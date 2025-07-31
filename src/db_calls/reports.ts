@@ -138,7 +138,61 @@ export class reports {
   }
 
   //!! Last One because we need the CSV that APL produces for the company 
-  getDiscountReport(){}
+  getDiscountReport(startDate:number, endDate:number, year:number):Promise<mainReportRes[]>{
+
+    const query = `
+    SELECT
+      LOCAL_INVOICES.BOL,
+      LOCAL_INVOICES.MEMBER_NAME,
+      LOCAL_INVOICES.GBL,
+      LOCAL_INVOICES.INVOICE_DATE,
+      LOCAL_INVOICES.CHARGES,
+      LOCAL_INVOICES.SCAC,
+      TSP.YEAR,
+      APL_INVOICES.RECEIPT_PLACE,
+      APL_INVOICES.LOAD_PORT,
+      APL_INVOICES.DISCHARGE_PORT,
+      APL_INVOICES.DELIVERY_PLACE,
+      CASE
+        WHEN APL_INVOICES.DISCHARGE_PORT LIKE '%GUAM%' THEN 
+          COALESCE(TSP.DISC_TO_GUA, 0)
+        ELSE 
+          COALESCE(TSP.DISC_FROM_GUA, 0)
+      END AS TSP_DISCOUNT
+    FROM
+      LOCAL_INVOICES
+    JOIN
+      APL_INVOICES ON LOCAL_INVOICES.BOL = APL_INVOICES.BOL
+    LEFT JOIN
+      TSP ON LOCAL_INVOICES.SCAC = TSP.SCAC
+    WHERE
+      LOCAL_INVOICES.INVOICE_DATE > ? AND LOCAL_INVOICES.INVOICE_DATE < ?
+      AND (TSP.YEAR = ? OR TSP.YEAR IS NULL);
+    `;
+
+    return new Promise((resolve, reject)=>{
+      this.db.all(query,[startDate,endDate, year],(err,rows:mainReportQueryRes[])=>{
+        if(err) reject(err);
+        else{
+          const rowsDecompressed = decompressCharges(rows);
+          let endData:mainReportRes[] = [];
+          for(let n of rowsDecompressed){
+            let {FAF,THC_USA,Guam_THC,AMS,RAIL,ISIF,TOTAL,CHARGES,OCF,TSP_DISCOUNT, ...results}=n;
+            let orderedFields:mainReportRes = {...results};
+            orderedFields.OCF = OCF;
+            orderedFields.TSP_DISCOUNT = TSP_DISCOUNT;
+            orderedFields.TSP_DISCOUNT_AMOUNT = TSP_DISCOUNT! * OCF!;
+            orderedFields.LOCAL_DISCOUNT = .37 - TSP_DISCOUNT!;
+            orderedFields.LOCAL_DISCOUNT_AMOUNT = orderedFields.LOCAL_DISCOUNT! * OCF!;
+            orderedFields.TOTAL_APL_DISCOUNT_AMOUNT = orderedFields.LOCAL_DISCOUNT_AMOUNT + orderedFields.TSP_DISCOUNT_AMOUNT;
+            endData.push(orderedFields);
+          }
+          resolve(endData);
+        }
+      })
+    })
+    
+  }
 
   /**
    * 
@@ -196,7 +250,6 @@ export class reports {
         }
       })
     })
-
 
   }
 }

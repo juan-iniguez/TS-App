@@ -6,6 +6,7 @@ export const apl = {
     entryInv,
     entryWay,
     entryShipment,
+    getInv,
     checkInv,
     getWaybillPDF,
     getInvoiceData,
@@ -83,6 +84,30 @@ function checkInv(BOL?:any, INVOICE_NUM?:any): Promise<any>{
     })
 }
 
+/**
+ * Get results from `APL_INVOICES` table query
+ * 
+ * @param BOL 
+ * @returns Promise with err or rows from SQL query
+ */
+function getInv(BOL?:any, INVOICE_NUM?:any): Promise<any>{
+    return new Promise((resolve,reject)=>{
+        if(BOL != undefined && INVOICE_NUM == undefined){
+            db.all("SELECT APL_INVOICES.* FROM APL_INVOICES INNER JOIN APL_WAYBILLS ON APL_INVOICES.BOL = APL_WAYBILLS.BOL WHERE APL_INVOICES.BOL=?", BOL,(err,rows:Array<any>)=>{
+                if(err){
+                    reject(err)
+                }else{
+                    resolve(rows)
+                }
+            });
+        }else if(BOL == undefined && INVOICE_NUM != undefined){
+            console.log("INVOICE NUM: ", INVOICE_NUM)
+            db.all("SELECT * FROM APL_INVOICES WHERE INVOICE_NUM=?", INVOICE_NUM, (err,rows)=>{
+                err?reject(err):resolve(rows);
+            })
+        }
+    })
+}
 
 // ? Cache for Invoice Data (in Memory Cache, volatile)
 let inMemoryCache = new Map();

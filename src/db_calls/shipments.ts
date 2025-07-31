@@ -222,34 +222,27 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
  * ```
  * @param db - SQLITE Database
  * @param MEMBER_NAME - Name of the customer/member of the shipment
- * @returns Resolved Promise
+ * @returns Resolved Promise with {exists: bool, data: rows[]}
 */
 export function getShipmentInvoice(MEMBER_NAME?:any,BOL?:any,id?:any,INVOICE_NUM?:any){
     const response:Promise<Object> = new Promise((resolve,reject)=>{
-        // console.log(MEMBER_NAME)
-        if(INVOICE_NUM == undefined){
-          db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=? AND BOL=? AND SHIPMENT_ID=?', [MEMBER_NAME, BOL, id], (err:any,rows:any)=>{
-            // console.log(rows[0] == undefined)
-            if(rows[0] == undefined){
-              // console.log("No It Doesnt exist")
-              resolve({exists: false, data: rows})
-            }else{
-              // console.log("Yes it exists")
-              resolve({exists: true, data: rows})
-            }
-          })
+
+      function _(err:any,rows:any){
+        if(rows[0] == undefined){
+          resolve({exists: false, data: rows})
         }else{
-          db.all('SELECT * FROM LOCAL_INVOICES WHERE INVOICE_NUM=?', INVOICE_NUM, (err:any,rows:any)=>{
-            // console.log(rows[0] == undefined)
-            if(rows[0] == undefined){
-              // console.log("No It Doesnt exist")
-              resolve({exists: false, data: rows})
-            }else{
-              // console.log("Yes it exists")
-              resolve({exists: true, data: rows})
-            }
-          })
+          resolve({exists: true, data: rows})
         }
+      }
+
+      if(INVOICE_NUM == undefined && MEMBER_NAME && BOL && id){
+        db.all('SELECT * FROM LOCAL_INVOICES WHERE MEMBER_NAME=? AND BOL=? AND SHIPMENT_ID=?', [MEMBER_NAME, BOL, id], _)
+      }else if(INVOICE_NUM && !MEMBER_NAME && !id && !BOL){
+        db.all('SELECT * FROM LOCAL_INVOICES WHERE INVOICE_NUM=?', INVOICE_NUM, _)
+      }else if(BOL && !MEMBER_NAME && !id && !INVOICE_NUM){
+        console.log("BOL")
+        db.all('SELECT * FROM LOCAL_INVOICES WHERE BOL=?', BOL, _)
+      }
     }) 
     return Promise.resolve(response);
 }

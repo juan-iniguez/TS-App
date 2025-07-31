@@ -839,7 +839,29 @@ router.get('/reports/accruals/:startDate/:endDate', async (req,res,next)=>{
         console.error(error);
     }
 })
+router.post('/reports/discountreport',upload.any(), async (req:any,res,next)=>{
+    
+    const csvbuffer:Buffer = req.files![0].buffer;
+    let pulledInvoices:object[] = [];
+    csvtojson()
+    .fromString(csvbuffer.toString())
+    .then(data=>{
+        console.log(data);
+        data.map(async (n)=>{
+            console.log(n.BOL);
+            const shipments:any = await apl.getInv(n.BOL);
+            console.log(shipments);
+            if(shipments.exists){
+                // !! Left off here, Use the pulled Invoice Date to select the Year for the TSP Discount
+                let invoiceDate = shipments.data[0].INVOICE_DATE;
+                // pulledInvoices.push(shipments.data[0]);
+            }
+        })
 
+
+    })
+    res.send();
+})
 
 /**
  * Reports Dashboard Endpoint

@@ -120,9 +120,7 @@ async function submit() {
     let formData = new FormData();
 
     apl_invoice.files[0].arrayBuffer
-
     formData.append("files", apl_invoice.files[0]);
-    formData.append("files", apl_waybill.files[0]);
 
     axios.post('/api/apl-inv-way', formData, {
         'Content-Type': 'multipart/form-data'
