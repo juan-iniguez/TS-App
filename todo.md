@@ -168,3 +168,11 @@ NAMA1243907
 - DATA VALIDATION:
     - Check if Shipments TTL_CF equals the full amount that comes with waybill
     - ISSUE: A waybill from APL had shipments that together did not equal the full TTL_CF Amount. This is problematic because it affects the OCF computer using the TTL_CF on the shipment information.
+
+
+## TODO! 08/25/25
+
+- EDITING
+    - BOL Fields
+- IMPLEMENT INVOICE SUPPLEMENTAL
+- IMPLEMENT USERS PERMISSIONS AND M365
