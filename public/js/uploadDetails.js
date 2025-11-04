@@ -2,6 +2,8 @@
 let formLabels = document.getElementsByClassName('form-label');
 let tabs = document.getElementsByClassName("nav-link");
 let invoice_number = window.location.href.split('/').pop();
+let realTotalCF = 0;
+const waybillImage = document.getElementById('waybill-api-img');
 console.log(invoice_number)
 for(let el of tabs){
     el.addEventListener("click", goToTab)
@@ -43,6 +45,9 @@ axios.post(`/api/apl/inv/${invoice_number}`)
 
     console.log(response.data);
     payload_data = response.data.all;
+
+    waybillImage.src = response.data.api?'/imgs/api.svg':'/imgs/pdf.svg';
+
     confirmDetails(payload_data)
 
 })
@@ -209,6 +214,10 @@ function confirmDetails(data){
                 new_input.value = data.waybill.SHIPMENTS[i][fields_waybill[j]];
             }
 
+            if(fields_waybill[j] == "TTL_CF"){
+                new_input.addEventListener('change',cubicFeetCheck);
+            }
+
             fields_waybill[j] == "SCAC" || fields_waybill[j] == "PIECES"  ? new_input.classList.toggle('sm'): null; 
             new_td.insertAdjacentElement("afterbegin",new_input);
             new_tr.insertAdjacentElement("beforeend", new_td);
@@ -216,6 +225,35 @@ function confirmDetails(data){
         shipments_table.insertAdjacentElement("beforeend", new_tr);
     }
 
+    // ! Sanity checks - Weigths and Square Footage
+    for(let n of data.waybill.SHIPMENTS){
+        realTotalCF += n.TTL_CF 
+    }
+    let cubicFeetField = document.getElementById('CUBIC_FEET-W');
+    cubicFeetField.addEventListener('change', cubicFeetCheck)   
+
+    if(realTotalCF != data.waybill.CUBIC_FEET){
+        cubicFeetField.classList.toggle('err');
+        cubicFeetField.labels[0].classList.toggle('err');
+    }
+}
+
+function cubicFeetCheck(e){
+    console.log("Called")
+    let cubicFeetField = document.getElementById('CUBIC_FEET-W');
+    realTotalCF = 0;
+    for(let i=0;i<payload_data.waybill.SHIPMENTS.length;i++){
+        let ttlcf_input = document.getElementById(`TTL_CF-${i}-W`);
+        realTotalCF += parseInt(ttlcf_input.value);
+    }
+    
+    if(parseInt(cubicFeetField.value) == realTotalCF){
+        cubicFeetField.classList.toggle('err');
+        cubicFeetField.labels[0].classList.toggle('err');
+    }else{
+        cubicFeetField.classList.contains('err')?{}:cubicFeetField.classList.toggle('err');
+        cubicFeetField.labels[0].classList.contains('err')?{}:cubicFeetField.labels[0].classList.toggle('err');
+    }
 }
 
 function toggleWaybill(){
@@ -305,6 +343,19 @@ async function submit_db(){
                 }
             }
         }
+    }
+
+    // ! Checks for Sanity or missing things - WIP
+    // ? Check for Cubic Feet
+    let ttlCF_Final = parseFloat(payload_data_out.waybill.CUBIC_FEET);
+    let ttlCF_Shipments = 0;
+    for(let n of payload_data_out.waybill.SHIPMENTS){
+        ttlCF_Shipments += parseFloat(n.TTL_CF);
+    }
+    if(ttlCF_Final != ttlCF_Shipments){
+        console.error("CUBIC FEET ARE NOT RIGHT")
+        console.log(ttlCF_Final, ttlCF_Shipments);
+        return
     }
 
     axios.post('/api/db-invoice-waybill', payload_data_out).then(res => {

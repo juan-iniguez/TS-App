@@ -2,6 +2,8 @@ import { db } from '../db_init/db_init'
 import { appUtils } from '../utils';
 import chalk from 'chalk';
 
+const calculateRates = false;
+
 export let aplDB = {
   getShipment,
   getShipmentInvoice,
@@ -159,8 +161,12 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
                   // * Refactor the code for the query to include these two columns
 
                   db.all("SELECT OCF,THC_USA,Guam_THC,AMS,RAIL,ISIF,YEAR FROM RATES WHERE ORIGIN=$ORIGIN AND DESTINATION=$DESTINATION AND CONT_SIZE=$CONT_SIZE AND YEAR=$YEAR", rate_query,(err:any,rows2:any)=>{
+                    // DEBUG: RATES PULLED FROM QUERY
                     console.log(rows2)
+
+                    // RATE MEMORY
                     let rate = rows2[0];
+                    
                     // INITIALIZE `RATES`
                     data_payload.RATES = {};
                     data_payload.RATES.TOTAL = 0;
@@ -170,22 +176,61 @@ export function getShipment(data_payload:any, MEMBER_NAME:any, BOL:any, id:any){
 
                     console.log(chalk.bgWhite("Start Rates Calculations: "))
 
-                    data_payload.RATES.OCF = rate.OCF;
-                    data_payload.RATES.THC_USA = rate.THC_USA;
-                    data_payload.RATES.Guam_THC = rate.Guam_THC;
-                    data_payload.RATES.AMS = rate.AMS;
-                    data_payload.RATES.RAIL = rate.RAIL;
-                    data_payload.RATES.ISIF = rate.ISIF;
-                    data_payload.RATES.YEAR = rate.YEAR;
+                    // If we are going to calculate rates, we will use the rates that were pulled.
+                    // Else, we are going to use the ones from the invoice
+                    let originalCharges = JSON.parse(rows[0].CHARGES);
+                    console.log("ORIGINAL CHARGES");
+                    console.log(originalCharges);
+                    if(calculateRates){
+                      data_payload.RATES.OCF = rate.OCF;
+                      data_payload.RATES.THC_USA = rate.THC_USA;
+                      data_payload.RATES.Guam_THC = rate.Guam_THC;
+                      data_payload.RATES.AMS = rate.AMS;
+                      data_payload.RATES.RAIL = rate.RAIL;
+                      data_payload.RATES.ISIF = rate.ISIF;
+                      data_payload.RATES.YEAR = rate.YEAR;
+                    }else{
+                      // Initialize Rates
+                      data_payload.RATES.OCF = 0;
+                      data_payload.RATES.THC_USA = 0;
+                      data_payload.RATES.Guam_THC = 0;
+                      data_payload.RATES.AMS = 0;
+                      data_payload.RATES.RAIL = 0;
+                      data_payload.RATES.ISIF = 0;
+                      data_payload.RATES.YEAR = 0;
+
+                      for(let n of originalCharges){
+                        console.log(n.DESC);
+
+                        if(n.DESC.includes('BASIC FREIGHT') || n.DESC.includes('Basic Ocean Freight')){
+                          data_payload.RATES.OCF =  parseInt(n.AMOUNT);
+                        }else if(n.DESC.includes('Terminal handl. ch')){
+                          data_payload.RATES.Guam_THC = parseInt(n.AMOUNT);
+                        }else if(n.DESC.includes('origin')){
+                          data_payload.RATES.THC_USA = parseInt(n.AMOUNT); 
+                        }else if(n.DESC.includes('Container inspection fees')){
+                          data_payload.RATES.ISIF = parseInt(n.AMOUNT);
+                        }else if(n.DESC.includes('Pre carriage haulage')){
+                          data_payload.RATES.RAIL = parseInt(n.AMOUNT);
+                        }else if(n.DESC.includes('Export Declaration Surcharge') || n.DESC.includes('Advanced Manifest Declaration Fee')){
+                          data_payload.RATES.AMS = parseInt(n.AMOUNT);
+                        }
+                      }
+                      data_payload.RATES.YEAR = rate.YEAR;
+
+
+
+                    }
+
                     
                     for(let n in data_payload.RATES){
                       if(n == "YEAR" || n == "TOTAL"){continue};
-                      data_payload.NET_RATES[n] = rate[n] * data_payload.BASED_ON;
+                      data_payload.NET_RATES[n] = data_payload.RATES[n] * data_payload.BASED_ON;
                       console.log(n);
-                      console.log(data_payload.RATES.TOTAL + rate[n]);
-                      console.log(data_payload.RATES.TOTAL,rate[n]);
-                      data_payload.RATES.TOTAL += rate[n];
-                      data_payload.NET_RATES.TOTAL += rate[n] * data_payload.BASED_ON;
+                      console.log(data_payload.RATES.TOTAL + data_payload.RATES[n]);
+                      console.log(data_payload.RATES.TOTAL,data_payload.RATES[n]);
+                      data_payload.RATES.TOTAL += data_payload.RATES[n];
+                      data_payload.NET_RATES.TOTAL += data_payload.RATES[n] * data_payload.BASED_ON;
                     }
 
                     JSON.parse(rows[0].CHARGES).map((e:any)=>{

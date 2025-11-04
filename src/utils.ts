@@ -3,7 +3,8 @@ export let appUtils = {
     json2csv,
     InvoiceApi2localformat,
     findRateYear,
-    renameForCSV
+    renameForCSV,
+    WaybillApi2localformat
 }
 
 /**
@@ -96,6 +97,242 @@ function InvoiceApi2localformat(inv_data:any){
         return error
     }
 }
+
+type APL_Waybill = {
+    "transportDocumentReference": string,
+    "transportDocumentSubReference": string,
+    "transportDocumentStatus": string,
+    "transportDocumentTypeCode": string,
+    "isShippedOnBoardType": boolean,
+    "isElectronic": boolean,
+    "isToOrder": boolean,
+    "numberOfCopiesWithCharges": number,
+    "numberOfCopiesWithoutCharges": number,
+    "numberOfOriginalsWithCharges": number,
+    "numberOfOriginalsWithoutCharges": number,
+    "displayedNameForPortOfLoad": string[],
+    "displayedNameForPortOfDischarge": string[],
+    "displayedNameForPlaceOfDelivery": string[],
+    "displayedNameForPlaceOfReceipt": string[],
+    "shippedOnBoardDate": string,
+    "termsAndConditions": string,
+    "receiptTypeAtOrigin": string,
+    "issueDate": string,
+    "receivedForShipmentDate": string,
+    "serviceContractReference": string,
+    "carrierCode": string,
+    "carrierCodeListProvider": string,
+    "carrierClauses": string[],
+    "transports": {
+        "plannedArrivalDate": string,
+        "plannedDepartureDate": string,
+        "placeOfReceipt": {
+            "locationName": string,
+            "UNLocationCode": string
+        }
+        "portOfLoading": {
+            "locationName": string,
+            "UNLocationCode": string
+        },
+        "portOfDischarge": {
+            "locationName": string,
+            "UNLocationCode": string
+        },
+        "placeOfDelivery": {
+            "locationName": string,
+            "UNLocationCode": string
+        },
+        "vesselVoyages": [
+            {
+                "vesselName": string,
+                "carrierExportVoyageNumber": string
+            }
+        ]
+    },
+    "placeOfIssue": {
+        "UNLocationCode": string,
+        "locationName": string
+    },
+    "invoicePayableAt": {
+        "UNLocationCode": string,
+        "locationName": string
+    },
+    "documentParties": {
+        "shipper": {
+            "partyName": string,
+            "address": {
+                "street": string,
+                "streetNumber": string
+            }
+        },
+        "consignee": {
+            "partyName": string,
+            "address": {
+                "street": string,
+                "streetNumber": string
+            }
+        },
+        "notifyParties": [
+            {
+                "partyName": string,
+                "address": {
+                    "street": string,
+                    "streetNumber": string
+                }
+            }
+        ],
+        "other": [
+            {
+                "party": {
+                    "partyName": string,
+                    "address": {
+                        "street": string,
+                        "streetNumber": string,
+                        "postCode": string,
+                        "city": string,
+                        "countryCode": string
+                    }
+                },
+                "partyFunction": string
+            }
+        ]
+    },
+    "consignmentItems": [
+        {
+            "carrierBookingReference": string,
+            "descriptionOfGoods": string[],
+            "HSCodes": [
+                string
+            ],
+            "shippingMarks": [],
+            "cargoItems": [
+                {
+                    "equipmentReference": string,
+                    "cargoGrossWeight": {
+                        "value": number,
+                        "unit": string
+                    },
+                    "cargoGrossVolume": {
+                        "value": number,
+                        "unit": string
+                    },
+                    "cargoNetWeight": {
+                        "value": number,
+                        "unit": string
+                    },
+                    "cargoNetVolume": {
+                        "value": number,
+                        "unit": string
+                    }
+                }
+            ]
+        }
+    ],
+    "utilizedTransportEquipments": [
+        {
+            "equipment": {
+                "equipmentReference": string,
+                "ISOEquipmentCode": string,
+                "tareWeight": {
+                    "value": number,
+                    "unit": string
+                }
+            },
+            "isShipperOwned": boolean,
+            "isNonOperatingReefer": boolean,
+            "shippingMarks": string[],
+            "seals": [
+                {
+                    "number": string,
+                    "source": string
+                }
+            ]
+        }
+    ]
+}
+
+/**
+ * 
+ * Format what comes from API to local DB format
+ * 
+ * @param wayData 
+ */
+function WaybillApi2localformat(wayData:APL_Waybill){
+
+    type waybillShipment = {
+        PIECES: string,
+        SM: string,
+        SCAC: string,
+        GBL: string,
+        WEIGHT_LBS: number,
+        TTL_CF: number,
+        RDD: string | null,
+        NET: number,
+    }
+
+    type localWaybill = {
+        BOL: string,
+        VESSEL: string,
+        CONT_SIZE: string | null,
+        CONT_NUM: string | null,
+        CODE: string | null,
+        SERIAL_NUM: string,
+        WEIGHT_LBS: number,
+        CUBIC_FEET: number,
+        ETD: string | null,
+        ETA: string | null,
+        SHIPMENTS:waybillShipment[] | null
+    }
+
+    let waybillFormatted:localWaybill = {
+        BOL: wayData.transportDocumentReference,
+        VESSEL: wayData.transports.vesselVoyages[0].vesselName,
+        CONT_SIZE: null,
+        CONT_NUM: null,
+        CODE: wayData.consignmentItems[0].HSCodes[0] || null,
+        SERIAL_NUM: wayData.utilizedTransportEquipments[0].seals[0].number,
+        WEIGHT_LBS: wayData.consignmentItems[0].cargoItems[0].cargoGrossWeight.value,
+        CUBIC_FEET: wayData.consignmentItems[0].cargoItems[0].cargoGrossVolume.value,
+        ETD: null,
+        ETA: null,
+        SHIPMENTS: []
+    }
+
+    // Parse the API response Shipping Marks
+    let newWaybillShipment:any;
+    for(let x of wayData.utilizedTransportEquipments[0].shippingMarks){
+        if(!x){
+            newWaybillShipment?waybillFormatted.SHIPMENTS?.push(newWaybillShipment):{};
+            newWaybillShipment = null;
+            continue
+        };
+        console.log(x);
+        if(x.includes('LVNS') || x.includes('HOUSEHOLD GOODS AND PERSONAL EFFECTS')){
+            continue;
+        }else if(x.includes('SCAC:') || x.includes('SM:')){
+            newWaybillShipment = {};
+            (newWaybillShipment as waybillShipment).PIECES = x.split("SM:")[0].trim();
+            (newWaybillShipment as waybillShipment).SM = x.split("SM:")[1].split("SCAC:")[0].trim();
+            if(!x.includes('SCAC:')){continue}
+            (newWaybillShipment as waybillShipment).SCAC = x.split("SCAC:")[1].split("(")[1].slice(0,-1);
+        }else if(x.includes('GBL:')){
+            (newWaybillShipment as waybillShipment).GBL = x.split("GBL:")[1].split(" ")[0];
+            (newWaybillShipment as waybillShipment).WEIGHT_LBS = parseInt(x.split("LB")[0].split(" ")[1]);
+            (newWaybillShipment as waybillShipment).TTL_CF = parseInt(x.split(" ")[x.split(" ").length - 1].split("CF")[0]);
+        }else if(x.includes('NET:')){
+            (newWaybillShipment as waybillShipment).RDD = x.includes("RDD:")?x.split('RDD:')[1].split('NET:')[0].trim():"N/A";
+            (newWaybillShipment as waybillShipment).NET = parseInt(x.split("NET:")[1].trim());
+        }else if(x.includes('ETD:')){
+            waybillFormatted.ETD = x.split("ETD:")[1];
+        }else if(x.includes('ETA:')){
+            waybillFormatted.ETA = x.split("ETA:")[1];
+        }
+    }
+
+    return waybillFormatted;
+
+}
+
 
 /**
  * 

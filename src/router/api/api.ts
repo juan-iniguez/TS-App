@@ -54,7 +54,7 @@ router.post('/apl-inv-way',(req:any, res, next) => {
 
         // Get both files from the formData and save them to the Folder
         for (let i in incoming_pdf) {
-            fs.writeFileSync(path.join("public/pdf/" + incoming_pdf[i].originalFilename!), fs.readFileSync(incoming_pdf[i].filepath));
+            fs.writeFileSync(path.join("public/pdf/" + incoming_pdf[i].originalFilename!), fs.readFileSync(incoming_pdf[i].filepath) as Uint8Array);
             fs.rmSync(incoming_pdf[i].filepath)
             file_addr.push("public/pdf/" + incoming_pdf[i].originalFilename!);
             // console.table(file_addr)
@@ -719,11 +719,58 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
     function getInvAPL(){
         apl.getInvoiceData(req.params.invoice_num)
         .then(invData=>{
-            getWayAPL(invData)
+
+            // API Endpoint call for Waybill Data as JSON formatted response
+            getWaybillAPI(invData);
+
+            // ? Obsolete : APL Update endpoint for JSON data API call.
+            // getWayAPL(invData)
         })
         .catch(err=>{
             res.send(err)
         })
+    }
+
+    function getWaybillAPI(invData:any){
+        apl.getWaybillData(invData.invoice.transportDocumentReference)
+        .then(wayData=>{
+
+            // Format JSON Waybill response to local format ready for DB
+
+            let payload = {
+                all:{
+                    waybill:appUtils.WaybillApi2localformat(wayData as any),
+                    invoice: appUtils.InvoiceApi2localformat(invData),
+                },
+                api: true
+            }
+
+            payload.all.waybill.CONT_NUM = payload.all.invoice.CONT_NUM;
+            payload.all.waybill.CONT_SIZE = payload.all.invoice.CONT_SIZE;
+
+            // Peek is whether you need to only send the invoice num for it to auto populate
+            // or you need to return the entire payload (Waybill, Invoice)
+            if(req.body.peek){
+                res.send({
+                    status:"OK",
+                    invoice_number: req.params.invoice_num,
+                })
+            }else{
+                res.send(payload);
+            }
+
+
+
+        })
+        .catch(err=>{
+            console.log("Error in API Response")
+            console.log(err);
+            // ! LOG ERROR 
+            fs.appendFileSync(__dirname + '/../../../logs/www/log.txt', `-- API Error \nInvoice: ${req.params.invoice_num} Waybill: ${invData.invoice.transportDocumentReference}\n${JSON.stringify(err)}`)
+            
+            // Backup in case API can't get API endpoint, it gets the Waybill info from the PDF
+            getWayAPL(invData)
+        });
     }
 
     // Then get Waybill PDF copy from APL API
@@ -735,7 +782,7 @@ router.post('/apl/inv/:invoice_num', (req,res,next)=>{
                 
                 let payload = {...waybillData}
                 payload.all.invoice = appUtils.InvoiceApi2localformat(invData);
-                
+                payload.api = false;
                 // Peek is whether you need to only send the invoice num for it to auto populate
                 // or you need to return the entire payload (Waybill, Invoice)
                 if(req.body.peek){

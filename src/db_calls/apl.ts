@@ -10,6 +10,7 @@ export const apl = {
     checkInv,
     getWaybillPDF,
     getInvoiceData,
+    getWaybillData,
 }
 
 /**
@@ -160,6 +161,39 @@ function getWaybillPDF(BOL:any){
             })
         })
     }) 
+}
+
+/**
+ * Get Waybill Data from Endpoint as JSON response
+ * 
+ * @param BOL
+ */
+function getWaybillData(BOL:any){
+    return new Promise((resolve,reject)=>{
+        if(inMemoryCache.get(BOL)){
+            resolve(inMemoryCache.get(BOL))
+            return
+        }
+
+        oauth.getTokenInv('bldata:read:be').then((token:any)=>{
+            axios.get(`https://apis.cma-cgm.net/shipping/shipment/billoflading/v3/transport-documents/${BOL}`,{
+                headers:{
+                    "Authorization": "Bearer " + token,
+                }
+            })
+            .then(response=>{
+                // * CACHE THE DATA
+                let wayData = response.data;
+                setCacheToExpire(BOL,wayData);
+                resolve(wayData);
+            })
+            .catch(err=>{
+                reject(err.response.data)
+            })
+        })
+
+        
+    })
 }
 
 /**
