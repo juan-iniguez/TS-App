@@ -313,12 +313,20 @@ function WaybillApi2localformat(wayData:APL_Waybill){
             newWaybillShipment = {};
             (newWaybillShipment as waybillShipment).PIECES = x.split("SM:")[0].trim();
             (newWaybillShipment as waybillShipment).SM = x.split("SM:")[1].split("SCAC:")[0].trim();
-            if(!x.includes('SCAC:')){continue}
-            (newWaybillShipment as waybillShipment).SCAC = x.split("SCAC:")[1].split("(")[1].slice(0,-1);
-        }else if(x.includes('GBL:')){
-            (newWaybillShipment as waybillShipment).GBL = x.split("GBL:")[1].split(" ")[0];
-            (newWaybillShipment as waybillShipment).WEIGHT_LBS = parseInt(x.split("LB")[0].split(" ")[1]);
-            (newWaybillShipment as waybillShipment).TTL_CF = parseInt(x.split(" ")[x.split(" ").length - 1].split("CF")[0]);
+            if(!x.includes('SCAC:')){
+                (newWaybillShipment as waybillShipment).SCAC = 'N/A'
+            }else{
+                (newWaybillShipment as waybillShipment).SCAC = x.split("SCAC:")[1].split("(")[1].slice(0,-1);
+            }
+        }else if(x.includes('GBL:')|| x.includes('CF')){
+            console.log(x);
+            (newWaybillShipment as waybillShipment).GBL = x.includes('GBL:')?x.split("GBL:")[1].split(" ")[0]:'N/A';
+            if(!x.includes('GBL:')){
+                (newWaybillShipment as waybillShipment).WEIGHT_LBS = x.includes('LB')?parseInt(x.split("LB")[0].replace(',','')):0;
+            }else{
+                (newWaybillShipment as waybillShipment).WEIGHT_LBS = x.includes('LB')?parseInt(x.replace(',','').split("LB")[0].split(" ")[1]):0;
+            }
+            (newWaybillShipment as waybillShipment).TTL_CF = x.includes('CF')?parseInt(x.split(" ")[x.split(" ").length - 1].split("CF")[0]):0;
         }else if(x.includes('NET:')){
             (newWaybillShipment as waybillShipment).RDD = x.includes("RDD:")?x.split('RDD:')[1].split('NET:')[0].trim():"N/A";
             (newWaybillShipment as waybillShipment).NET = parseInt(x.split("NET:")[1].trim());
