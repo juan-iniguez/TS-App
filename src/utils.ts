@@ -329,7 +329,8 @@ function WaybillApi2localformat(wayData:APL_Waybill){
             (newWaybillShipment as waybillShipment).TTL_CF = x.includes('CF')?parseInt(x.split(" ")[x.split(" ").length - 1].split("CF")[0]):0;
         }else if(x.includes('NET:')){
             (newWaybillShipment as waybillShipment).RDD = x.includes("RDD:")?x.split('RDD:')[1].split('NET:')[0].trim():"N/A";
-            (newWaybillShipment as waybillShipment).NET = parseInt(x.split("NET:")[1].trim());
+            // !!!!!! FIX THE NET COMMA ISSUE
+            (newWaybillShipment as waybillShipment).NET = parseInt(x.replace(',','').split("NET:")[1].trim());
         }else if(x.includes('ETD:')){
             waybillFormatted.ETD = x.split("ETD:")[1];
         }else if(x.includes('ETA:')){
